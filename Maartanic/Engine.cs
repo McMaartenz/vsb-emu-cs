@@ -192,7 +192,7 @@ namespace Maartanic
 						break;
 
 					case "NEW":
-						if (predefinedVariables.ContainsKey(args[0]))
+						if (predefinedVariables.ContainsKey(args[0][1..]))
 						{
 							SendMessage(Level.ERR, $"Variable {args[0]} is a predefined variable and cannot be declared.");
 							break;
@@ -321,6 +321,17 @@ namespace Maartanic
 							{
 								SendMessage(Level.ERR, "Could not find a spot to jump to.");
 							}
+						}
+						break;
+
+					case "SET":
+						if (localMemory.ContainsKey(args[0]))
+						{
+							localMemory[args[0]] = args[1];
+						}
+						else
+						{
+							SendMessage(Level.ERR, $"The variable {args[0]} does not exist.");
 						}
 						break;
 
