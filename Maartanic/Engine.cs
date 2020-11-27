@@ -348,12 +348,47 @@ namespace Maartanic
 						}
 						break;
 
+					case "ADD":
+						if (args.Length > 2)
+						{
+							string tmp = Convert.ToString(Convert.ToInt32(args[1]) + Convert.ToInt32(args[2])); // it works just leave it
+							if (!SetVariable(args[0], ref tmp))
+							{
+								SendMessage(Level.ERR, $"Could not perform addition to the variable {tmp}.");
+							}
+						}
+						else
+						{
+							string tmp1 = "$" + args[0];
+							LocalMemoryGet(ref tmp1);
+							string tmp = Convert.ToString(Convert.ToInt32(tmp1) + Convert.ToInt32(args[1]));
+							if (!SetVariable(args[0], ref tmp))
+							{
+								SendMessage(Level.ERR, $"Could not perform addition to the variable {tmp}.");
+							}
+						}
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
 				}
 			}
 			sr.Close();
+		}
+
+		private bool SetVariable(string varName, ref string newData)
+		{
+			if (localMemory.ContainsKey(varName))
+			{
+				localMemory[varName] = newData;
+			}
+			else
+			{
+				SendMessage(Level.ERR, $"The variable {varName} does not exist.");
+				return false; // failed
+			}
+			return true; // success
 		}
 
 		private void LocalMemoryGet(ref string varName)
