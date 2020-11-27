@@ -351,20 +351,18 @@ namespace Maartanic
 					case "ADD":
 						if (args.Length > 2)
 						{
-							string tmp = Convert.ToString(Convert.ToInt32(args[1]) + Convert.ToInt32(args[2])); // it works just leave it
+							string tmp = Convert.ToString(MathOperation('+', args[0], args[1], args[2]));
 							if (!SetVariable(args[0], ref tmp))
 							{
-								SendMessage(Level.ERR, $"Could not perform addition to the variable {tmp}.");
+								SendMessage(Level.ERR, $"Could not perform addition to the variable {args[0]}.");
 							}
 						}
 						else
 						{
-							string tmp1 = "$" + args[0];
-							LocalMemoryGet(ref tmp1);
-							string tmp = Convert.ToString(Convert.ToInt32(tmp1) + Convert.ToInt32(args[1]));
+							string tmp = Convert.ToString(MathOperation('+', args[0], args[1]));
 							if (!SetVariable(args[0], ref tmp))
 							{
-								SendMessage(Level.ERR, $"Could not perform addition to the variable {tmp}.");
+								SendMessage(Level.ERR, $"Could not perform addition to the variable {args[0]}.");
 							}
 						}
 						break;
@@ -375,6 +373,40 @@ namespace Maartanic
 				}
 			}
 			sr.Close();
+		}
+
+		private double MathOperation(char op, string destination, string number, string optnumber = null)
+		{
+			double num1, num2;
+			if (optnumber == null)
+			{
+				string tmp1 = "$" + destination;
+				LocalMemoryGet(ref tmp1);
+				num1 = Convert.ToDouble(tmp1);
+				num2 = Convert.ToDouble(number);
+			}
+			else
+			{
+				num1 = Convert.ToDouble(number);
+				num2 = Convert.ToDouble(optnumber);
+			}
+
+			switch (op)
+			{
+				case '+':
+					return num1 + num2;
+				case '-':
+					return num1 - num2;
+				case '*':
+					return num1 * num2;
+				case '/':
+					return num1 / num2;
+				case '%':
+					return num1 % num2;
+				default:
+					SendMessage(Level.ERR, $"Invalid operator {op} used");
+					return 0.0d;
+			}
 		}
 
 		private bool SetVariable(string varName, ref string newData)
