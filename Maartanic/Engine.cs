@@ -20,8 +20,8 @@ namespace Maartanic
 
 		private enum Level
 		{
-			INFO,
-			WARN,
+			INF,
+			WRN,
 			ERR
 		}
 
@@ -64,16 +64,46 @@ namespace Maartanic
 				switch ((int) a)
 				{
 					case 0:
-						Console.WriteLine("MRT INFO line {0}: {1}", lineIndex, message);
+						Console.Write("\nMRT INF line {0}: {1}", lineIndex, message);
 						break;
 					case 1:
-						Console.WriteLine("MRT WARN line {0}: {1}", lineIndex, message);
+						Console.Write("\nMRT WRN line {0}: {1}", lineIndex, message);
 						break;
 					case 2:
-						Console.WriteLine("MRT ERR line {0}: {1}", lineIndex, message);
+						Console.Write("\nMRT ERR line {0}: {1}", lineIndex, message);
 						break;
 				}
 			}	
+		}
+
+		public bool LineCheck(ref string[] lineInfo, ref int lineIndex)
+		{
+			if (line == null)
+			{
+				SendMessage(Level.ERR, "Unexpected NULL");
+				line = "";
+			}
+			lineInfo = line.Trim().Split(' ');
+
+			// Check if empty
+			if (lineInfo.Length > 0)
+			{
+				if (lineInfo[0].Length > 0)
+				{
+					char x = lineInfo[0][0];
+					if (x == ';') // A wild comment appeared!
+					{
+						lineIndex++;
+						return true;
+					}
+				}
+			}
+			else
+			{
+				lineIndex++;
+				return true;
+			}
+			return false;
 		}
 
 		public void StartExecution(int logLevelIN)
@@ -88,29 +118,8 @@ namespace Maartanic
 			}
 			while ((line = sr.ReadLine()) != null)
 			{
-				if (line == null)
+				if (LineCheck(ref lineInfo, ref lineIndex))
 				{
-					SendMessage(Level.ERR, "Unexpected NULL");
-					line = "";
-				}
-				lineInfo = line.Trim().Split(' ');
-
-				// Check if empty
-				if (lineInfo.Length > 0)
-				{
-					if (lineInfo[0].Length > 0)
-					{
-						char x = lineInfo[0][0];
-						if (x == ';') // A wild comment appeared!
-						{
-							lineIndex++;
-							continue;
-						}
-					}
-				}
-				else
-				{
-					lineIndex++;
 					continue;
 				}
 
@@ -121,7 +130,7 @@ namespace Maartanic
 					case "PRINT":
 						if (lineInfo.Length == 1)
 						{
-							SendMessage(Level.WARN, "No arguments given to print.");
+							SendMessage(Level.WRN, "No arguments given to print.");
 							break;
 						}
 						Console.Write('\n');
@@ -134,7 +143,7 @@ namespace Maartanic
 					case "OUT":
 						if (lineInfo.Length == 1)
 						{
-							SendMessage(Level.WARN, "No arguments given to OUT. OUT does absolutely nothing without an argument.");
+							SendMessage(Level.WRN, "No arguments given to OUT. OUT does absolutely nothing without an argument.");
 							break;
 						}
 						foreach (string arg in ExtractArgs(ref lineInfo))
@@ -146,7 +155,7 @@ namespace Maartanic
 					case "ENDDEF": // Possible end-of-function
 						if (lineInfo[1] == entryPoint)
 						{
-							SendMessage(Level.INFO, "End of definition");
+							SendMessage(Level.INF, "End of definition");
 							return;
 						}
 						else
@@ -184,7 +193,7 @@ namespace Maartanic
 						}
 						if (localMemory.ContainsKey(args[0]))
 						{
-							SendMessage(Level.WARN, $"Variable {args[0]} already exists.");
+							SendMessage(Level.WRN, $"Variable {args[0]} already exists.");
 							localMemory[args[0]] = args.Length > 1 ? args[1] : "0";
 						}
 						else
@@ -195,9 +204,119 @@ namespace Maartanic
 
 					case "IF":
 						{ // local scope to make variables defined here local to this scope!
-							if (args.Length > 1)
+							string statement = args.Length > 1 ? args[1] : args[0];
+							bool result;
+							bool invertStatement = args.Length > 1 && args[0] == "NOT";
+							if (statement == "1" || statement == "true")
+							{
+								result = true;
+							}
+							else
+							{
+								result = localMemory.ContainsKey(statement);
+							}
+							if (result)
 							{
 
+							}
+							else
+							{
+								int scope = 0;
+								bool success = false;
+								int ifLineIndex = 0;
+								string[] cLineInfo = null;
+								StreamReader ifsr = new StreamReader(scriptFile);
+								while ((line = ifsr.ReadLine()) != null)
+								{
+									if (LineCheck(ref cLineInfo, ref ifLineIndex))
+									{
+										continue;
+									}
+									if (ifLineIndex > lineIndex)
+									{										
+										if ((cLineInfo[0].ToUpper() == "ELSE" || cLineInfo[0].ToUpper() == "ENDIF") && scope == 0)
+										{
+											success = true;
+											break;
+										}
+										if (cLineInfo[0].ToUpper() == "IF")
+										{
+											scope++;
+										}
+										if (cLineInfo[0].ToUpper() == "ENDIF")
+										{
+											scope--;
+										}
+									}
+									ifLineIndex++;
+								}
+								if (success)
+								{
+									for (int i = lineIndex; i < ifLineIndex; i++)
+									{
+										if ((line = sr.ReadLine()) == null)
+										{
+											break; // safety protection?
+										}
+									}
+									lineIndex = ifLineIndex;
+								}
+								else
+								{
+									SendMessage(Level.ERR, "Could not find a spot to jump to.");
+								}
+							}
+						}
+						break;
+
+					case "ENDIF": // To be ignored
+						break;
+
+					case "ELSE": // TODO When this appears, the engine should jump to ENDIF.
+						{
+							int scope = 0;
+							bool success = false;
+							int endifLineIndex = 0;
+							string[] cLineInfo = null;
+							StreamReader endifsr = new StreamReader(scriptFile);
+							while ((line = endifsr.ReadLine()) != null)
+							{
+								if (LineCheck(ref cLineInfo, ref endifLineIndex))
+								{
+									continue;
+								}
+								if (endifLineIndex > lineIndex)
+								{
+									if (cLineInfo[0].ToUpper() == "ENDIF" && scope == 0)
+									{
+										success = true;
+										break;
+									}
+									if (cLineInfo[0].ToUpper() == "IF")
+									{
+										scope++;
+									}
+									if (cLineInfo[0].ToUpper() == "ENDIF")
+									{
+										scope--;
+									}
+								}
+								endifLineIndex++;
+							}
+							if (success)
+							{
+								for (int i = lineIndex; i < endifLineIndex; i++)
+								{
+									if ((line = sr.ReadLine()) == null)
+									{
+										break; // safety protection?
+									}
+								}
+								lineIndex = endifLineIndex;
+							}
+							else
+							{
+								SendMessage(Level.ERR, "Could not find a spot to jump to.");
 							}
 						}
 						break;
@@ -211,16 +330,19 @@ namespace Maartanic
 			sr.Close();
 		}
 
-		private void LocalMemoryGet(ref List<string> varName, ref int index)
+		private void LocalMemoryGet(ref string varName)
 		{
-			if (localMemory.ContainsKey(varName[index][1..]))
+			if (varName[0] == '$')
 			{
-				varName[index] = localMemory[varName[index][1..]];
-			}
-			else
-			{
-				SendMessage(Level.ERR, $"The variable {varName[index][1..]} does not exist.");
-				varName[index] = "NULL";
+				if (localMemory.ContainsKey(varName[1..]))
+				{
+					varName = localMemory[varName[1..]];
+				}
+				else
+				{
+					SendMessage(Level.ERR, $"The variable {varName[1..]} does not exist.");
+					varName = "NULL";
+				}
 			}
 		}
 
@@ -230,6 +352,10 @@ namespace Maartanic
 			for (int i = 1; i < lineInfo.Length; i++)
 			{
 				combined += ' ' + lineInfo[i];
+			}
+			if (combined.Length < 1)
+			{
+				return null;
 			}
 			combined = combined[1..]; // Exclude first space
 
@@ -291,11 +417,12 @@ namespace Maartanic
 				}
 			}
 
-			for (int i = 0; i < newCombinedList.Count; i++)
-			{
-				if (newCombinedList[i][0] == '$')
+			{ // Make scope
+				string tmp;
+				for (int i = 0; i < newCombinedList.Count; i++)
 				{
-					LocalMemoryGet(ref newCombinedList, ref i);
+					tmp = newCombinedList[i];
+					LocalMemoryGet(ref tmp);
 				}
 			}
 
