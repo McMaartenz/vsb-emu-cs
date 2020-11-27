@@ -25,6 +25,12 @@ namespace Maartanic
 			ERR
 		}
 
+		private void FillPredefinedList()
+		{
+			predefinedVariables.Add("ww", (Func<string>)(() => Convert.ToString(Console.WindowWidth)));
+			predefinedVariables.Add("wh", (Func<string>)(() => Convert.ToString(Console.WindowHeight)));
+		}
+
 		public Engine(string startPos)
 		{
 			executable = File.Exists(startPos);
@@ -33,7 +39,7 @@ namespace Maartanic
 				Console.WriteLine($"The file {startPos} does not exist.");
 				return;
 			}
-
+			FillPredefinedList();
 			scriptFile = startPos;
 		}
 
@@ -331,14 +337,24 @@ namespace Maartanic
 		{
 			if (varName[0] == '$')
 			{
-				if (localMemory.ContainsKey(varName[1..]))
+				if (varName[1] == '_')
 				{
-					varName = localMemory[varName[1..]];
+					if (predefinedVariables.ContainsKey(varName[2..]))
+					{
+						varName = (string) predefinedVariables[varName[2..]].DynamicInvoke();
+					}
 				}
 				else
 				{
-					SendMessage(Level.ERR, $"The variable {varName[1..]} does not exist.");
-					varName = "NULL";
+					if (localMemory.ContainsKey(varName[1..]))
+					{
+						varName = localMemory[varName[1..]];
+					}
+					else
+					{
+						SendMessage(Level.ERR, $"The variable {varName[1..]} does not exist.");
+						varName = "NULL";
+					}
 				}
 			}
 		}
@@ -420,6 +436,7 @@ namespace Maartanic
 				{
 					tmp = newCombinedList[i];
 					LocalMemoryGet(ref tmp);
+					newCombinedList[i] = tmp;
 				}
 			}
 
