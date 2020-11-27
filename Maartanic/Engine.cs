@@ -215,11 +215,8 @@ namespace Maartanic
 							{
 								result = localMemory.ContainsKey(statement);
 							}
-							if (result)
-							{
-
-							}
-							else
+							result = invertStatement ? !result : result;
+							if (!result)
 							{
 								int scope = 0;
 								bool success = false;
