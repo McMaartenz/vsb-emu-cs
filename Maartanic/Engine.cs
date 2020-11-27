@@ -348,22 +348,37 @@ namespace Maartanic
 						}
 						break;
 
-					case "ADD":
-						if (args.Length > 2)
+					case "ADD": // Pass arg[2] if it exists else ignore it
 						{
-							string tmp = Convert.ToString(MathOperation('+', args[0], args[1], args[2]));
-							if (!SetVariable(args[0], ref tmp))
-							{
-								SendMessage(Level.ERR, $"Could not perform addition to the variable {args[0]}.");
-							}
+							string tmp = Convert.ToString(MathOperation('+', args[0], args[1], args.Length > 2 ? args[2] : null));
+							SetVariable(args[0], ref tmp);
 						}
-						else
+						break;
+
+					case "SUB":
 						{
-							string tmp = Convert.ToString(MathOperation('+', args[0], args[1]));
-							if (!SetVariable(args[0], ref tmp))
-							{
-								SendMessage(Level.ERR, $"Could not perform addition to the variable {args[0]}.");
-							}
+							string tmp = Convert.ToString(MathOperation('-', args[0], args[1], args.Length > 2 ? args[2] : null));
+							SetVariable(args[0], ref tmp);
+						}
+						break;
+
+					case "DIV":
+						{
+							string tmp = Convert.ToString(MathOperation('/', args[0], args[1], args.Length > 2 ? args[2] : null));
+							SetVariable(args[0], ref tmp);
+						}
+						break;
+
+					case "MUL":
+						{
+							string tmp = Convert.ToString(MathOperation('*', args[0], args[1], args.Length > 2 ? args[2] : null));
+							SetVariable(args[0], ref tmp);
+						}
+						break;
+
+					case "CMPR":
+						{
+
 						}
 						break;
 
@@ -372,7 +387,7 @@ namespace Maartanic
 						break;
 				}
 			}
-			sr.Close();
+			sr.Close(); // Close StreamReader after execution
 		}
 
 		private double MathOperation(char op, string destination, string number, string optnumber = null)
@@ -409,7 +424,7 @@ namespace Maartanic
 			}
 		}
 
-		private bool SetVariable(string varName, ref string newData)
+		private void SetVariable(string varName, ref string newData)
 		{
 			if (localMemory.ContainsKey(varName))
 			{
@@ -418,9 +433,7 @@ namespace Maartanic
 			else
 			{
 				SendMessage(Level.ERR, $"The variable {varName} does not exist.");
-				return false; // failed
 			}
-			return true; // success
 		}
 
 		private void LocalMemoryGet(ref string varName)
