@@ -6,6 +6,8 @@ namespace Maartanic
 {
 	class Engine
 	{
+		// TODO: Fix compare stuff, important!
+
 		private bool executable;
 		private string line;
 		private int lineIndex;
@@ -14,6 +16,7 @@ namespace Maartanic
 		private string entryPoint = "main";
 		private int logLevel;
 		private StreamReader sr;
+		private bool compareOutput = false;
 
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
 		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
@@ -29,6 +32,7 @@ namespace Maartanic
 		{
 			predefinedVariables.Add("ww", (Func<string>)(() => Convert.ToString(Console.WindowWidth)));
 			predefinedVariables.Add("wh", (Func<string>)(() => Convert.ToString(Console.WindowHeight)));
+			predefinedVariables.Add("cmpr", (Func<string>)(() => Convert.ToString(compareOutput)));
 		}
 
 		public Engine(string startPos)
@@ -378,7 +382,7 @@ namespace Maartanic
 
 					case "CMPR":
 						{
-
+							Compare(ref args);
 						}
 						break;
 
@@ -388,6 +392,130 @@ namespace Maartanic
 				}
 			}
 			sr.Close(); // Close StreamReader after execution
+		}
+
+		private void Compare(ref string[] args)
+		{
+			bool r; // Output variable (result)
+			double n1, n2;
+			bool b1, b2;
+			// Numbers
+			try
+			{
+				n1 = Convert.ToDouble(args[1]);
+			}
+			catch(Exception e)
+			{
+				n1 = 0.0d;
+			}
+			try
+			{
+				n2 = Convert.ToDouble(args[2]);
+			}
+			catch (Exception e)
+			{
+				n2 = 0.0d;
+			}
+			// Booleans
+			try
+			{
+				b1 = Convert.ToBoolean(args[1]);
+			}
+			catch (Exception e)
+			{
+				b1 = false;
+			}
+			try
+			{
+				b2 = Convert.ToBoolean(args[2]);
+			}
+			catch (Exception e)
+			{
+				b2 = false;
+			}
+			if (args[1] == "1")
+			{
+				b1 = true;
+			}
+			if (args[2] == "1")
+			{
+				b2 = true;
+			}	
+			switch (args[0].ToUpper())
+			{
+				case "EQL":
+				case "E":
+					r = args[1] == args[2];
+					break;
+
+				case "NEQL":
+				case "NE":
+					r = args[1] != args[2];
+					break;
+
+				case "G":
+					r = n1 > n2;
+					break;
+
+				case "NG":
+					r = !(n1 > n2);
+					break;
+
+				case "GE":
+					r = n1 >= n2;
+					break;
+
+				case "NGE":
+					r = !(n1 >= n2);
+					break;
+
+				case "L":
+					r = n1 < n2;
+					break;
+
+				case "NL":
+					r = !(n1 < n2);
+					break;
+
+				case "LE":
+					r = n1 <= n2;
+					break;
+
+				case "NLE":
+					r = !(n1 <= n2);
+					break;
+
+				case "OR":
+					r = b1 || b2;
+					break;
+
+				case "AND":
+					r = b1 && b2;
+					break;
+
+				case "XOR":
+					r = (b1 || b2) && !(b1 && b2);
+					break;
+
+				case "XNOR":
+					r = !((b1 || b2) && !(b1 && b2));
+					break;
+
+				case "NOR":
+					r = (b1 == false) && b2 == false;
+					break;
+
+				case "NAND":
+					r = !(b1 && b2);
+					break;
+
+				default:
+					r = false;
+					SendMessage(Level.ERR, $"Unrecognized CMPR option {args[0].ToUpper()}.");
+					break;
+
+			}
+			compareOutput = r;
 		}
 
 		private double MathOperation(char op, string destination, string number, string optnumber = null)
