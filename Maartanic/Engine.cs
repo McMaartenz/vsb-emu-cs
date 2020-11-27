@@ -124,6 +124,8 @@ namespace Maartanic
 			}
 			while ((line = sr.ReadLine()) != null)
 			{
+				lineIndex++;
+
 				if (LineCheck(ref lineInfo, ref lineIndex))
 				{
 					continue;
@@ -275,7 +277,7 @@ namespace Maartanic
 					case "ENDIF": // To be ignored
 						break;
 
-					case "ELSE": // TODO When this appears, the engine should jump to ENDIF.
+					case "ELSE": // [DONE] TODO When this appears, the engine should jump to ENDIF.
 						{
 							int scope = 0;
 							bool success = false;
@@ -335,11 +337,21 @@ namespace Maartanic
 						}
 						break;
 
+					case "DEL":
+						if (localMemory.ContainsKey(args[0]))
+						{
+							localMemory.Remove(args[0]);
+						}
+						else
+						{
+							SendMessage(Level.WRN, $"Tried removing a non-existing variable called {args[0]}.");
+						}
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
 				}
-				lineIndex++;
 			}
 			sr.Close();
 		}
