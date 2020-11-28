@@ -4,24 +4,28 @@ using System.Collections.Generic;
 
 #pragma warning disable IDE0044 // Add readonly modifier
 
-// [FIXME] TODO: Add DO/CALL support.
-
 namespace Maartanic
 {
 	class Engine
 	{
+		private StreamReader sr;
+		private int logLevel;
+
 		private bool executable;
+		private string scriptFile;
+		private string entryPoint = "main";
+
 		private string line;
 		private int lineIndex;
-		private string scriptFile;
 		private string[] lineInfo;
-		private string entryPoint = "main";
-		private int logLevel;
-		private StreamReader sr;
+
 		private bool compareOutput = false;
 		private bool keyOutput = false;
-		private Mode applicationMode = Mode.VSB;
+		private string returnedValue = "NULL";
+
+		private Mode applicationMode = Mode.VSB; // [FIXME] TODO: Extend VSB instructions! It's C#, GO FOR IT!
 		private DateTime startTime = DateTime.UtcNow;
+		
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
 		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
@@ -60,11 +64,26 @@ namespace Maartanic
 			predefinedVariables.Add("tdate", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Day)));
 			predefinedVariables.Add("tdow", (Func<string>)(() => Convert.ToString((int)DateTime.UtcNow.DayOfWeek)));
 			predefinedVariables.Add("key", (Func<string>)(() => Convert.ToString(keyOutput)));
+			predefinedVariables.Add("ret", (Func<string>)(() => returnedValue));
 		}
 
 		/* Engine(): Class constructor, returns if given file does not exist. */
 		public Engine(string startPos)
 		{
+			executable = File.Exists(startPos);
+			if (!executable)
+			{
+				Console.WriteLine($"The file {startPos} does not exist.");
+				return;
+			}
+			FillPredefinedList();
+			scriptFile = startPos;
+		}
+
+		/* Engine() OVERLOADED: Specify your entry point */
+		public Engine(string startPos, string customEntryPoint)
+		{
+			entryPoint = customEntryPoint; // default is main
 			executable = File.Exists(startPos);
 			if (!executable)
 			{
@@ -105,13 +124,13 @@ namespace Maartanic
 				switch ((int) a)
 				{
 					case 0:
-						Console.Write("\nMRT INF line {0}: {1}", lineIndex, message);
+						Console.Write($"\nMRT INF line {lineIndex}: {message}");
 						break;
 					case 1:
-						Console.Write("\nMRT WRN line {0}: {1}", lineIndex, message);
+						Console.Write($"\nMRT WRN line {lineIndex}: {message}");
 						break;
 					case 2:
-						Console.Write("\nMRT ERR line {0}: {1}", lineIndex, message);
+						Console.Write($"\nMRT ERR line {lineIndex}: {message}");
 						break;
 				}
 			}	
@@ -154,7 +173,7 @@ namespace Maartanic
 		}
 
 		/* StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions. */
-		public void StartExecution(int logLevelIN)
+		public string StartExecution(int logLevelIN)
 		{
 			logLevel = logLevelIN;
 			lineIndex = 0;
@@ -206,7 +225,7 @@ namespace Maartanic
 						if (lineInfo[1] == entryPoint)
 						{
 							SendMessage(Level.INF, "End of definition");
-							return;
+							return "NULL";
 						}
 						else
 						{
@@ -560,7 +579,7 @@ namespace Maartanic
 
 					case "HLT":
 						SendMessage(Level.INF, "HLT");
-						Program.Exit();
+						Program.Exit("NULL");
 						break; // Unreachable code but IDE complains for some reason
 
 					case "SUBSTR":
@@ -585,12 +604,79 @@ namespace Maartanic
 						}
 						break;
 
+					case "CHARAT":
+						{
+							string input, output = "NULL";
+							int index;
+							if (args.Length > 2)
+							{
+								input = args[1];
+								if (!Int32.TryParse(args[2], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
+							}
+							else
+							{
+								input = '$' + args[0];
+								LocalMemoryGet(ref input);
+								if (!Int32.TryParse(args[1], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
+							}
+							if (index < 0 || index >= input.Length)
+							{
+								SendMessage(Level.ERR, $"Index {index} is out of bounds.");
+							}
+							else
+							{
+								output = input[index].ToString();
+							}
+							SetVariable(args[0], ref output);
+						}
+						break;
+
+					case "TRIM":
+						{
+							string input;
+							if (args.Length > 1)
+							{
+								input = args[1];
+							}
+							else
+							{
+								input = '$' + args[0];
+								LocalMemoryGet(ref input);
+							}
+							input = System.Text.RegularExpressions.Regex.Replace(input.Trim(), @"\s+", " "); // Trim and remove duplicate spaces
+							SetVariable(args[0], ref input);
+						}
+						break;
+
+					case "DO":
+					case "CALL":
+						{
+							Engine E = new Engine(scriptFile, args[0]);
+							if (E.Executable())
+							{
+								returnedValue = E.StartExecution(logLevel);
+							}
+							else
+							{
+								SendMessage(Level.ERR, "Program was not executable");
+							}
+						}
+						break;
+
+					case "RET":
+						if (args.Length > 0)
+						{
+							return args[0];
+						}
+						return "NULL";
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
 				}
 			}
 			sr.Close(); // Close StreamReader after execution
+			return "NULL";
 		}
 
 		/* PerformOp(): Performs an operation with two values given. */
@@ -788,6 +874,12 @@ namespace Maartanic
 		/* LocalMemoryGet(): Converts a given variable to its contents. Leaves it alone if it doesn't have a prefix '$'. */
 		private void LocalMemoryGet(ref string varName)
 		{
+			if (varName.Length == 0)
+			{
+				varName = "NULL";
+				SendMessage(Level.ERR, "Malformed variable");
+				return;
+			}
 			if (varName[0] == '$')
 			{
 				if (varName[1] == '_')
@@ -846,7 +938,7 @@ namespace Maartanic
 						}
 						else
 						{
-							newCombined = newCombined[..(newCombined.Length - 1)]; // Exclude the last/escape character
+							newCombined = newCombined[..(newCombined.Length - 1)] + '"'; // Exclude the last/escape character AND include quote
 							continue;
 						}
 					}

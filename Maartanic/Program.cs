@@ -6,8 +6,9 @@ namespace Maartanic
 	{
 		const float VERSION = 0.2f;
 
-		public static void Exit()
+		public static void Exit(string value)
 		{
+			Console.Write($"\nProcess exited with value \"{value}\".");
 			Console.ReadLine();
 			Environment.Exit(0);
 		}
@@ -42,10 +43,10 @@ namespace Maartanic
 			Engine e = new Engine(args[0]);
 			if (e.Executable())
 			{
-				e.StartExecution(logLevel);
+				Exit(e.StartExecution(logLevel));
 			}
 
-			Exit();
+			Exit("NULL");
 		}
 	}
 }

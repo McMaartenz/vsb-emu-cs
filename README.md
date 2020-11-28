@@ -7,3 +7,6 @@
 <p>
 Simply compile all C# files and execute the executable. Entry point is inside <kbd>Program.cs</kbd>. Any added argument is used as the file to execute. If not, you will be prompted if you would like to execute the <kbd>autorun.mrt</kbd> file. (We do not include this file.)
 </p>
+
+# Modifying the current mode
+<p>Write in your code (Needs to be executed, so e.g. put after <kbd>DEF main</kbd>!) <kbd>[mode xyz]</kbd> where <kbd>xyz</kbd> is your preferred mode. <kbd>vsb</kbd> will restrict instruction set to merely VSB's instructions. <kbd>mrt</kbd> will extend the VSB's instruction set.</p>
