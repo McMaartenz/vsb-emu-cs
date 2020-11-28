@@ -89,7 +89,7 @@ namespace Maartanic
 				return false; // No entry point "main"!
 		}
 
-		/* SendMessage(): Logs a message to the console with a level. */
+		/* SendMessage(): Logs a message to the console with a level, including line of execution. */
 		private void SendMessage(Level a, string message)
 		{
 			if ((int) a >= logLevel)
@@ -546,8 +546,9 @@ namespace Maartanic
 						break;
 
 					case "HLT":
+						SendMessage(Level.INF, "HLT");
 						Program.Exit();
-						break; // Unreachable code but IDE complains ok
+						break; // Unreachable code but IDE complains for some reason
 
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
