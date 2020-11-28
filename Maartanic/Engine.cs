@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
+#pragma warning disable IDE0044 // Add readonly modifier
+
 namespace Maartanic
 {
 	class Engine
 	{
 		// TODO: Fix compare stuff, important!
+
 
 		private bool executable;
 		private string line;
@@ -193,8 +196,7 @@ namespace Maartanic
 					case "CLEAR":
 						if (args.Length != 0)
 						{
-							int imax;
-							if (!Int32.TryParse(args[0], out imax))
+							if (!Int32.TryParse(args[0], out int imax))
 							{
 								imax = 0;
 								SendMessage(Level.ERR, "Malformed number found.");
@@ -423,14 +425,12 @@ namespace Maartanic
 								LocalMemoryGet(ref num1IN);
 								sizeIN = args[1];
 							}
-							decimal num1;
-							int size;
-							if (!Decimal.TryParse(num1IN, out num1))
+							if (!Decimal.TryParse(num1IN, out decimal num1))
 							{
 								num1 = 0.0M;
 								SendMessage(Level.ERR, "Malformed number found.");
 							}
-							if (!Int32.TryParse(sizeIN, out size))
+							if (!Int32.TryParse(sizeIN, out int size))
 							{
 								size = 0;
 								SendMessage(Level.ERR, "Malformed number found.");
@@ -443,10 +443,9 @@ namespace Maartanic
 					case "COLRGBTOHEX":
 						{
 							string varName = args[0];
-							int r, g, b;
-							if (!Int32.TryParse(args[1], out r)) { r = 0; SendMessage(Level.ERR, "Malformed number found."); }
-							if (!Int32.TryParse(args[2], out g)) { g = 0; SendMessage(Level.ERR, "Malformed number found."); }
-							if (!Int32.TryParse(args[3], out b)) { b = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!Int32.TryParse(args[1], out int r)) { r = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!Int32.TryParse(args[2], out int g)) { g = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!Int32.TryParse(args[3], out int b)) { b = 0; SendMessage(Level.ERR, "Malformed number found."); }
 							string output = $"{r:X2}{g:X2}{b:X2}";
 							SetVariable(varName, ref output);
 						}
@@ -455,9 +454,8 @@ namespace Maartanic
 					case "RAND":
 						{
 							string varName = args[0];
-							int lowerLim, higherLim;
-							if (!Int32.TryParse(args[1], out lowerLim)) { lowerLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
-							if (!Int32.TryParse(args[2], out higherLim)) { higherLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!Int32.TryParse(args[1], out int lowerLim)) { lowerLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!Int32.TryParse(args[2], out int higherLim)) { higherLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
 							Random generator = new Random();
 							string output = generator.Next(lowerLim, higherLim + 1).ToString();
 							SetVariable(varName, ref output);
@@ -502,6 +500,13 @@ namespace Maartanic
 						}
 						break;
 
+					case "MIN":
+						break;
+					case "MAX":
+						break;
+					case "CON":
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
@@ -513,16 +518,15 @@ namespace Maartanic
 		private void Compare(ref string[] args)
 		{
 			bool r; // Output variable (result)
-			double n1, n2;
 			bool b1, b2;
 			// Numbers
 			b1 = args[1] == "true" || args[1] == "1";
 			b2 = args[2] == "true" || args[2] == "1";
-			if (!Double.TryParse(args[1], out n1))
+			if (!Double.TryParse(args[1], out double n1))
 			{
 				n1 = 0.0d;
 			}
-			if (!Double.TryParse(args[2], out n2))
+			if (!Double.TryParse(args[2], out double n2))
 			{
 				n2 = 0.0d;
 			}

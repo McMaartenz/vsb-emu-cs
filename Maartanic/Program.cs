@@ -21,8 +21,7 @@ namespace Maartanic
 				args = new string[] { "autorun.mrt" };
 			}
 			Console.WriteLine("Please enter the log level (0: info 1: warning 2: error");
-			byte logLevel;
-			if (!Byte.TryParse(Console.ReadLine(), out logLevel))
+			if (!Byte.TryParse(Console.ReadLine(), out byte logLevel))
 			{
 				logLevel = 0;
 			}
