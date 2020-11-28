@@ -624,7 +624,7 @@ namespace Maartanic
 								input = '$' + args[0];
 								LocalMemoryGet(ref input);
 							}
-							input = input.Trim();
+							input = System.Text.RegularExpressions.Regex.Replace(input.Trim(), @"\s+", " "); // Trim and remove duplicate spaces
 							SetVariable(args[0], ref input);
 						}
 						break;
