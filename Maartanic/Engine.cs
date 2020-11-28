@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace Maartanic
 {
 	class Engine
 	{
+		// TODO: Fix compare stuff, important!
+
 		private bool executable;
 		private string line;
 		private int lineIndex;
@@ -14,7 +17,8 @@ namespace Maartanic
 		private string entryPoint = "main";
 		private int logLevel;
 		private StreamReader sr;
-
+		private bool compareOutput = false;
+		private DateTime startTime = DateTime.UtcNow;
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
 		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
@@ -29,6 +33,20 @@ namespace Maartanic
 		{
 			predefinedVariables.Add("ww", (Func<string>)(() => Convert.ToString(Console.WindowWidth)));
 			predefinedVariables.Add("wh", (Func<string>)(() => Convert.ToString(Console.WindowHeight)));
+			predefinedVariables.Add("cmpr", (Func<string>)(() => Convert.ToString(compareOutput)));
+			predefinedVariables.Add("projtime", (Func<string>)(() => Convert.ToString((DateTime.UtcNow - startTime).TotalSeconds)));
+			predefinedVariables.Add("projid", (Func<string>)(() => "0"));
+			predefinedVariables.Add("user", (Func<string>)(() => "*guest"));
+			predefinedVariables.Add("ver", (Func<string>)(() => "1.3"));
+			predefinedVariables.Add("ask", (Func<string>)(() => Console.ReadLine()));
+			predefinedVariables.Add("graphics", (Func<string>)(() => "false"));
+			predefinedVariables.Add("thour", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Hour)));
+			predefinedVariables.Add("tminute", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Minute)));
+			predefinedVariables.Add("tsecond", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Second)));
+			predefinedVariables.Add("tyear", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Year)));
+			predefinedVariables.Add("tmonth", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Month)));
+			predefinedVariables.Add("tdate", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Day)));
+			predefinedVariables.Add("tdow", (Func<string>)(() => Convert.ToString((int)DateTime.UtcNow.DayOfWeek)));
 		}
 
 		public Engine(string startPos)
@@ -175,12 +193,18 @@ namespace Maartanic
 					case "CLEAR":
 						if (args.Length != 0)
 						{
-							for (int i = 0; i < Convert.ToInt32(args[0]); i++)
+							int imax;
+							if (!Int32.TryParse(args[0], out imax))
+							{
+								imax = 0;
+								SendMessage(Level.ERR, "Malformed number found.");
+							}
+							for (int i = 0; i < imax; i++)
 							{
 								Console.SetCursorPosition(0, Console.CursorTop);
 								Console.Write(new String(' ', Console.BufferWidth));
 								Console.SetCursorPosition(0, Console.CursorTop - 1);
-								if (i == Convert.ToInt32(args[0]) - 1)
+								if (i == imax - 1)
 								{
 									Console.SetCursorPosition(0, Console.CursorTop - 1);
 								}
@@ -214,8 +238,8 @@ namespace Maartanic
 						{ // local scope to make variables defined here local to this scope!
 							string statement = args.Length > 1 ? args[1] : args[0];
 							bool result;
-							bool invertStatement = args.Length > 1 && args[0] == "NOT";
-							if (statement == "1" || statement == "true")
+							bool invertStatement = args.Length > 1 && args[0].ToUpper() == "NOT";
+							if (statement == "1" || statement.ToUpper() == "TRUE")
 							{
 								result = true;
 							}
@@ -233,6 +257,7 @@ namespace Maartanic
 								StreamReader ifsr = new StreamReader(scriptFile);
 								while ((line = ifsr.ReadLine()) != null)
 								{
+									ifLineIndex++;
 									if (LineCheck(ref cLineInfo, ref ifLineIndex))
 									{
 										continue;
@@ -253,7 +278,6 @@ namespace Maartanic
 											scope--;
 										}
 									}
-									ifLineIndex++;
 								}
 								if (success)
 								{
@@ -286,6 +310,7 @@ namespace Maartanic
 							StreamReader endifsr = new StreamReader(scriptFile);
 							while ((line = endifsr.ReadLine()) != null)
 							{
+								endifLineIndex++;
 								if (LineCheck(ref cLineInfo, ref endifLineIndex))
 								{
 									continue;
@@ -306,7 +331,7 @@ namespace Maartanic
 										scope--;
 									}
 								}
-								endifLineIndex++;
+								
 							}
 							if (success)
 							{
@@ -348,22 +373,132 @@ namespace Maartanic
 						}
 						break;
 
-					case "ADD":
-						if (args.Length > 2)
+					case "ADD": // Pass arg[2] if it exists else ignore it
 						{
-							string tmp = Convert.ToString(MathOperation('+', args[0], args[1], args[2]));
-							if (!SetVariable(args[0], ref tmp))
-							{
-								SendMessage(Level.ERR, $"Could not perform addition to the variable {args[0]}.");
-							}
+							string tmp = Convert.ToString(MathOperation('+', args[0], args[1], args.Length > 2 ? args[2] : null));
+							SetVariable(args[0], ref tmp);
 						}
-						else
+						break;
+
+					case "SUB":
 						{
-							string tmp = Convert.ToString(MathOperation('+', args[0], args[1]));
-							if (!SetVariable(args[0], ref tmp))
+							string tmp = Convert.ToString(MathOperation('-', args[0], args[1], args.Length > 2 ? args[2] : null));
+							SetVariable(args[0], ref tmp);
+						}
+						break;
+
+					case "DIV":
+						{
+							string tmp = Convert.ToString(MathOperation('/', args[0], args[1], args.Length > 2 ? args[2] : null));
+							SetVariable(args[0], ref tmp);
+						}
+						break;
+
+					case "MUL":
+						{
+							string tmp = Convert.ToString(MathOperation('*', args[0], args[1], args.Length > 2 ? args[2] : null));
+							SetVariable(args[0], ref tmp);
+						}
+						break;
+
+					case "CMPR":
+						{
+							Compare(ref args);
+						}
+						break;
+
+					case "ROUND":
+						{
+							string varName, num1IN, sizeIN;
+							if (args.Length > 2)
 							{
-								SendMessage(Level.ERR, $"Could not perform addition to the variable {args[0]}.");
+								varName = args[0];
+								num1IN = args[1];
+								sizeIN = args[2];
 							}
+							else
+							{
+								varName = args[0];
+								num1IN = '$' + varName;
+								LocalMemoryGet(ref num1IN);
+								sizeIN = args[1];
+							}
+							decimal num1;
+							int size;
+							if (!Decimal.TryParse(num1IN, out num1))
+							{
+								num1 = 0.0M;
+								SendMessage(Level.ERR, "Malformed number found.");
+							}
+							if (!Int32.TryParse(sizeIN, out size))
+							{
+								size = 0;
+								SendMessage(Level.ERR, "Malformed number found.");
+							}
+							string output = Math.Round(num1, size).ToString();
+							SetVariable(args[0], ref output);
+						}
+						break;
+
+					case "COLRGBTOHEX":
+						{
+							string varName = args[0];
+							int r, g, b;
+							if (!Int32.TryParse(args[1], out r)) { r = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!Int32.TryParse(args[2], out g)) { g = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!Int32.TryParse(args[3], out b)) { b = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							string output = $"{r:X2}{g:X2}{b:X2}";
+							SetVariable(varName, ref output);
+						}
+						break;
+
+					case "RAND":
+						{
+							string varName = args[0];
+							int lowerLim, higherLim;
+							if (!Int32.TryParse(args[1], out lowerLim)) { lowerLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!Int32.TryParse(args[2], out higherLim)) { higherLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							Random generator = new Random();
+							string output = generator.Next(lowerLim, higherLim + 1).ToString();
+							SetVariable(varName, ref output);
+						}
+						break;
+
+					case "SIZE":
+						{
+							string varName = args[0], output;
+
+							if (args.Length > 1)
+							{
+								output = args[1].Length.ToString();
+							}
+							else
+							{
+								output = '$' + varName;
+								LocalMemoryGet(ref output);
+								output = output.Length.ToString();
+							}
+							SetVariable(varName, ref output);
+						}
+						break;
+
+					case "ABS":
+						{
+							string varName = args[0], output;
+							decimal n;
+							if (args.Length > 1)
+							{
+								if (!Decimal.TryParse(args[1], out n)) { n = 0.0M; SendMessage(Level.ERR, "Malformed number found."); }
+								output = Math.Abs(n).ToString();
+							}
+							else
+							{
+								output = '$' + varName;
+								LocalMemoryGet(ref output);
+								if (!Decimal.TryParse(output, out n)) { n = 0.0M; SendMessage(Level.ERR, "Malformed number found."); }
+								output = Math.Abs(n).ToString();
+							}
+							SetVariable(varName, ref output);
 						}
 						break;
 
@@ -372,7 +507,101 @@ namespace Maartanic
 						break;
 				}
 			}
-			sr.Close();
+			sr.Close(); // Close StreamReader after execution
+		}
+
+		private void Compare(ref string[] args)
+		{
+			bool r; // Output variable (result)
+			double n1, n2;
+			bool b1, b2;
+			// Numbers
+			b1 = args[1] == "true" || args[1] == "1";
+			b2 = args[2] == "true" || args[2] == "1";
+			if (!Double.TryParse(args[1], out n1))
+			{
+				n1 = 0.0d;
+			}
+			if (!Double.TryParse(args[2], out n2))
+			{
+				n2 = 0.0d;
+			}
+
+			switch (args[0].ToUpper())
+			{
+				case "EQL":
+				case "E":
+					r = args[1] == args[2];
+					break;
+
+				case "NEQL":
+				case "NE":
+					r = args[1] != args[2];
+					break;
+
+				case "G":
+					r = n1 > n2;
+					break;
+
+				case "NG":
+					r = !(n1 > n2);
+					break;
+
+				case "GE":
+					r = n1 >= n2;
+					break;
+
+				case "NGE":
+					r = !(n1 >= n2);
+					break;
+
+				case "L":
+					r = n1 < n2;
+					break;
+
+				case "NL":
+					r = !(n1 < n2);
+					break;
+
+				case "LE":
+					r = n1 <= n2;
+					break;
+
+				case "NLE":
+					r = !(n1 <= n2);
+					break;
+
+				case "OR":
+					r = b1 || b2;
+					break;
+
+				case "AND":
+					r = b1 && b2;
+					break;
+
+				case "XOR":
+					r = (b1 || b2) && !(b1 && b2);
+					break;
+
+				case "XNOR":
+					r = !((b1 || b2) && !(b1 && b2));
+					break;
+
+				case "NOR":
+					r = (b1 == false) && b2 == false;
+					break;
+
+				case "NAND":
+					r = !(b1 && b2);
+					break;
+
+				default:
+					r = false;
+					SendMessage(Level.ERR, $"Unrecognized CMPR option {args[0].ToUpper()}.");
+					break;
+
+			}
+			compareOutput = r;
 		}
 
 		private double MathOperation(char op, string destination, string number, string optnumber = null)
@@ -382,13 +611,29 @@ namespace Maartanic
 			{
 				string tmp1 = "$" + destination;
 				LocalMemoryGet(ref tmp1);
-				num1 = Convert.ToDouble(tmp1);
-				num2 = Convert.ToDouble(number);
+				if (!Double.TryParse(tmp1, out num1))
+				{
+					num1 = 0.0d;
+					SendMessage(Level.ERR, "Malformed number found.");
+				}
+				if (!Double.TryParse(number, out num2))
+				{
+					num2 = 0.0d;
+					SendMessage(Level.ERR, "Malformed number found.");
+				}
 			}
 			else
 			{
-				num1 = Convert.ToDouble(number);
-				num2 = Convert.ToDouble(optnumber);
+				if (!Double.TryParse(number, out num1))
+				{
+					num1 = 0.0d;
+					SendMessage(Level.ERR, "Malformed number found.");
+				}
+				if (!Double.TryParse(optnumber, out num2))
+				{
+					num2 = 0.0d;
+					SendMessage(Level.ERR, "Malformed number found.");
+				}
 			}
 
 			switch (op)
@@ -409,7 +654,7 @@ namespace Maartanic
 			}
 		}
 
-		private bool SetVariable(string varName, ref string newData)
+		private void SetVariable(string varName, ref string newData)
 		{
 			if (localMemory.ContainsKey(varName))
 			{
@@ -418,9 +663,7 @@ namespace Maartanic
 			else
 			{
 				SendMessage(Level.ERR, $"The variable {varName} does not exist.");
-				return false; // failed
 			}
-			return true; // success
 		}
 
 		private void LocalMemoryGet(ref string varName)
