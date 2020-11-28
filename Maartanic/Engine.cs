@@ -765,6 +765,26 @@ namespace Maartanic
 						}
 						break;
 
+					case "QPUSH":
+						Program.queue.Enqueue(args[0]);
+						break;
+
+					case "QPOP":
+						{
+							string output;
+							if (Program.queue.HasNext())
+							{
+								Program.queue.Dequeue(out output);
+							}
+							else
+							{
+								output = "NULL";
+								SendMessage(Level.ERR, "Queue was empty and could not be dequeued from.");
+							}
+							SetVariable(args[0], ref output);
+						}
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;

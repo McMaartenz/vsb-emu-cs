@@ -6,6 +6,7 @@ namespace Maartanic
 	{
 		public const float VERSION = 0.2f;
 		public static EngineStack stack = new EngineStack();
+		public static EngineQueue queue = new EngineQueue();
 
 		public static void Exit(string value)
 		{
