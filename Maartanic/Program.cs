@@ -4,9 +4,15 @@ namespace Maartanic
 {
 	class Program
 	{
-		const float VERSION = 0.1f;
+		const float VERSION = 0.2f;
 
-		static void Main(string[] args)
+		public static void Exit()
+		{
+			Console.ReadLine();
+			Environment.Exit(0);
+		}
+
+		public static void Main(string[] args)
 		{
 			Console.WriteLine("Maartanic Engine {0} (no-gui VSB Engine Emulator on C#)\n", VERSION);
 			if (args.Length == 0)
@@ -21,8 +27,7 @@ namespace Maartanic
 				args = new string[] { "autorun.mrt" };
 			}
 			Console.WriteLine("Please enter the log level (0: info 1: warning 2: error");
-			byte logLevel;
-			if (!Byte.TryParse(Console.ReadLine(), out logLevel))
+			if (!Byte.TryParse(Console.ReadLine(), out byte logLevel))
 			{
 				logLevel = 0;
 			}
@@ -40,7 +45,7 @@ namespace Maartanic
 				e.StartExecution(logLevel);
 			}
 
-			Console.ReadLine();
+			Exit();
 		}
 	}
 }
