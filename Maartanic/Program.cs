@@ -13,16 +13,19 @@ namespace Maartanic
 			{
 				Console.WriteLine("Usage: mrt [..file]\n"
 								+ "Run autorun.mrt [y/N]");
-				char ans = Convert.ToChar(Console.ReadLine());
+				char ans = Console.ReadLine()[0];
 				if (ans != 'y')
 				{
 					return;
 				}
 				args = new string[] { "autorun.mrt" };
 			}
-
 			Console.WriteLine("Please enter the log level (0: info 1: warning 2: error");
-			byte logLevel = Convert.ToByte(Console.ReadLine());
+			byte logLevel;
+			if (!Byte.TryParse(Console.ReadLine(), out logLevel))
+			{
+				logLevel = 0;
+			}
 			if (logLevel < 0 || logLevel > 2)
 			{
 				logLevel = 0;
@@ -36,6 +39,8 @@ namespace Maartanic
 			{
 				e.StartExecution(logLevel);
 			}
+
+			Console.ReadLine();
 		}
 	}
 }

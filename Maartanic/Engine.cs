@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace Maartanic
@@ -17,7 +18,7 @@ namespace Maartanic
 		private int logLevel;
 		private StreamReader sr;
 		private bool compareOutput = false;
-
+		private DateTime startTime = DateTime.UtcNow;
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
 		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
@@ -33,6 +34,19 @@ namespace Maartanic
 			predefinedVariables.Add("ww", (Func<string>)(() => Convert.ToString(Console.WindowWidth)));
 			predefinedVariables.Add("wh", (Func<string>)(() => Convert.ToString(Console.WindowHeight)));
 			predefinedVariables.Add("cmpr", (Func<string>)(() => Convert.ToString(compareOutput)));
+			predefinedVariables.Add("projtime", (Func<string>)(() => Convert.ToString((DateTime.UtcNow - startTime).TotalSeconds)));
+			predefinedVariables.Add("projid", (Func<string>)(() => "0"));
+			predefinedVariables.Add("user", (Func<string>)(() => "*guest"));
+			predefinedVariables.Add("ver", (Func<string>)(() => "1.3"));
+			predefinedVariables.Add("ask", (Func<string>)(() => Console.ReadLine()));
+			predefinedVariables.Add("graphics", (Func<string>)(() => "false"));
+			predefinedVariables.Add("thour", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Hour)));
+			predefinedVariables.Add("tminute", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Minute)));
+			predefinedVariables.Add("tsecond", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Second)));
+			predefinedVariables.Add("tyear", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Year)));
+			predefinedVariables.Add("tmonth", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Month)));
+			predefinedVariables.Add("tdate", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Day)));
+			predefinedVariables.Add("tdow", (Func<string>)(() => Convert.ToString((int)DateTime.UtcNow.DayOfWeek)));
 		}
 
 		public Engine(string startPos)
@@ -179,12 +193,18 @@ namespace Maartanic
 					case "CLEAR":
 						if (args.Length != 0)
 						{
-							for (int i = 0; i < Convert.ToInt32(args[0]); i++)
+							int imax;
+							if (!Int32.TryParse(args[0], out imax))
+							{
+								imax = 0;
+								SendMessage(Level.ERR, "Malformed number found.");
+							}
+							for (int i = 0; i < imax; i++)
 							{
 								Console.SetCursorPosition(0, Console.CursorTop);
 								Console.Write(new String(' ', Console.BufferWidth));
 								Console.SetCursorPosition(0, Console.CursorTop - 1);
-								if (i == Convert.ToInt32(args[0]) - 1)
+								if (i == imax - 1)
 								{
 									Console.SetCursorPosition(0, Console.CursorTop - 1);
 								}
@@ -387,6 +407,60 @@ namespace Maartanic
 						}
 						break;
 
+					case "ROUND":
+						{
+							string varName, num1IN, sizeIN;
+							if (args.Length > 2)
+							{
+								varName = args[0];
+								num1IN = args[1];
+								sizeIN = args[2];
+							}
+							else
+							{
+								varName = args[0];
+								num1IN = '$' + varName;
+								LocalMemoryGet(ref num1IN);
+								sizeIN = args[1];
+							}
+							decimal num1;
+							int size;
+							if (!Decimal.TryParse(num1IN, out num1))
+							{
+								num1 = 0.0M;
+								SendMessage(Level.ERR, "Malformed number found.");
+							}
+							if (!Int32.TryParse(sizeIN, out size))
+							{
+								size = 0;
+								SendMessage(Level.ERR, "Malformed number found.");
+							}
+							string output = Math.Round(num1, size).ToString();
+							SetVariable(args[0], ref output);
+						}
+						break;
+
+					case "COLRGBTOHEX":
+						{
+							string varName = args[0];
+							int r, g, b;
+							if (!Int32.TryParse(args[1], out r)) { r = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!Int32.TryParse(args[2], out g)) { g = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!Int32.TryParse(args[3], out b)) { b = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							string output = $"{r:X2}{g:X2}{b:X2}";
+							SetVariable(varName, ref output);
+						}
+						break;
+
+					case "RAND":
+						{
+							string varName = args[0];
+							int lowerLim, higherLim;
+							if (!Int32.TryParse(args[1], out lowerLim)) { lowerLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!Int32.TryParse(args[2], out higherLim)) { higherLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
+						}
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
@@ -496,13 +570,29 @@ namespace Maartanic
 			{
 				string tmp1 = "$" + destination;
 				LocalMemoryGet(ref tmp1);
-				num1 = Convert.ToDouble(tmp1);
-				num2 = Convert.ToDouble(number);
+				if (!Double.TryParse(tmp1, out num1))
+				{
+					num1 = 0.0d;
+					SendMessage(Level.ERR, "Malformed number found.");
+				}
+				if (!Double.TryParse(number, out num2))
+				{
+					num2 = 0.0d;
+					SendMessage(Level.ERR, "Malformed number found.");
+				}
 			}
 			else
 			{
-				num1 = Convert.ToDouble(number);
-				num2 = Convert.ToDouble(optnumber);
+				if (!Double.TryParse(number, out num1))
+				{
+					num1 = 0.0d;
+					SendMessage(Level.ERR, "Malformed number found.");
+				}
+				if (!Double.TryParse(optnumber, out num2))
+				{
+					num2 = 0.0d;
+					SendMessage(Level.ERR, "Malformed number found.");
+				}
 			}
 
 			switch (op)
