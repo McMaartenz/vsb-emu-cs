@@ -124,13 +124,13 @@ namespace Maartanic
 				switch ((int) a)
 				{
 					case 0:
-						Console.Write("\nMRT INF line {0}: {1}", lineIndex, message);
+						Console.Write($"\nMRT INF line {lineIndex}: {message}");
 						break;
 					case 1:
-						Console.Write("\nMRT WRN line {0}: {1}", lineIndex, message);
+						Console.Write($"\nMRT WRN line {lineIndex}: {message}");
 						break;
 					case 2:
-						Console.Write("\nMRT ERR line {0}: {1}", lineIndex, message);
+						Console.Write($"\nMRT ERR line {lineIndex}: {message}");
 						break;
 				}
 			}	
