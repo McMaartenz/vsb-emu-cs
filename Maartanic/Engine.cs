@@ -51,6 +51,7 @@ namespace Maartanic
 			predefinedVariables.Add("tmonth", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Month)));
 			predefinedVariables.Add("tdate", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Day)));
 			predefinedVariables.Add("tdow", (Func<string>)(() => Convert.ToString((int)DateTime.UtcNow.DayOfWeek)));
+			predefinedVariables.Add("key", (Func<string>)(() => Convert.ToString(keyOutput)));
 		}
 
 		/* Engine(): Class constructor, returns if given file does not exist. */
