@@ -25,7 +25,7 @@ namespace Maartanic
 
 		private Mode applicationMode = Mode.VSB; // [FIXME] TODO: Extend VSB instructions! It's C#, GO FOR IT!
 		private DateTime startTime = DateTime.UtcNow;
-		
+
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
 		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
@@ -669,6 +669,27 @@ namespace Maartanic
 							return args[0];
 						}
 						return "NULL";
+
+					case "RPLC":
+						{
+							string output, input, old, _new; // "new" is a C# keyword so use "_new" instead!
+							if (args.Length > 3)
+							{
+								input = args[1];
+								old = args[2];
+								_new = args[3];
+							}
+							else
+							{
+								input = '$' + args[0];
+								LocalMemoryGet(ref input);
+								old = args[1];
+								_new = args[2];
+							}
+							output = input.Replace(old, _new);
+							SetVariable(args[0], ref output);
+						}
+						break;
 
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
