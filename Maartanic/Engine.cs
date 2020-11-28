@@ -48,23 +48,23 @@ namespace Maartanic
 		/* FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB */
 		private void FillPredefinedList()
 		{ //TODO console cursorleft cursortop methods for mouse pos? ($_mx, $_my)
-			predefinedVariables.Add("ww", (Func<string>)(() => Convert.ToString(Console.WindowWidth)));
-			predefinedVariables.Add("wh", (Func<string>)(() => Convert.ToString(Console.WindowHeight)));
-			predefinedVariables.Add("cmpr", (Func<string>)(() => Convert.ToString(compareOutput)));
-			predefinedVariables.Add("projtime", (Func<string>)(() => Convert.ToString((DateTime.UtcNow - startTime).TotalSeconds)));
+			predefinedVariables.Add("ww", (Func<string>)(() => Console.WindowWidth.ToString()));
+			predefinedVariables.Add("wh", (Func<string>)(() => Console.WindowHeight.ToString()));
+			predefinedVariables.Add("cmpr", (Func<string>)(() => compareOutput.ToString()));
+			predefinedVariables.Add("projtime", (Func<string>)(() => (DateTime.UtcNow - startTime).TotalSeconds.ToString()));
 			predefinedVariables.Add("projid", (Func<string>)(() => "0"));
 			predefinedVariables.Add("user", (Func<string>)(() => "*guest"));
 			predefinedVariables.Add("ver", (Func<string>)(() => "1.3"));
 			predefinedVariables.Add("ask", (Func<string>)(() => Console.ReadLine()));
 			predefinedVariables.Add("graphics", (Func<string>)(() => "false"));
-			predefinedVariables.Add("thour", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Hour)));
-			predefinedVariables.Add("tminute", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Minute)));
-			predefinedVariables.Add("tsecond", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Second)));
-			predefinedVariables.Add("tyear", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Year)));
-			predefinedVariables.Add("tmonth", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Month)));
-			predefinedVariables.Add("tdate", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Day)));
-			predefinedVariables.Add("tdow", (Func<string>)(() => Convert.ToString((int)DateTime.UtcNow.DayOfWeek)));
-			predefinedVariables.Add("key", (Func<string>)(() => Convert.ToString(keyOutput)));
+			predefinedVariables.Add("thour", (Func<string>)(() => DateTime.UtcNow.Hour.ToString()));
+			predefinedVariables.Add("tminute", (Func<string>)(() => DateTime.UtcNow.Minute.ToString()));
+			predefinedVariables.Add("tsecond", (Func<string>)(() => DateTime.UtcNow.Second.ToString()));
+			predefinedVariables.Add("tyear", (Func<string>)(() => DateTime.UtcNow.Year.ToString()));
+			predefinedVariables.Add("tmonth", (Func<string>)(() => DateTime.UtcNow.Month.ToString()));
+			predefinedVariables.Add("tdate", (Func<string>)(() => DateTime.UtcNow.Day.ToString()));
+			predefinedVariables.Add("tdow", (Func<string>)(() => ((int)DateTime.UtcNow.DayOfWeek).ToString()));
+			predefinedVariables.Add("key", (Func<string>)(() => keyOutput.ToString()));
 			predefinedVariables.Add("ret", (Func<string>)(() => returnedValue));
 		}
 
@@ -746,9 +746,23 @@ namespace Maartanic
 						break;
 
 					case "PUSH": //TODO make PUSH and POP instructions
+						Program.stack.Push(args[0]);
 						break;
 
 					case "POP":
+						{
+							string output;
+							if (Program.stack.HasNext())
+							{
+								Program.stack.Pop(out output);
+							}
+							else
+							{
+								output = "NULL";
+								SendMessage(Level.ERR, "Stack was empty and could not be popped from.");
+							}
+							SetVariable(args[0], ref output);
+						}
 						break;
 
 					default:
