@@ -646,7 +646,15 @@ namespace Maartanic
 					case "DO":
 					case "CALL":
 						{
-
+							Engine E = new Engine(scriptFile, args[0]);
+							if (E.Executable())
+							{
+								E.StartExecution(logLevel);
+							}
+							else
+							{
+								SendMessage(Level.ERR, "Program was not executable");
+							}
 						}
 						break;
 
