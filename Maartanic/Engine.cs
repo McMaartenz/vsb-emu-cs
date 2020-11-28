@@ -10,18 +10,24 @@ namespace Maartanic
 {
 	class Engine
 	{
+		private StreamReader sr;
+		private int logLevel;
+
 		private bool executable;
+		private string scriptFile;
+		private string entryPoint = "main";
+
 		private string line;
 		private int lineIndex;
-		private string scriptFile;
 		private string[] lineInfo;
-		private string entryPoint = "main";
-		private int logLevel;
-		private StreamReader sr;
+
 		private bool compareOutput = false;
 		private bool keyOutput = false;
+		private string returnedValue = "NULL";
+
 		private Mode applicationMode = Mode.VSB;
 		private DateTime startTime = DateTime.UtcNow;
+		
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
 		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
@@ -60,6 +66,7 @@ namespace Maartanic
 			predefinedVariables.Add("tdate", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Day)));
 			predefinedVariables.Add("tdow", (Func<string>)(() => Convert.ToString((int)DateTime.UtcNow.DayOfWeek)));
 			predefinedVariables.Add("key", (Func<string>)(() => Convert.ToString(keyOutput)));
+			predefinedVariables.Add("ret", (Func<string>)(() => returnedValue));
 		}
 
 		/* Engine(): Class constructor, returns if given file does not exist. */
@@ -168,7 +175,7 @@ namespace Maartanic
 		}
 
 		/* StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions. */
-		public void StartExecution(int logLevelIN)
+		public string StartExecution(int logLevelIN)
 		{
 			logLevel = logLevelIN;
 			lineIndex = 0;
@@ -220,7 +227,7 @@ namespace Maartanic
 						if (lineInfo[1] == entryPoint)
 						{
 							SendMessage(Level.INF, "End of definition");
-							return;
+							return "NULL";
 						}
 						else
 						{
@@ -574,7 +581,7 @@ namespace Maartanic
 
 					case "HLT":
 						SendMessage(Level.INF, "HLT");
-						Program.Exit();
+						Program.Exit("NULL");
 						break; // Unreachable code but IDE complains for some reason
 
 					case "SUBSTR":
@@ -649,7 +656,7 @@ namespace Maartanic
 							Engine E = new Engine(scriptFile, args[0]);
 							if (E.Executable())
 							{
-								E.StartExecution(logLevel);
+								returnedValue = E.StartExecution(logLevel);
 							}
 							else
 							{
@@ -658,12 +665,20 @@ namespace Maartanic
 						}
 						break;
 
+					case "RET":
+						if (args.Length > 0)
+						{
+							return args[0];
+						}
+						return "NULL";
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
 				}
 			}
 			sr.Close(); // Close StreamReader after execution
+			return "NULL";
 		}
 
 		/* PerformOp(): Performs an operation with two values given. */
