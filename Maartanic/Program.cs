@@ -8,7 +8,7 @@ namespace Maartanic
 
 		public static void Exit(string value)
 		{
-			Console.WriteLine($"Process exited with value \"{value}\".");
+			Console.Write($"\nProcess exited with value \"{value}\".");
 			Console.ReadLine();
 			Environment.Exit(0);
 		}

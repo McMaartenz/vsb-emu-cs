@@ -4,8 +4,6 @@ using System.Collections.Generic;
 
 #pragma warning disable IDE0044 // Add readonly modifier
 
-// [FIXME] TODO: Add DO/CALL support.
-
 namespace Maartanic
 {
 	class Engine
@@ -25,7 +23,7 @@ namespace Maartanic
 		private bool keyOutput = false;
 		private string returnedValue = "NULL";
 
-		private Mode applicationMode = Mode.VSB;
+		private Mode applicationMode = Mode.VSB; // [FIXME] TODO: Extend VSB instructions! It's C#, GO FOR IT!
 		private DateTime startTime = DateTime.UtcNow;
 		
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
