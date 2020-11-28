@@ -458,6 +458,47 @@ namespace Maartanic
 							int lowerLim, higherLim;
 							if (!Int32.TryParse(args[1], out lowerLim)) { lowerLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
 							if (!Int32.TryParse(args[2], out higherLim)) { higherLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							Random generator = new Random();
+							string output = generator.Next(lowerLim, higherLim + 1).ToString();
+							SetVariable(varName, ref output);
+						}
+						break;
+
+					case "SIZE":
+						{
+							string varName = args[0], output;
+
+							if (args.Length > 1)
+							{
+								output = args[1].Length.ToString();
+							}
+							else
+							{
+								output = '$' + varName;
+								LocalMemoryGet(ref output);
+								output = output.Length.ToString();
+							}
+							SetVariable(varName, ref output);
+						}
+						break;
+
+					case "ABS":
+						{
+							string varName = args[0], output;
+							decimal n;
+							if (args.Length > 1)
+							{
+								if (!Decimal.TryParse(args[1], out n)) { n = 0.0M; SendMessage(Level.ERR, "Malformed number found."); }
+								output = Math.Abs(n).ToString();
+							}
+							else
+							{
+								output = '$' + varName;
+								LocalMemoryGet(ref output);
+								if (!Decimal.TryParse(output, out n)) { n = 0.0M; SendMessage(Level.ERR, "Malformed number found."); }
+								output = Math.Abs(n).ToString();
+							}
+							SetVariable(varName, ref output);
 						}
 						break;
 
