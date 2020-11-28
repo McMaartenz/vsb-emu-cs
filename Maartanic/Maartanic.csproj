@@ -8,6 +8,7 @@
     <Company />
     <Copyright>MIT License</Copyright>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>

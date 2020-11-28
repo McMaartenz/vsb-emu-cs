@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Collections.Generic;
 
 #pragma warning disable IDE0044 // Add readonly modifier
 
@@ -9,9 +8,6 @@ namespace Maartanic
 {
 	class Engine
 	{
-		// TODO: Fix compare stuff, important!
-
-
 		private bool executable;
 		private string line;
 		private int lineIndex;
@@ -303,7 +299,7 @@ namespace Maartanic
 					case "ENDIF": // To be ignored
 						break;
 
-					case "ELSE": // [DONE] TODO When this appears, the engine should jump to ENDIF.
+					case "ELSE":
 						{
 							int scope = 0;
 							bool success = false;
