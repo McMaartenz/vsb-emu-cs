@@ -896,7 +896,7 @@ namespace Maartanic
 						}
 						else
 						{
-							newCombined = newCombined[..(newCombined.Length - 1)] + '"'; // Exclude the last/escape character
+							newCombined = newCombined[..(newCombined.Length - 1)] + '"'; // Exclude the last/escape character AND include quote
 							continue;
 						}
 					}
