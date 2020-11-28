@@ -585,6 +585,33 @@ namespace Maartanic
 						}
 						break;
 
+					case "CHARAT":
+						{
+							string input, output = "NULL";
+							int index;
+							if (args.Length > 2)
+							{
+								input = args[1];
+								if (!Int32.TryParse(args[2], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
+							}
+							else
+							{
+								input = '$' + args[0];
+								LocalMemoryGet(ref input);
+								if (!Int32.TryParse(args[1], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
+							}
+							if (index < 0 || index >= input.Length)
+							{
+								SendMessage(Level.ERR, $"Index {index} is out of bounds.");
+							}
+							else
+							{
+								output = input[index].ToString();
+							}
+							SetVariable(args[0], ref output);
+						}
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
