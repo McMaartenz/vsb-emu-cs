@@ -564,7 +564,25 @@ namespace Maartanic
 						break; // Unreachable code but IDE complains for some reason
 
 					case "SUBSTR":
-						
+						{
+							string input, output;
+							int start, len;
+							if (args.Length > 3)
+							{
+								input = args[1];
+								if (!Int32.TryParse(args[2], out start)) { start = 0; SendMessage(Level.ERR, "Malformed number found."); }
+								if (!Int32.TryParse(args[3], out len)) { len = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							}
+							else
+							{
+								input = '$' + args[0];
+								LocalMemoryGet(ref input);
+								if (!Int32.TryParse(args[1], out start)) { start = 0; SendMessage(Level.ERR, "Malformed number found."); }
+								if (!Int32.TryParse(args[2], out len)) { len = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							}
+							output = input.Substring(start, len);
+							SetVariable(args[0], ref output);
+						}
 						break;
 
 					default:
