@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 #pragma warning disable IDE0044 // Add readonly modifier
 
+// [FIXME] TODO: Add DO/CALL support.
+
 namespace Maartanic
 {
 	class Engine
@@ -17,6 +19,7 @@ namespace Maartanic
 		private int logLevel;
 		private StreamReader sr;
 		private bool compareOutput = false;
+		private bool keyOutput = false;
 		private DateTime startTime = DateTime.UtcNow;
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
 		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
@@ -511,6 +514,34 @@ namespace Maartanic
 						PerformOp("max", args[0], args[1], args.Length > 2 ? args[2] : null);
 						break;
 					case "CON":
+						{
+							string a, b, output;
+							if (args.Length > 2)
+							{
+								a = args[1];
+								b = args[2];
+							}
+							else
+							{
+								a = '$' + args[0];
+								LocalMemoryGet(ref a);
+								b = args[1];
+							}
+							output = a + b;
+							SetVariable(args[0], ref output);
+						}
+						break;
+
+					case "KEY":
+						{
+							if (!Char.TryParse(args[0], out char key)) { key = 'x'; SendMessage(Level.ERR, "Malformed character found."); }
+							ConsoleKeyInfo cki;
+							if (Console.KeyAvailable)
+							{
+								cki = Console.ReadKey();
+								keyOutput = cki.KeyChar == key;
+							}	
+						}
 						break;
 
 					default:
