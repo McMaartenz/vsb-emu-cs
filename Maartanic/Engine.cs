@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 #pragma warning disable IDE0044 // Add readonly modifier
 
@@ -687,6 +688,25 @@ namespace Maartanic
 								_new = args[2];
 							}
 							output = input.Replace(old, _new);
+							SetVariable(args[0], ref output);
+						}
+						break;
+
+					case "COUNT":
+						{
+							string output, input, value;
+							if (args.Length > 2)
+							{
+								input = args[1];
+								value = args[2];
+							}
+							else
+							{
+								input = '$' + args[0];
+								LocalMemoryGet(ref input);
+								value = args[1];
+							}
+							output = Regex.Matches(input, value).Count.ToString();
 							SetVariable(args[0], ref output);
 						}
 						break;
