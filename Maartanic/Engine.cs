@@ -612,6 +612,23 @@ namespace Maartanic
 						}
 						break;
 
+					case "TRIM":
+						{
+							string input;
+							if (args.Length > 1)
+							{
+								input = args[1];
+							}
+							else
+							{
+								input = '$' + args[0];
+								LocalMemoryGet(ref input);
+							}
+							input = input.Trim();
+							SetVariable(args[0], ref input);
+						}
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
@@ -815,6 +832,12 @@ namespace Maartanic
 		/* LocalMemoryGet(): Converts a given variable to its contents. Leaves it alone if it doesn't have a prefix '$'. */
 		private void LocalMemoryGet(ref string varName)
 		{
+			if (varName.Length == 0)
+			{
+				varName = "NULL";
+				SendMessage(Level.ERR, "Malformed variable");
+				return;
+			}
 			if (varName[0] == '$')
 			{
 				if (varName[1] == '_')
@@ -873,7 +896,7 @@ namespace Maartanic
 						}
 						else
 						{
-							newCombined = newCombined[..(newCombined.Length - 1)]; // Exclude the last/escape character
+							newCombined = newCombined[..(newCombined.Length - 1)] + '"'; // Exclude the last/escape character
 							continue;
 						}
 					}
