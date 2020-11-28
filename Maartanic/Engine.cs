@@ -47,7 +47,7 @@ namespace Maartanic
 
 		/* FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB */
 		private void FillPredefinedList()
-		{
+		{ //TODO console cursorleft cursortop methods for mouse pos? ($_mx, $_my)
 			predefinedVariables.Add("ww", (Func<string>)(() => Convert.ToString(Console.WindowWidth)));
 			predefinedVariables.Add("wh", (Func<string>)(() => Convert.ToString(Console.WindowHeight)));
 			predefinedVariables.Add("cmpr", (Func<string>)(() => Convert.ToString(compareOutput)));
@@ -790,27 +790,27 @@ namespace Maartanic
 			switch (function)
 			{
 				case "COS": // To radians, use it, and back to degrees.
-					result = ToDegrees(Math.Cos(ToRadians(dnumA)));
+					result = Math.Cos(ToRadians(dnumA));
 					break;
 
 				case "SIN":
-					result = ToDegrees(Math.Sin(ToRadians(dnumA)));
+					result = Math.Sin(ToRadians(dnumA));
 					break;
 
 				case "TAN":
-					result = ToDegrees(Math.Tan(ToRadians(dnumA)));
+					result = Math.Tan(ToRadians(dnumA));
 					break;
 
 				case "ACOS":
-					result = ToDegrees(Math.Acos(ToRadians(dnumA)));
+					result = Math.Acos(ToRadians(dnumA));
 					break;
 
 				case "ASIN":
-					result = ToDegrees(Math.Asin(ToRadians(dnumA)));
+					result = Math.Asin(ToRadians(dnumA));
 					break;
 
 				case "ATAN":
-					result = ToDegrees(Math.Atan(ToRadians(dnumA)));
+					result = Math.Atan(ToRadians(dnumA));
 					break;
 
 				case "LOG": //FIXME: Proper LOG and MATH_LN instructions
