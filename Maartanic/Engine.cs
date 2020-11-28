@@ -218,8 +218,8 @@ namespace Maartanic
 						{ // local scope to make variables defined here local to this scope!
 							string statement = args.Length > 1 ? args[1] : args[0];
 							bool result;
-							bool invertStatement = args.Length > 1 && args[0] == "NOT";
-							if (statement == "1" || statement == "true")
+							bool invertStatement = args.Length > 1 && args[0].ToUpper() == "NOT";
+							if (statement == "1" || statement.ToUpper() == "TRUE")
 							{
 								result = true;
 							}
@@ -237,6 +237,7 @@ namespace Maartanic
 								StreamReader ifsr = new StreamReader(scriptFile);
 								while ((line = ifsr.ReadLine()) != null)
 								{
+									ifLineIndex++;
 									if (LineCheck(ref cLineInfo, ref ifLineIndex))
 									{
 										continue;
@@ -257,7 +258,6 @@ namespace Maartanic
 											scope--;
 										}
 									}
-									ifLineIndex++;
 								}
 								if (success)
 								{
@@ -290,6 +290,7 @@ namespace Maartanic
 							StreamReader endifsr = new StreamReader(scriptFile);
 							while ((line = endifsr.ReadLine()) != null)
 							{
+								endifLineIndex++;
 								if (LineCheck(ref cLineInfo, ref endifLineIndex))
 								{
 									continue;
@@ -310,7 +311,7 @@ namespace Maartanic
 										scope--;
 									}
 								}
-								endifLineIndex++;
+								
 							}
 							if (success)
 							{
@@ -400,47 +401,17 @@ namespace Maartanic
 			double n1, n2;
 			bool b1, b2;
 			// Numbers
-			try
-			{
-				n1 = Convert.ToDouble(args[1]);
-			}
-			catch(Exception e)
+			b1 = args[1] == "true" || args[1] == "1";
+			b2 = args[2] == "true" || args[2] == "1";
+			if (!Double.TryParse(args[1], out n1))
 			{
 				n1 = 0.0d;
 			}
-			try
-			{
-				n2 = Convert.ToDouble(args[2]);
-			}
-			catch (Exception e)
+			if (!Double.TryParse(args[2], out n2))
 			{
 				n2 = 0.0d;
 			}
-			// Booleans
-			try
-			{
-				b1 = Convert.ToBoolean(args[1]);
-			}
-			catch (Exception e)
-			{
-				b1 = false;
-			}
-			try
-			{
-				b2 = Convert.ToBoolean(args[2]);
-			}
-			catch (Exception e)
-			{
-				b2 = false;
-			}
-			if (args[1] == "1")
-			{
-				b1 = true;
-			}
-			if (args[2] == "1")
-			{
-				b2 = true;
-			}	
+
 			switch (args[0].ToUpper())
 			{
 				case "EQL":
