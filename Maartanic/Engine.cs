@@ -20,16 +20,24 @@ namespace Maartanic
 		private StreamReader sr;
 		private bool compareOutput = false;
 		private bool keyOutput = false;
+		private Mode applicationMode = Mode.VSB;
 		private DateTime startTime = DateTime.UtcNow;
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
 		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
-		/* Level: used in SendMessage method to indicate the message level as info, warning or error */
+		/* Level: Used in SendMessage method to indicate the message level as info, warning or error. */
 		private enum Level
 		{
 			INF,
 			WRN,
 			ERR
+		}
+
+		/* Mode: Used in applicationMode to let the engine know to enable extended MRT functions not yet included in the VSB Engine. */
+		private enum Mode
+		{
+			MRT,
+			VSB
 		}
 
 		/* FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB */
@@ -128,6 +136,11 @@ namespace Maartanic
 					if (x == ';') // A wild comment appeared!
 					{
 						lineIndex++;
+						return true;
+					}
+					if (x == '[')
+					{
+						ExtractEngineArgs(ref lineInfo);
 						return true;
 					}
 				}
@@ -550,6 +563,10 @@ namespace Maartanic
 						Program.Exit();
 						break; // Unreachable code but IDE complains for some reason
 
+					case "SUBSTR":
+						
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
@@ -860,6 +877,37 @@ namespace Maartanic
 			}
 
 			return newCombinedList.ToArray();
+		}
+
+		/* ExtractEngineArgs(): Extracts [A B] like stuff and applies it to internal engine variables. */
+		private void ExtractEngineArgs(ref string[] lineInfo)
+		{
+			string[] engineArgParts;
+			string engineArg = "";
+			foreach (string part in lineInfo)
+			{
+				engineArg += ' ' + part;
+			}
+			engineArgParts = engineArg[1..].Trim('[', ']').Split(' ');
+			if (engineArgParts[0].ToLower() == "mode")
+			{
+				switch (engineArgParts[1].ToUpper())
+				{
+					case "VSB":
+						applicationMode = Mode.VSB;
+						SendMessage(Level.INF, "Using compat mode");
+						break;
+
+					case "MRT":
+						applicationMode = Mode.MRT;
+						SendMessage(Level.INF, "Using extended mode");
+						break;
+
+					default:
+						SendMessage(Level.ERR, "Unrecognized mode entered.");
+						break;
+				}
+			}
 		}
 	}
 }
