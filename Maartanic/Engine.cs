@@ -545,6 +545,10 @@ namespace Maartanic
 						}
 						break;
 
+					case "HLT":
+						Environment.Exit(0);
+						break; // Unreachable code but IDE complains ok
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
