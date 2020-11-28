@@ -75,6 +75,20 @@ namespace Maartanic
 			scriptFile = startPos;
 		}
 
+		/* Engine() OVERLOADED: Specify your entry point */
+		public Engine(string startPos, string customEntryPoint)
+		{
+			entryPoint = customEntryPoint; // default is main
+			executable = File.Exists(startPos);
+			if (!executable)
+			{
+				Console.WriteLine($"The file {startPos} does not exist.");
+				return;
+			}
+			FillPredefinedList();
+			scriptFile = startPos;
+		}
+
 		/* Executable(): Returns whether or not it is ready to be executed based on Engine()'s result. */
 		public bool Executable()
 		{
@@ -626,6 +640,13 @@ namespace Maartanic
 							}
 							input = System.Text.RegularExpressions.Regex.Replace(input.Trim(), @"\s+", " "); // Trim and remove duplicate spaces
 							SetVariable(args[0], ref input);
+						}
+						break;
+
+					case "DO":
+					case "CALL":
+						{
+
 						}
 						break;
 
