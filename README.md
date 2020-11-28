@@ -9,4 +9,4 @@ Simply compile all C# files and execute the executable. Entry point is inside <k
 </p>
 
 # Modifying the current mode
-<p>Write in your code <kbd>[mode xyz]</kbd> where <kbd>xyz</kbd> is your preferred mode. <kbd>vsb</kbd> will restrict instruction set to merely VSB's instructions. <kbd>mrt</kbd> will extend the VSB's instruction set.</p>
+<p>Write in your code (Needs to be executed, so e.g. put after <kbd>DEF main</kbd>!) <kbd>[mode xyz]</kbd> where <kbd>xyz</kbd> is your preferred mode. <kbd>vsb</kbd> will restrict instruction set to merely VSB's instructions. <kbd>mrt</kbd> will extend the VSB's instruction set.</p>
