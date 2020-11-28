@@ -546,7 +546,7 @@ namespace Maartanic
 						break;
 
 					case "HLT":
-						Environment.Exit(0);
+						Program.Exit();
 						break; // Unreachable code but IDE complains ok
 
 					default:
