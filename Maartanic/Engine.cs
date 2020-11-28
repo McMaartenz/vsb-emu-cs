@@ -24,7 +24,7 @@ namespace Maartanic
 		private bool keyOutput = false;
 		private string returnedValue = "NULL";
 
-		private Mode applicationMode = Mode.VSB; // [FIXME] TODO: Extend VSB instructions! It's C#, GO FOR IT!
+		private Mode applicationMode = Mode.VSB; //TODO: Extend VSB instructions! It's C#, GO FOR IT!
 		private DateTime startTime = DateTime.UtcNow;
 
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
@@ -711,6 +711,46 @@ namespace Maartanic
 						}
 						break;
 
+					case "FIND":
+						{
+							string output, input, value;
+							if (args.Length > 2)
+							{
+								input = args[1];
+								value = args[2];
+							}
+							else
+							{
+								input = '$' + args[0];
+								LocalMemoryGet(ref input);
+								value = args[1];
+							}
+							output = input.IndexOf(value).ToString();
+							SetVariable(args[0], ref output);
+						}
+						break;
+
+					case "COS": // (Trigonometric) math functions
+					case "SIN":
+					case "TAN":
+					case "ACOS":
+					case "ASIN":
+					case "ATAN":
+					case "LOG":
+					case "MATH_LN":
+					case "EPOW":
+					case "TENPOW":
+					case "TORAD":
+					case "TODEG":
+						MathFunction(lineInfo[0].ToUpper(), args[0], args.Length > 1 ? args[1] : null);
+						break;
+
+					case "PUSH": //TODO make PUSH and POP instructions
+						break;
+
+					case "POP":
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
@@ -718,6 +758,92 @@ namespace Maartanic
 			}
 			sr.Close(); // Close StreamReader after execution
 			return "NULL";
+		}
+
+		/* ToRadians(): Converts a given angle in degrees to radians with a limited amount of accuracy */
+		private double ToRadians(double input)
+		{
+			return 0.01745329251 * input;
+		}
+
+		/* ToDegrees(): Converts a given angle in radians to degrees with a limited amount of accuracy */
+		private double ToDegrees(double input)
+		{
+			return 57.2957795131 * input;
+		}
+
+		/* MathFunction(): Method merges multiple cases in the big switch of StartExecution(). */
+		private void MathFunction(string function, string destination, string number)
+		{
+			double dnumA;
+			if (number == null)
+			{
+				string tmp = '$' + destination;
+				LocalMemoryGet(ref tmp);
+				if (!Double.TryParse(tmp, out dnumA)) { dnumA = 0.0d; SendMessage(Level.ERR, "Malformed number found."); }
+			}
+			else
+			{
+				if (!Double.TryParse(number, out dnumA)) { dnumA = 0.0d; SendMessage(Level.ERR, "Malformed number found."); }
+			}
+			double result;
+			switch (function)
+			{
+				case "COS": // To radians, use it, and back to degrees.
+					result = ToDegrees(Math.Cos(ToRadians(dnumA)));
+					break;
+
+				case "SIN":
+					result = ToDegrees(Math.Sin(ToRadians(dnumA)));
+					break;
+
+				case "TAN":
+					result = ToDegrees(Math.Tan(ToRadians(dnumA)));
+					break;
+
+				case "ACOS":
+					result = ToDegrees(Math.Acos(ToRadians(dnumA)));
+					break;
+
+				case "ASIN":
+					result = ToDegrees(Math.Asin(ToRadians(dnumA)));
+					break;
+
+				case "ATAN":
+					result = ToDegrees(Math.Atan(ToRadians(dnumA)));
+					break;
+
+				case "LOG": //FIXME: Proper LOG and MATH_LN instructions
+					result = Math.Log(dnumA);
+					break;
+
+				case "MATH_LN":
+					result = 0.0d;
+					break;
+
+				case "EPOW":
+					result = Math.Exp(dnumA);
+					break;
+
+				case "TENPOW":
+					result = Math.Pow(10, dnumA);
+					break;
+
+				case "TORAD":
+					result = ToRadians(dnumA);
+					break;
+
+				case "TODEG":
+					result = ToDegrees(dnumA);
+					break;
+
+				default:
+					result = 0.0d;
+					SendMessage(Level.ERR, $"Unrecognized function {function}.");
+					break;
+			}
+			string resultS = result.ToString();
+			SetVariable(destination, ref resultS);
 		}
 
 		/* PerformOp(): Performs an operation with two values given. */
