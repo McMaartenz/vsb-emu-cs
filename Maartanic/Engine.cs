@@ -48,26 +48,35 @@ namespace Maartanic
 		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
 		private void FillPredefinedList()
 		{ //TODO console cursorleft cursortop methods for mouse pos? ($_mx, $_my)
-			predefinedVariables.Add("ww", (Func<string>)(() => Console.WindowWidth.ToString()));
-			predefinedVariables.Add("wh", (Func<string>)(() => Console.WindowHeight.ToString()));
-			predefinedVariables.Add("cmpr", (Func<string>)(() => compareOutput.ToString()));
-			predefinedVariables.Add("projtime", (Func<string>)(() => (DateTime.UtcNow - startTime).TotalSeconds.ToString()));
-			predefinedVariables.Add("projid", (Func<string>)(() => "0"));
-			predefinedVariables.Add("user", (Func<string>)(() => "*guest"));
-			predefinedVariables.Add("ver", (Func<string>)(() => "1.3"));
-			predefinedVariables.Add("ask", (Func<string>)(() => Console.ReadLine()));
-			predefinedVariables.Add("graphics", (Func<string>)(() => "false"));
-			predefinedVariables.Add("thour", (Func<string>)(() => DateTime.UtcNow.Hour.ToString()));
-			predefinedVariables.Add("tminute", (Func<string>)(() => DateTime.UtcNow.Minute.ToString()));
-			predefinedVariables.Add("tsecond", (Func<string>)(() => DateTime.UtcNow.Second.ToString()));
-			predefinedVariables.Add("tyear", (Func<string>)(() => DateTime.UtcNow.Year.ToString()));
-			predefinedVariables.Add("tmonth", (Func<string>)(() => DateTime.UtcNow.Month.ToString()));
-			predefinedVariables.Add("tdate", (Func<string>)(() => DateTime.UtcNow.Day.ToString()));
-			predefinedVariables.Add("tdow", (Func<string>)(() => ((int)DateTime.UtcNow.DayOfWeek).ToString()));
-			predefinedVariables.Add("key", (Func<string>)(() => keyOutput.ToString()));
-			predefinedVariables.Add("ret", (Func<string>)(() => returnedValue));
-			predefinedVariables.Add("mx", (Func<string>)(() => Program.mouse.GetPosition().X.ToString()));
-			predefinedVariables.Add("my", (Func<string>)(() => Program.mouse.GetPosition().Y.ToString()));
+			Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
+			{
+				{ "ww",			() => Console.WindowWidth.ToString() },
+				{ "wh",			() => Console.WindowHeight.ToString() },
+				{ "cmpr",		() => compareOutput.ToString() },
+				{ "projtime",	() => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
+				{ "projid",		() => "0" },
+				{ "user",		() => "*guest" },
+				{ "ver",		() => "1.3" },
+				{ "ask",		() => Console.ReadLine() },
+				{ "graphics",	() => "false" },
+				{ "thour",		() => DateTime.UtcNow.Hour.ToString() },
+				{ "tminute",	() => DateTime.UtcNow.Minute.ToString() },
+				{ "tsecond",	() => DateTime.UtcNow.Second.ToString() },
+				{ "tyear",		() => DateTime.UtcNow.Year.ToString() },
+				{ "tmonth",		() => DateTime.UtcNow.Month.ToString() },
+				{ "tdate",		() => DateTime.UtcNow.Day.ToString() },
+				{ "tdow",		() => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
+				{ "key",		() => keyOutput.ToString() },
+				{ "ret",		() => returnedValue },
+				{ "mx",			() => Program.mouse.GetPosition().X.ToString() },
+				{ "my",			() => Program.mouse.GetPosition().Y.ToString() }
+			};
+
+			foreach (KeyValuePair<string, Func<string>> a in toBeAdded)
+			{
+				predefinedVariables.Add(a.Key, a.Value);
+			}
+
 		}
 
 		// Engine(): Class constructor, returns if given file does not exist.
