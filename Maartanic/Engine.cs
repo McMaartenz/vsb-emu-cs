@@ -742,10 +742,12 @@ namespace Maartanic
 					case "TENPOW":
 					case "TORAD":
 					case "TODEG":
+					case "FLR":
+					case "CEIL":
 						MathFunction(lineInfo[0].ToUpper(), args[0], args.Length > 1 ? args[1] : null);
 						break;
 
-					case "PUSH": //TODO make PUSH and POP instructions
+					case "PUSH":
 						Program.stack.Push(args[0]);
 						break;
 
@@ -869,6 +871,14 @@ namespace Maartanic
 
 				case "TODEG":
 					result = ToDegrees(dnumA);
+					break;
+
+				case "FLR":
+					result = Math.Floor(dnumA);
+					break;
+
+				case "CEIL":
+					result = Math.Ceiling(dnumA);
 					break;
 
 				default:
