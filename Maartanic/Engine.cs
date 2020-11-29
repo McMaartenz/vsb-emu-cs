@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 #pragma warning disable IDE0044 // Add readonly modifier
 
@@ -23,9 +24,9 @@ namespace Maartanic
 		private bool keyOutput = false;
 		private string returnedValue = "NULL";
 
-		private Mode applicationMode = Mode.VSB; // [FIXME] TODO: Extend VSB instructions! It's C#, GO FOR IT!
+		private Mode applicationMode = Mode.VSB; //TODO: Extend VSB instructions! It's C#, GO FOR IT!
 		private DateTime startTime = DateTime.UtcNow;
-		
+
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
 		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
@@ -46,24 +47,24 @@ namespace Maartanic
 
 		/* FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB */
 		private void FillPredefinedList()
-		{
-			predefinedVariables.Add("ww", (Func<string>)(() => Convert.ToString(Console.WindowWidth)));
-			predefinedVariables.Add("wh", (Func<string>)(() => Convert.ToString(Console.WindowHeight)));
-			predefinedVariables.Add("cmpr", (Func<string>)(() => Convert.ToString(compareOutput)));
-			predefinedVariables.Add("projtime", (Func<string>)(() => Convert.ToString((DateTime.UtcNow - startTime).TotalSeconds)));
+		{ //TODO console cursorleft cursortop methods for mouse pos? ($_mx, $_my)
+			predefinedVariables.Add("ww", (Func<string>)(() => Console.WindowWidth.ToString()));
+			predefinedVariables.Add("wh", (Func<string>)(() => Console.WindowHeight.ToString()));
+			predefinedVariables.Add("cmpr", (Func<string>)(() => compareOutput.ToString()));
+			predefinedVariables.Add("projtime", (Func<string>)(() => (DateTime.UtcNow - startTime).TotalSeconds.ToString()));
 			predefinedVariables.Add("projid", (Func<string>)(() => "0"));
 			predefinedVariables.Add("user", (Func<string>)(() => "*guest"));
 			predefinedVariables.Add("ver", (Func<string>)(() => "1.3"));
 			predefinedVariables.Add("ask", (Func<string>)(() => Console.ReadLine()));
 			predefinedVariables.Add("graphics", (Func<string>)(() => "false"));
-			predefinedVariables.Add("thour", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Hour)));
-			predefinedVariables.Add("tminute", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Minute)));
-			predefinedVariables.Add("tsecond", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Second)));
-			predefinedVariables.Add("tyear", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Year)));
-			predefinedVariables.Add("tmonth", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Month)));
-			predefinedVariables.Add("tdate", (Func<string>)(() => Convert.ToString(DateTime.UtcNow.Day)));
-			predefinedVariables.Add("tdow", (Func<string>)(() => Convert.ToString((int)DateTime.UtcNow.DayOfWeek)));
-			predefinedVariables.Add("key", (Func<string>)(() => Convert.ToString(keyOutput)));
+			predefinedVariables.Add("thour", (Func<string>)(() => DateTime.UtcNow.Hour.ToString()));
+			predefinedVariables.Add("tminute", (Func<string>)(() => DateTime.UtcNow.Minute.ToString()));
+			predefinedVariables.Add("tsecond", (Func<string>)(() => DateTime.UtcNow.Second.ToString()));
+			predefinedVariables.Add("tyear", (Func<string>)(() => DateTime.UtcNow.Year.ToString()));
+			predefinedVariables.Add("tmonth", (Func<string>)(() => DateTime.UtcNow.Month.ToString()));
+			predefinedVariables.Add("tdate", (Func<string>)(() => DateTime.UtcNow.Day.ToString()));
+			predefinedVariables.Add("tdow", (Func<string>)(() => ((int)DateTime.UtcNow.DayOfWeek).ToString()));
+			predefinedVariables.Add("key", (Func<string>)(() => keyOutput.ToString()));
 			predefinedVariables.Add("ret", (Func<string>)(() => returnedValue));
 		}
 
@@ -670,6 +671,165 @@ namespace Maartanic
 						}
 						return "NULL";
 
+					case "RPLC":
+						{
+							string output, input, old, _new; // "new" is a C# keyword so use "_new" instead!
+							if (args.Length > 3)
+							{
+								input = args[1];
+								old = args[2];
+								_new = args[3];
+							}
+							else
+							{
+								input = '$' + args[0];
+								LocalMemoryGet(ref input);
+								old = args[1];
+								_new = args[2];
+							}
+							output = input.Replace(old, _new);
+							SetVariable(args[0], ref output);
+						}
+						break;
+
+					case "COUNT":
+						{
+							string output, input, value;
+							if (args.Length > 2)
+							{
+								input = args[1];
+								value = args[2];
+							}
+							else
+							{
+								input = '$' + args[0];
+								LocalMemoryGet(ref input);
+								value = args[1];
+							}
+							output = Regex.Matches(input, value).Count.ToString();
+							SetVariable(args[0], ref output);
+						}
+						break;
+
+					case "FIND":
+						{
+							string output, input, value;
+							if (args.Length > 2)
+							{
+								input = args[1];
+								value = args[2];
+							}
+							else
+							{
+								input = '$' + args[0];
+								LocalMemoryGet(ref input);
+								value = args[1];
+							}
+							output = input.IndexOf(value).ToString();
+							SetVariable(args[0], ref output);
+						}
+						break;
+
+					case "COS": // (Trigonometric) math functions
+					case "SIN":
+					case "TAN":
+					case "ACOS":
+					case "ASIN":
+					case "ATAN":
+					case "LOG":
+					case "MATH_LN":
+					case "EPOW":
+					case "TENPOW":
+					case "TORAD":
+					case "TODEG":
+					case "FLR":
+					case "CEIL":
+						MathFunction(lineInfo[0].ToUpper(), args[0], args.Length > 1 ? args[1] : null);
+						break;
+
+					case "PUSH":
+						Program.stack.Push(args[0]);
+						break;
+
+					case "POP":
+						{
+							string output;
+							if (Program.stack.HasNext())
+							{
+								Program.stack.Pop(out output);
+							}
+							else
+							{
+								output = "NULL";
+								SendMessage(Level.ERR, "Stack was empty and could not be popped from.");
+							}
+							SetVariable(args[0], ref output);
+						}
+						break;
+
+					case "QPUSH":
+						Program.queue.Enqueue(args[0]);
+						break;
+
+					case "QPOP":
+						{
+							string output;
+							if (Program.queue.HasNext())
+							{
+								Program.queue.Dequeue(out output);
+							}
+							else
+							{
+								output = "NULL";
+								SendMessage(Level.ERR, "Queue was empty and could not be dequeued from.");
+							}
+							SetVariable(args[0], ref output);
+						}
+						break;
+
+					case "ALOC":
+						{
+							if (!Int32.TryParse(args[0], out int amount)) { amount = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							for (int i = 0; i < amount; i++)
+							{
+								Program.memory.Add("0");
+							}
+						}
+						break;
+
+					case "FREE":
+						{
+							if (!Int32.TryParse(args[0], out int amount)) { amount = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							for (int i = 0; i < amount; i++)
+							{
+								if (!Program.memory.Exists(0))
+								{
+									SendMessage(Level.WRN, "Tried freeing memory that doesn't exist.");
+									continue;
+								}
+								else
+								{
+									Program.memory.Remove(1);
+								}
+							}
+						}
+						break;
+
+					case "SETM":
+						{
+							if (!Int32.TryParse(args[0], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break; }
+							SetMemoryAddr(address, args[1]);
+						}
+						break;
+
+					case "GETM":
+						{
+							if (!Int32.TryParse(args[1], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break;  }
+							Program.memory.Get(address, out string output);
+							SetVariable(args[0], ref output);
+						}
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
@@ -677,6 +837,113 @@ namespace Maartanic
 			}
 			sr.Close(); // Close StreamReader after execution
 			return "NULL";
+		}
+
+		/* SetMemoryAddr(): Sets a given memory address to the given value.  */
+		private void SetMemoryAddr(int address, string value)
+		{
+			if (!Program.memory.Exists(address))
+			{
+				SendMessage(Level.ERR, $"Memory address {address} does not exist.");
+			}
+			else
+			{
+				Program.memory.Set(address, value);
+			}
+		}
+
+		/* ToRadians(): Converts a given angle in degrees to radians with a limited amount of accuracy */
+		private double ToRadians(double input)
+		{
+			return 0.01745329251 * input;
+		}
+
+		/* ToDegrees(): Converts a given angle in radians to degrees with a limited amount of accuracy */
+		private double ToDegrees(double input)
+		{
+			return 57.2957795131 * input;
+		}
+
+		/* MathFunction(): Method merges multiple cases in the big switch of StartExecution(). */
+		private void MathFunction(string function, string destination, string number)
+		{
+			double dnumA;
+			if (number == null)
+			{
+				string tmp = '$' + destination;
+				LocalMemoryGet(ref tmp);
+				if (!Double.TryParse(tmp, out dnumA)) { dnumA = 0.0d; SendMessage(Level.ERR, "Malformed number found."); }
+			}
+			else
+			{
+				if (!Double.TryParse(number, out dnumA)) { dnumA = 0.0d; SendMessage(Level.ERR, "Malformed number found."); }
+			}
+			double result;
+			switch (function)
+			{
+				case "COS": // To radians, use it, and back to degrees.
+					result = Math.Cos(ToRadians(dnumA));
+					break;
+
+				case "SIN":
+					result = Math.Sin(ToRadians(dnumA));
+					break;
+
+				case "TAN":
+					result = Math.Tan(ToRadians(dnumA));
+					break;
+
+				case "ACOS":
+					result = Math.Acos(ToRadians(dnumA));
+					break;
+
+				case "ASIN":
+					result = Math.Asin(ToRadians(dnumA));
+					break;
+
+				case "ATAN":
+					result = Math.Atan(ToRadians(dnumA));
+					break;
+
+				case "LOG": // Log w/ base 10
+					result = Math.Log10(dnumA);
+					break;
+
+				case "MATH_LN": // Natural logarithm (e as base)
+					result = Math.Log(dnumA);
+					break;
+
+				case "EPOW":
+					result = Math.Exp(dnumA);
+					break;
+
+				case "TENPOW":
+					result = Math.Pow(10, dnumA);
+					break;
+
+				case "TORAD":
+					result = ToRadians(dnumA);
+					break;
+
+				case "TODEG":
+					result = ToDegrees(dnumA);
+					break;
+
+				case "FLR":
+					result = Math.Floor(dnumA);
+					break;
+
+				case "CEIL":
+					result = Math.Ceiling(dnumA);
+					break;
+
+				default:
+					result = 0.0d;
+					SendMessage(Level.ERR, $"Unrecognized function {function}.");
+					break;
+			}
+			string resultS = result.ToString();
+			SetVariable(destination, ref resultS);
 		}
 
 		/* PerformOp(): Performs an operation with two values given. */
