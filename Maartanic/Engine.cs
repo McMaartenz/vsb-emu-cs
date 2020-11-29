@@ -802,7 +802,7 @@ namespace Maartanic
 							if (!Int32.TryParse(args[0], out int amount)) { amount = 0; SendMessage(Level.ERR, "Malformed number found."); }
 							for (int i = 0; i < amount; i++)
 							{
-								if (!Program.memory.Exists(amount - i))
+								if (!Program.memory.Exists(0))
 								{
 									SendMessage(Level.WRN, "Tried freeing memory that doesn't exist.");
 									continue;
