@@ -4,7 +4,7 @@ namespace Maartanic
 {
 	public class Program
 	{
-		public const float VERSION = 0.2f;
+		public const float VERSION = 0.9f;
 		public static EngineStack stack = new EngineStack();
 		public static EngineQueue queue = new EngineQueue();
 		public static EngineMemory memory = new EngineMemory();
