@@ -8,6 +8,7 @@ namespace Maartanic
 		public static EngineStack stack = new EngineStack();
 		public static EngineQueue queue = new EngineQueue();
 		public static EngineMemory memory = new EngineMemory();
+		public static EngineMouse mouse = new EngineMouse();
 
 		/* Exit(): Exit process */
 		public static void Exit(string value)
