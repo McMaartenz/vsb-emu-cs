@@ -7,7 +7,9 @@ namespace Maartanic
 		public const float VERSION = 0.2f;
 		public static EngineStack stack = new EngineStack();
 		public static EngineQueue queue = new EngineQueue();
+		public static EngineMemory memory = new EngineMemory();
 
+		/* Exit(): Exit process */
 		public static void Exit(string value)
 		{
 			Console.Write($"\nProcess exited with value \"{value}\".");
@@ -15,6 +17,7 @@ namespace Maartanic
 			Environment.Exit(0);
 		}
 
+		/* Main(): Entry point */
 		public static void Main(string[] args)
 		{
 			Console.WriteLine("Maartanic Engine {0} (no-gui VSB Engine Emulator on C#)\n", VERSION);
