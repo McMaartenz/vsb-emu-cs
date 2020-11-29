@@ -1,4 +1,4 @@
-﻿// Just a definition for two integer values
+﻿// Struct to define a position (x,y)
 public struct POINT
 {
 	public int X, Y;

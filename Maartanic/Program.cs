@@ -1,14 +1,22 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Maartanic
 {
 	public class Program
 	{
+
+		[DllImport("kernel32")]
+		private static extern IntPtr GetConsoleWindow();
+
 		public const float VERSION = 0.9f;
 		public static EngineStack stack = new EngineStack();
 		public static EngineQueue queue = new EngineQueue();
 		public static EngineMemory memory = new EngineMemory();
 		public static EngineMouse mouse = new EngineMouse();
+
+		private const int WIN_WIDTH = 120;
+		private const int WIN_HEIGHT = 30;
 
 		// Exit(): Exit process
 		public static void Exit(string value)
@@ -21,6 +29,11 @@ namespace Maartanic
 		// Main(): Entry point
 		public static void Main(string[] args)
 		{
+			TitleBar t = new TitleBar();
+
+			Console.SetBufferSize(WIN_WIDTH, WIN_HEIGHT);
+			Console.SetWindowSize(WIN_WIDTH, WIN_HEIGHT);
+
 			Console.WriteLine("Maartanic Engine {0} (no-gui VSB Engine Emulator on C#)\n", VERSION);
 			if (args.Length == 0)
 			{
@@ -45,7 +58,6 @@ namespace Maartanic
 
 			// Clear buffer
 			Console.Clear();
-
 			Engine e = new Engine(args[0]);
 			if (e.Executable())
 			{
