@@ -10,7 +10,7 @@ namespace Maartanic
 		public static EngineMemory memory = new EngineMemory();
 		public static EngineMouse mouse = new EngineMouse();
 
-		/* Exit(): Exit process */
+		// Exit(): Exit process
 		public static void Exit(string value)
 		{
 			Console.Write($"\nProcess exited with value \"{value}\".");
@@ -18,7 +18,7 @@ namespace Maartanic
 			Environment.Exit(0);
 		}
 
-		/* Main(): Entry point */
+		// Main(): Entry point
 		public static void Main(string[] args)
 		{
 			Console.WriteLine("Maartanic Engine {0} (no-gui VSB Engine Emulator on C#)\n", VERSION);

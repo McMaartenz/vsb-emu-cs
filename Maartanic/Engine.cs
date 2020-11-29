@@ -30,7 +30,7 @@ namespace Maartanic
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
 		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
-		/* Level: Used in SendMessage method to indicate the message level as info, warning or error. */
+		// Level: Used in SendMessage method to indicate the message level as info, warning or error.
 		private enum Level
 		{
 			INF,
@@ -38,14 +38,14 @@ namespace Maartanic
 			ERR
 		}
 
-		/* Mode: Used in applicationMode to let the engine know to enable extended MRT functions not yet included in the VSB Engine. */
+		// Mode: Used in applicationMode to let the engine know to enable extended MRT functions not yet included in the VSB Engine.
 		private enum Mode
 		{
 			MRT,
 			VSB
 		}
 
-		/* FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB */
+		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
 		private void FillPredefinedList()
 		{ //TODO console cursorleft cursortop methods for mouse pos? ($_mx, $_my)
 			predefinedVariables.Add("ww", (Func<string>)(() => Console.WindowWidth.ToString()));
@@ -70,7 +70,7 @@ namespace Maartanic
 			predefinedVariables.Add("my", (Func<string>)(() => Program.mouse.GetPosition().Y.ToString()));
 		}
 
-		/* Engine(): Class constructor, returns if given file does not exist. */
+		// Engine(): Class constructor, returns if given file does not exist.
 		public Engine(string startPos)
 		{
 			executable = File.Exists(startPos);
@@ -83,7 +83,7 @@ namespace Maartanic
 			scriptFile = startPos;
 		}
 
-		/* Engine() OVERLOADED: Specify your entry point */
+		// Engine() OVERLOADED: Specify your entry point
 		public Engine(string startPos, string customEntryPoint)
 		{
 			entryPoint = customEntryPoint; // default is main
@@ -97,13 +97,13 @@ namespace Maartanic
 			scriptFile = startPos;
 		}
 
-		/* Executable(): Returns whether or not it is ready to be executed based on Engine()'s result. */
+		// Executable(): Returns whether or not it is ready to be executed based on Engine()'s result.
 		public bool Executable()
 		{
 			return executable;
 		}
 
-		/* FindProgram(): Basically -jumps- to a method declaration in code */
+		// FindProgram(): Basically -jumps- to a method declaration in code
 		private bool FindProgram(ref StreamReader sr, ref string line, ref int lineIndex)
 		{
 			while (((line = sr.ReadLine()) != null) && line != $"DEF {entryPoint}")
@@ -119,7 +119,7 @@ namespace Maartanic
 				return false; // No entry point "main"!
 		}
 
-		/* SendMessage(): Logs a message to the console with a level, including line of execution. */
+		// SendMessage(): Logs a message to the console with a level, including line of execution.
 		private void SendMessage(Level a, string message)
 		{
 			if ((int) a >= logLevel)
@@ -139,7 +139,7 @@ namespace Maartanic
 			}	
 		}
 
-		/* LineCheck(): Splits the text into an array for further operations. */
+		// LineCheck(): Splits the text into an array for further operations.
 		public bool LineCheck(ref string[] lineInfo, ref int lineIndex)
 		{
 			if (line == null)
@@ -175,7 +175,7 @@ namespace Maartanic
 			return false;
 		}
 
-		/* StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions. */
+		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
 		public string StartExecution(int logLevelIN)
 		{
 			logLevel = logLevelIN;
@@ -841,7 +841,7 @@ namespace Maartanic
 			return "NULL";
 		}
 
-		/* SetMemoryAddr(): Sets a given memory address to the given value.  */
+		// SetMemoryAddr(): Sets a given memory address to the given value. 
 		private void SetMemoryAddr(int address, string value)
 		{
 			if (!Program.memory.Exists(address))
@@ -854,19 +854,19 @@ namespace Maartanic
 			}
 		}
 
-		/* ToRadians(): Converts a given angle in degrees to radians with a limited amount of accuracy */
+		// ToRadians(): Converts a given angle in degrees to radians with a limited amount of accuracy
 		private double ToRadians(double input)
 		{
 			return 0.01745329251 * input;
 		}
 
-		/* ToDegrees(): Converts a given angle in radians to degrees with a limited amount of accuracy */
+		// ToDegrees(): Converts a given angle in radians to degrees with a limited amount of accuracy
 		private double ToDegrees(double input)
 		{
 			return 57.2957795131 * input;
 		}
 
-		/* MathFunction(): Method merges multiple cases in the big switch of StartExecution(). */
+		// MathFunction(): Method merges multiple cases in the big switch of StartExecution().
 		private void MathFunction(string function, string destination, string number)
 		{
 			double dnumA;
@@ -948,7 +948,7 @@ namespace Maartanic
 			SetVariable(destination, ref resultS);
 		}
 
-		/* PerformOp(): Performs an operation with two values given. */
+		// PerformOp(): Performs an operation with two values given.
 		private void PerformOp(string operation, string varName, string num1, string num2)
 		{
 			double numberA, numberB;
@@ -982,7 +982,7 @@ namespace Maartanic
 			SetVariable(varName, ref result);
 		}
 
-		/* Compares two values inside the args array, and stores the result in compareOutput. */
+		// Compares two values inside the args array, and stores the result in compareOutput.
 		private void Compare(ref string[] args)
 		{
 			bool r; // Output variable (result)
@@ -1076,7 +1076,7 @@ namespace Maartanic
 			compareOutput = r;
 		}
 
-		/* MathOperation(): Calculator */
+		// MathOperation(): Calculator
 		private double MathOperation(char op, string destination, string number, string optnumber = null)
 		{
 			double num1, num2;
@@ -1127,7 +1127,7 @@ namespace Maartanic
 			}
 		}
 
-		/* SetVariable(): Sets the variable with the name varName to newData. Lets the user know if it doesn't exist. */
+		// SetVariable(): Sets the variable with the name varName to newData. Lets the user know if it doesn't exist.
 		private void SetVariable(string varName, ref string newData)
 		{
 			if (localMemory.ContainsKey(varName))
@@ -1140,7 +1140,7 @@ namespace Maartanic
 			}
 		}
 
-		/* LocalMemoryGet(): Converts a given variable to its contents. Leaves it alone if it doesn't have a prefix '$'. */
+		// LocalMemoryGet(): Converts a given variable to its contents. Leaves it alone if it doesn't have a prefix '$'.
 		private void LocalMemoryGet(ref string varName)
 		{
 			if (varName.Length == 0)
@@ -1173,7 +1173,7 @@ namespace Maartanic
 			}
 		}
 
-		/* ExtractArgs(): Simply extracts the arguments from array lineInfo, treating quote blocks as one. */
+		// ExtractArgs(): Simply extracts the arguments from array lineInfo, treating quote blocks as one.
 		private string[] ExtractArgs(ref string[] lineInfo)
 		{
 			string combined = "";
@@ -1258,7 +1258,7 @@ namespace Maartanic
 			return newCombinedList.ToArray();
 		}
 
-		/* ExtractEngineArgs(): Extracts [A B] like stuff and applies it to internal engine variables. */
+		// ExtractEngineArgs(): Extracts [A B] like stuff and applies it to internal engine variables.
 		private void ExtractEngineArgs(ref string[] lineInfo)
 		{
 			string[] engineArgParts;

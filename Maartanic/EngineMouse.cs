@@ -1,23 +1,17 @@
-﻿using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 public class EngineMouse
 {
-	[DllImport("User32.dll")]
+	[DllImport("User32.dll")] // Contains the GetCursorPos()
 
-	public static extern bool GetCursorPos(out POINT lpPoint);
-	private IntPtr handle;
+	private static extern bool GetCursorPos(out POINT lpPoint);
 
-	/* EngineMouse(): Class constructor */
-	public EngineMouse()
-	{
-		IntPtr handle = Process.GetCurrentProcess().MainWindowHandle;
-	}
+	public POINT position;
 
+	// GetPosition(): Returns a POINT (x,y int struct) of the current mouse position of Windows. Done using userlib32.dll
 	public POINT GetPosition()
 	{
-		GetCursorPos(out POINT position);
+		GetCursorPos(out position);
 		return position;
 	}
 }

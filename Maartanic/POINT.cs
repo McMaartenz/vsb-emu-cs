@@ -1,10 +1,11 @@
-﻿public struct POINT
+﻿// Just a definition for two integer values
+public struct POINT
 {
 	public int X, Y;
 
 	public POINT(int x, int y)
 	{
-		this.X = x;
-		this.Y = y;
+		X = x;
+		Y = y;
 	}
 }
