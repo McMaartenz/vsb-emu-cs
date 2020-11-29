@@ -787,6 +787,34 @@ namespace Maartanic
 						}
 						break;
 
+					case "ALOC":
+						{
+							if (!Int32.TryParse(args[0], out int amount)) { amount = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							for (int i = 0; i < amount; i++)
+							{
+								Program.memory.Add("0");
+							}
+						}
+						break;
+
+					case "FREE":
+						{
+							if (!Int32.TryParse(args[0], out int amount)) { amount = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							for (int i = 0; i < amount; i++)
+							{
+								if (!Program.memory.Exists(amount - i))
+								{
+									SendMessage(Level.WRN, "Tried freeing memory that doesn't exist.");
+									continue;
+								}
+								else
+								{
+									Program.memory.Remove(1);
+								}
+							}
+						}
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;

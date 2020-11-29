@@ -19,7 +19,7 @@ public class EngineMemory
 
 	/* Remove(): Removes a given amount of the memory space */
 	public void Remove(int amount)
-	{
+	{ //FIXME This doesn\t work
 		x.RemoveRange(x.Count - 1 - amount, x.Count - 1);
 	}
 
