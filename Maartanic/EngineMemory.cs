@@ -34,4 +34,10 @@ public class EngineMemory
 	{
 		return x.Count > index && index >= 0;
 	}
+
+	/* Get(): Gets the data at a given memory address */
+	public void Get(int index, out string output)
+	{
+		output = x[index];
+	}
 }

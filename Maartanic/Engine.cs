@@ -815,6 +815,21 @@ namespace Maartanic
 						}
 						break;
 
+					case "SETM":
+						{
+							if (!Int32.TryParse(args[0], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break; }
+							SetMemoryAddr(address, args[1]);
+						}
+						break;
+
+					case "GETM":
+						{
+							if (!Int32.TryParse(args[1], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break;  }
+							Program.memory.Get(address, out string output);
+							SetVariable(args[0], ref output);
+						}
+						break;
+
 					default:
 						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
 						break;
@@ -822,6 +837,19 @@ namespace Maartanic
 			}
 			sr.Close(); // Close StreamReader after execution
 			return "NULL";
+		}
+
+		/* SetMemoryAddr(): Sets a given memory address to the given value.  */
+		private void SetMemoryAddr(int address, string value)
+		{
+			if (!Program.memory.Exists(address))
+			{
+				SendMessage(Level.ERR, $"Memory address {address} does not exist.");
+			}
+			else
+			{
+				Program.memory.Set(address, value);
+			}
 		}
 
 		/* ToRadians(): Converts a given angle in degrees to radians with a limited amount of accuracy */
