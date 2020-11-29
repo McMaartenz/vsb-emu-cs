@@ -1,6 +1,4 @@
-﻿using System;
-
-public struct POINT
+﻿public struct POINT
 {
 	public int X, Y;
 

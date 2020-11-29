@@ -66,6 +66,8 @@ namespace Maartanic
 			predefinedVariables.Add("tdow", (Func<string>)(() => ((int)DateTime.UtcNow.DayOfWeek).ToString()));
 			predefinedVariables.Add("key", (Func<string>)(() => keyOutput.ToString()));
 			predefinedVariables.Add("ret", (Func<string>)(() => returnedValue));
+			predefinedVariables.Add("mx", (Func<string>)(() => Program.mouse.GetPosition().X.ToString()));
+			predefinedVariables.Add("my", (Func<string>)(() => Program.mouse.GetPosition().Y.ToString()));
 		}
 
 		/* Engine(): Class constructor, returns if given file does not exist. */
