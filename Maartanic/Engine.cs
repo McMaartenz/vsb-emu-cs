@@ -847,12 +847,12 @@ namespace Maartanic
 					result = Math.Atan(ToRadians(dnumA));
 					break;
 
-				case "LOG": //FIXME: Proper LOG and MATH_LN instructions
-					result = Math.Log(dnumA);
+				case "LOG": // Log w/ base 10
+					result = Math.Log10(dnumA);
 					break;
 
-				case "MATH_LN":
-					result = 0.0d;
+				case "MATH_LN": // Natural logarithm (e as base)
+					result = Math.Log(dnumA);
 					break;
 
 				case "EPOW":
