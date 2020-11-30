@@ -13,8 +13,8 @@ namespace Maartanic
 		private int logLevel;
 
 		private bool executable;
-		private string scriptFile;
-		private string entryPoint = "main";
+		internal string scriptFile;
+		internal string entryPoint = "main";
 
 		private string line;
 		private int lineIndex;
