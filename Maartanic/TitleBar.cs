@@ -9,7 +9,7 @@ public class TitleBar
 	static extern int SetWindowLong(IntPtr hWnd, int nIndex, uint dwNewLong);
 
 	// TitleBar(): Hides the titlebar using PInvoke
-	public TitleBar()
+	public static void Hide()
 	{
 		IntPtr windowHandle = Process.GetCurrentProcess().MainWindowHandle;
 		const int GWL_STYLE = (-16);
