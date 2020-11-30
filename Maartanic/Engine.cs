@@ -24,7 +24,7 @@ namespace Maartanic
 		private bool keyOutput = false;
 		private string returnedValue = "NULL";
 
-		private Mode applicationMode = Mode.VSB; //TODO: Extend VSB instructions! It's C#, GO FOR IT!
+		private Mode applicationMode = Mode.VSB; //TODO Extend VSB instructions! It's C#, GO FOR IT!
 		private DateTime startTime = DateTime.UtcNow;
 
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
@@ -47,7 +47,7 @@ namespace Maartanic
 
 		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
 		private void FillPredefinedList()
-		{ //TODO console cursorleft cursortop methods for mouse pos? ($_mx, $_my)
+		{
 			Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
 			{
 				{ "ww",			() => Console.WindowWidth.ToString() },
@@ -68,8 +68,8 @@ namespace Maartanic
 				{ "tdow",		() => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
 				{ "key",		() => keyOutput.ToString() },
 				{ "ret",		() => returnedValue },
-				{ "mx",			() => Program.mouse.GetPosition().X.ToString() },
-				{ "my",			() => Program.mouse.GetPosition().Y.ToString() }
+				{ "mx",			() => "0" }, //NOTICE mouse x and y are not supported
+				{ "my",         () => "0" }
 			};
 
 			foreach (KeyValuePair<string, Func<string>> a in toBeAdded)
