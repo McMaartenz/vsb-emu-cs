@@ -22,7 +22,7 @@ namespace Maartanic
 
 		private bool compareOutput = false;
 		private bool keyOutput = false;
-		private string returnedValue = "NULL";
+		internal string returnedValue = "NULL";
 
 		private Mode applicationMode = Mode.VSB; //TODO Extend VSB instructions! It's C#, GO FOR IT!
 		private DateTime startTime = DateTime.UtcNow;
