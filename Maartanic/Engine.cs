@@ -456,7 +456,7 @@ namespace Maartanic
 
 					case "CMPR":
 						{
-							Compare(ref args);
+							compareOutput = Compare(ref args);
 						}
 						break;
 
@@ -669,7 +669,7 @@ namespace Maartanic
 							}
 							else
 							{
-								SendMessage(Level.ERR, "Program was not executable");
+								SendMessage(Level.ERR, "Program was not executable.");
 							}
 						}
 						break;
@@ -998,7 +998,7 @@ namespace Maartanic
 		}
 
 		// Compares two values inside the args array, and stores the result in compareOutput.
-		private void Compare(ref string[] args)
+		internal bool Compare(ref string[] args)
 		{
 			bool r; // Output variable (result)
 			bool b1, b2;
@@ -1088,7 +1088,7 @@ namespace Maartanic
 					break;
 
 			}
-			compareOutput = r;
+			return r;
 		}
 
 		// MathOperation(): Calculator
@@ -1189,7 +1189,7 @@ namespace Maartanic
 		}
 
 		// ExtractArgs(): Simply extracts the arguments from array lineInfo, treating quote blocks as one.
-		private string[] ExtractArgs(ref string[] lineInfo)
+		internal string[] ExtractArgs(ref string[] lineInfo)
 		{
 			string combined = "";
 			for (int i = 1; i < lineInfo.Length; i++)
