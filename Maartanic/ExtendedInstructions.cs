@@ -65,6 +65,31 @@ namespace Maartanic
 					}
 					break;
 
+				case "DOWHILE": // WHILE [script] [compare Instr] [val 1] [val 2] r-r-r-r
+					{
+						Engine whileLoopEngine;
+
+						string[] compareIn = new string[3];
+						compareIn[0] = args[1];
+
+						do
+						{
+							whileLoopEngine = new Engine(e.scriptFile, args[0]);
+							if (whileLoopEngine.Executable())
+							{
+								e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution(Program.logLevel);
+							}
+							else
+							{
+								e.SendMessage(Engine.Level.ERR, "Program was not executable.");
+								break;
+							}
+						}
+						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
+
+					}
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (EXT.)");
 					break;
