@@ -4,7 +4,7 @@ namespace Maartanic
 {
 	public class ExtendedInstructions : IDisposable
 	{
-		public void Dispose()
+		public void Dispose() // Garbage collect it when switching to compat (VSB)
 		{
 			GC.SuppressFinalize(this);
 		}
