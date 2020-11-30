@@ -15,8 +15,8 @@ namespace Maartanic
 		public static EngineMemory memory = new EngineMemory();
 		public static EngineMouse mouse = new EngineMouse();
 
-		private const int WIN_WIDTH = 120;
-		private const int WIN_HEIGHT = 30;
+		public static int WIN_WIDTH = 120;
+		public static int WIN_HEIGHT = 30;
 
 		// Exit(): Exit process
 		public static void Exit(string value)
@@ -29,7 +29,7 @@ namespace Maartanic
 		// Main(): Entry point
 		public static void Main(string[] args)
 		{
-			TitleBar t = new TitleBar();
+			TitleBar.Hide();
 
 			Console.SetBufferSize(WIN_WIDTH, WIN_HEIGHT);
 			Console.SetWindowSize(WIN_WIDTH, WIN_HEIGHT);
