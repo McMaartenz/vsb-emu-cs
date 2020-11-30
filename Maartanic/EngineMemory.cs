@@ -40,4 +40,10 @@ public class EngineMemory
 	{
 		output = x[index];
 	}
+
+	// Count(): Gets the amount of memory allocated
+	public int Count()
+	{
+		return x.Count;
+	}
 }

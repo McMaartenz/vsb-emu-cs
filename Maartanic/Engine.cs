@@ -1186,6 +1186,22 @@ namespace Maartanic
 					}
 				}
 			}
+			else
+			{
+				if (applicationMode == Mode.MRT && varName[0] == '#') // Non-VSB feature
+				{
+					if (!Int32.TryParse(varName[1..], out int address)) { address = -1; SendMessage(Level.ERR, "Malformed memory address found."); }
+					if (Program.memory.Exists(address))
+					{
+						Program.memory.Get(address, out varName);
+					}
+					else
+					{
+						SendMessage(Level.ERR, $"Tried accessing unallocated memory space {address}.");
+						varName = "NULL";
+					}
+				}
+			}
 		}
 
 		// ExtractArgs(): Simply extracts the arguments from array lineInfo, treating quote blocks as one.
