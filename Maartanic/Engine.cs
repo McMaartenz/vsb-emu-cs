@@ -236,7 +236,6 @@ namespace Maartanic
 					case "ENDDEF": // Possible end-of-function
 						if (lineInfo[1] == entryPoint)
 						{
-							SendMessage(Level.INF, "End of definition");
 							return "NULL";
 						}
 						else

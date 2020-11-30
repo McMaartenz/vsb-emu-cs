@@ -25,7 +25,7 @@ namespace Maartanic
 								e.entryPoint = entryPoint;
 								e.StartExecution(Program.logLevel);
 							}
-						}	
+						}
 					}
 					break;
 
