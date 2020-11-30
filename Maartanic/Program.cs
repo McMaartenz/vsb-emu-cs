@@ -29,7 +29,7 @@ namespace Maartanic
 		// Main(): Entry point
 		public static void Main(string[] args)
 		{
-			TitleBar.Hide();
+			//TitleBar.Hide();
 
 			Console.SetBufferSize(WIN_WIDTH, WIN_HEIGHT);
 			Console.SetWindowSize(WIN_WIDTH, WIN_HEIGHT);
