@@ -842,7 +842,14 @@ namespace Maartanic
 						break;
 
 					default:
-						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
+						if (applicationMode == Mode.MRT) // Enable extended instruction set
+						{
+							Program.extendedMode.Instructions(this, ref lineInfo, ref args);
+						}
+						else
+						{
+							SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
+						}
 						break;
 				}
 			}
@@ -1282,11 +1289,19 @@ namespace Maartanic
 				switch (engineArgParts[1].ToUpper())
 				{
 					case "VSB":
+						if (applicationMode != Mode.VSB)
+						{
+							Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
+						}
 						applicationMode = Mode.VSB;
 						SendMessage(Level.INF, "Using compat mode");
 						break;
 
 					case "MRT":
+						if (applicationMode != Mode.MRT)
+						{
+							Program.extendedMode = new ExtendedInstructions();
+						}
 						applicationMode = Mode.MRT;
 						SendMessage(Level.INF, "Using extended mode");
 						break;

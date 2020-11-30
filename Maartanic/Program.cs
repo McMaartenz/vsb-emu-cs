@@ -10,6 +10,8 @@ namespace Maartanic
 		public static EngineQueue queue = new EngineQueue();
 		public static EngineMemory memory = new EngineMemory();
 
+		public static ExtendedInstructions extendedMode;
+
 		public static int WIN_WIDTH = 120;
 		public static int WIN_HEIGHT = 30;
 
