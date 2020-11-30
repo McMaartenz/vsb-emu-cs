@@ -31,7 +31,7 @@ namespace Maartanic
 		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
 		// Level: Used in SendMessage method to indicate the message level as info, warning or error.
-		private enum Level
+		internal enum Level
 		{
 			INF,
 			WRN,
@@ -129,7 +129,7 @@ namespace Maartanic
 		}
 
 		// SendMessage(): Logs a message to the console with a level, including line of execution.
-		private void SendMessage(Level a, string message)
+		internal void SendMessage(Level a, string message)
 		{
 			if ((int) a >= logLevel)
 			{
@@ -848,7 +848,7 @@ namespace Maartanic
 						}
 						else
 						{
-							SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
+							SendMessage(Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (VSB)");
 						}
 						break;
 				}
@@ -1286,9 +1286,9 @@ namespace Maartanic
 			engineArgParts = engineArg[1..].Trim('[', ']').Split(' ');
 			if (engineArgParts[0].ToLower() == "mode")
 			{
-				switch (engineArgParts[1].ToUpper())
+				switch (engineArgParts[1].ToLower())
 				{
-					case "VSB":
+					case "vsb":
 						if (applicationMode != Mode.VSB)
 						{
 							Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
@@ -1297,7 +1297,7 @@ namespace Maartanic
 						SendMessage(Level.INF, "Using compat mode");
 						break;
 
-					case "MRT":
+					case "extended":
 						if (applicationMode != Mode.MRT)
 						{
 							Program.extendedMode = new ExtendedInstructions();
