@@ -65,7 +65,7 @@ namespace Maartanic
 					}
 					break;
 
-				case "DOWHILE": // WHILE [script] [compare Instr] [val 1] [val 2] r-r-r-r
+				case "DOWHILE": // DOWHILE [script] [compare Instr] [val 1] [val 2] r-r-r-r
 					{
 						Engine whileLoopEngine;
 
