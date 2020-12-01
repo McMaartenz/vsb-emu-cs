@@ -24,7 +24,7 @@ namespace Maartanic
 		private bool keyOutput = false;
 		internal string returnedValue = "NULL";
 
-		internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
+		//internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
 		private DateTime startTime = DateTime.UtcNow;
 
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
@@ -666,10 +666,7 @@ namespace Maartanic
 					case "DO":
 					case "CALL":
 						{
-							Engine E = new Engine(scriptFile, args[0])
-							{
-								applicationMode = applicationMode // Copy application mode
-							};
+							Engine E = new Engine(scriptFile, args[0]);
 							if (E.Executable())
 							{
 								returnedValue = E.StartExecution(logLevel);
@@ -848,12 +845,12 @@ namespace Maartanic
 						break;
 
 					default:
-						if (applicationMode == Mode.EXTENDED) // Enable extended instruction set
+						if (Program.applicationMode == Mode.EXTENDED) // Enable extended instruction set
 						{
 							string output = Program.extendedMode.Instructions(this, ref lineInfo, ref args);
 							if (output != null)
 							{
-								return output; //
+								return output;
 							}
 						}
 						else
@@ -1206,7 +1203,7 @@ namespace Maartanic
 					varName = "NULL";
 				}
 			}
-			else if (applicationMode == Mode.EXTENDED)
+			else if (Program.applicationMode == Mode.EXTENDED)
 			{
 				if (varName[0] == '#') // Get memory address e.g. where A is the memory address: #A
 				{
@@ -1354,19 +1351,19 @@ namespace Maartanic
 				switch (engineArgParts[1].ToLower())
 				{
 					case "vsb":
-						if (applicationMode != Mode.VSB)
+						if (Program.applicationMode != Mode.VSB)
 						{
 							Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
-							applicationMode = Mode.VSB;
+							Program.applicationMode = Mode.VSB;
 							SendMessage(Level.INF, "Using compat mode");
 						}
 						break;
 
 					case "extended":
-						if (applicationMode != Mode.EXTENDED)
+						if (Program.applicationMode != Mode.EXTENDED)
 						{
 							Program.extendedMode = new ExtendedInstructions();
-							applicationMode = Mode.EXTENDED;
+							Program.applicationMode = Mode.EXTENDED;
 							SendMessage(Level.INF, "Using extended mode");
 						}
 						break;

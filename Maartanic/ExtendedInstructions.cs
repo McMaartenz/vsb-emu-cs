@@ -60,8 +60,7 @@ namespace Maartanic
 						Engine forEngine = new Engine(e.scriptFile)
 						{
 							localMemory = e.localMemory,			// Copy over local memory, and return
-							returnedValue = e.returnedValue,
-							applicationMode = Engine.Mode.EXTENDED	// Enable extended
+							returnedValue = e.returnedValue
 						};
 
 						if (!int.TryParse(args[0], out int amount)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
@@ -117,8 +116,7 @@ namespace Maartanic
 						Engine whileEngine = new Engine(e.scriptFile)
 						{
 							localMemory = e.localMemory,			// Copy over local memory, and return
-							returnedValue = e.returnedValue,
-							applicationMode = Engine.Mode.EXTENDED	// Enable extended
+							returnedValue = e.returnedValue
 						};
 
 						string[] compareIn = new string[3];
@@ -181,8 +179,7 @@ namespace Maartanic
 						Engine whileEngine = new Engine(e.scriptFile)
 						{
 							localMemory = e.localMemory,			// Copy over local memory, and return
-							returnedValue = e.returnedValue,
-							applicationMode = Engine.Mode.EXTENDED	// Enable extended
+							returnedValue = e.returnedValue
 						};
 
 						string[] compareIn = new string[3];

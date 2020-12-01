@@ -11,6 +11,7 @@ namespace Maartanic
 		public static EngineMemory memory = new EngineMemory();
 
 		public static ExtendedInstructions extendedMode;
+		internal static Engine.Mode applicationMode = Engine.Mode.VSB;
 
 		public static int WIN_WIDTH = 120;
 		public static int WIN_HEIGHT = 30;
