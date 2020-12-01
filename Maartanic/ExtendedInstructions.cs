@@ -21,6 +21,7 @@ namespace Maartanic
 		{
 			switch (lineInfo[0].ToUpper())
 			{
+
 				case "FOR": // FOR [script] [amount] r-r
 					{
 						Engine forLoopEngine;
@@ -93,6 +94,7 @@ namespace Maartanic
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (EXT.)");
 					break;
+
 			}
 		}
 	}

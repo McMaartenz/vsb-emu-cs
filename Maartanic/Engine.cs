@@ -38,10 +38,10 @@ namespace Maartanic
 			ERR
 		}
 
-		// Mode: Used in applicationMode to let the engine know to enable extended MRT functions not yet included in the VSB Engine.
+		// Mode: Used in applicationMode to let the engine know to enable extended functions not (yet) included in the VSB Engine.
 		private enum Mode
 		{
-			MRT,
+			EXTENDED,
 			VSB
 		}
 
@@ -841,7 +841,7 @@ namespace Maartanic
 						break;
 
 					default:
-						if (applicationMode == Mode.MRT) // Enable extended instruction set
+						if (applicationMode == Mode.EXTENDED) // Enable extended instruction set
 						{
 							Program.extendedMode.Instructions(this, ref lineInfo, ref args);
 						}
@@ -1155,7 +1155,7 @@ namespace Maartanic
 			}
 		}
 
-		// LocalMemoryGet(): Converts a given variable to its contents. Leaves it alone if it doesn't have a prefix '$'.
+		// LocalMemoryGet(): Converts a given variable to its contents. Leaves it alone if it doesn't have a recognized prefix.
 		private void LocalMemoryGet(ref string varName)
 		{
 			if (varName.Length == 0)
@@ -1170,25 +1170,22 @@ namespace Maartanic
 				{
 					if (predefinedVariables.ContainsKey(varName[2..]))
 					{
-						varName = (string) predefinedVariables[varName[2..]].DynamicInvoke();
+						varName = (string)predefinedVariables[varName[2..]].DynamicInvoke();
 					}
+				}
+				else if (localMemory.ContainsKey(varName[1..]))
+				{
+					varName = localMemory[varName[1..]];
 				}
 				else
 				{
-					if (localMemory.ContainsKey(varName[1..]))
-					{
-						varName = localMemory[varName[1..]];
-					}
-					else
-					{
-						SendMessage(Level.ERR, $"The variable {varName[1..]} does not exist.");
-						varName = "NULL";
-					}
+					SendMessage(Level.ERR, $"The variable {varName[1..]} does not exist.");
+					varName = "NULL";
 				}
 			}
-			else
+			else if (applicationMode == Mode.EXTENDED)
 			{
-				if (applicationMode == Mode.MRT && varName[0] == '#') // Non-VSB feature
+				if (varName[0] == '#') // Non-VSB features
 				{
 					if (!Int32.TryParse(varName[1..], out int address)) { address = -1; SendMessage(Level.ERR, "Malformed memory address found."); }
 					if (Program.memory.Exists(address))
@@ -1313,11 +1310,11 @@ namespace Maartanic
 						break;
 
 					case "extended":
-						if (applicationMode != Mode.MRT)
+						if (applicationMode != Mode.EXTENDED)
 						{
 							Program.extendedMode = new ExtendedInstructions();
 						}
-						applicationMode = Mode.MRT;
+						applicationMode = Mode.EXTENDED;
 						SendMessage(Level.INF, "Using extended mode");
 						break;
 
