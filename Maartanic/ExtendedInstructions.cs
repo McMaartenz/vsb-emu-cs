@@ -30,7 +30,7 @@ namespace Maartanic
 							forLoopEngine = new Engine(e.scriptFile, args[0]);
 							if (forLoopEngine.Executable())
 							{
-								e.returnedValue = forLoopEngine.StartExecution(Program.logLevel);
+								e.returnedValue = forLoopEngine.returnedValue = forLoopEngine.StartExecution(Program.logLevel);
 							}
 							else
 							{
