@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace Maartanic
 {
@@ -210,6 +211,13 @@ namespace Maartanic
 						{
 							e.SendMessage(Engine.Level.ERR, "DOWHILE statement failed to execute.");
 						}
+					}
+					break;
+
+				case "SLEEP": //TODO add to extended instructions documentation (Sleep in milliseconds)
+					{
+						if (!int.TryParse(args[0], out int mseconds)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); break; }
+						Thread.Sleep(mseconds);
 					}
 					break;
 
