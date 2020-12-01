@@ -253,7 +253,7 @@ namespace Maartanic
 					case "ENDDEF": // Possible end-of-function
 						if (lineInfo[1] == entryPoint)
 						{
-							return "NULL";
+							return returnedValue;
 						}
 						else
 						{
@@ -604,7 +604,7 @@ namespace Maartanic
 
 					case "HLT":
 						SendMessage(Level.INF, "HLT");
-						Program.Exit("NULL");
+						Program.Exit(returnedValue);
 						break; // Unreachable code but IDE complains for some reason
 
 					case "SUBSTR":
@@ -872,7 +872,7 @@ namespace Maartanic
 				}
 			}
 			sr.Close(); // Close StreamReader after execution
-			return "NULL";
+			return returnedValue;
 		}
 
 		internal void JumpToLine(ref StreamReader sr, ref string line, ref int lineIndex, ref int jumpLine)

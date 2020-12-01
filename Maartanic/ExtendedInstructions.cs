@@ -24,7 +24,7 @@ namespace Maartanic
 			{
 
 				case "ENDFOR":
-					return e.lineIndex.ToString(); // Return address to jump to later
+					return e.lineIndex.ToString() + "." + e.returnedValue; // Return address to jump to later and the original return value separated by a dot.
 
 				case "FOR": // FOR [script] [amount] r-r =OR= FOR [amount] r (+ENDFOR)
 					if (args.Length > 1)
@@ -48,18 +48,23 @@ namespace Maartanic
 					else
 					{
 						Engine forEngine = new Engine(e.scriptFile, e.lineIndex);
-						forEngine.localMemory = e.localMemory; // Copy over
+						forEngine.localMemory = e.localMemory; // Copy over local memory, and return
+						forEngine.returnedValue = e.returnedValue;
 						forEngine.applicationMode = Engine.Mode.EXTENDED; // Enable extended
 
 						if (!int.TryParse(args[0], out int amount)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
 
 						for (int i = 0; i < amount; i++)
 						{
+							if (i != 0)
+							{
+								forEngine.returnedValue = forEngine.returnedValue[(forEngine.returnedValue.IndexOf('.') + 1)..];
+							}
 							forEngine.returnedValue = forEngine.StartExecution(Program.logLevel, true, e.lineIndex);
 						}
 						e.localMemory = forEngine.localMemory; // Copy back
-
-						if (!int.TryParse(forEngine.returnedValue, out int jumpLine)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+						if (!int.TryParse(forEngine.returnedValue[..forEngine.returnedValue.IndexOf('.')], out int jumpLine)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+						e.returnedValue = forEngine.returnedValue[(forEngine.returnedValue.IndexOf('.')+1)..];
 						e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
 					}
 					break;
