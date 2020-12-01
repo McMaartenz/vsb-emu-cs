@@ -149,7 +149,7 @@ namespace Maartanic
 		}
 
 		// LineCheck(): Splits the text into an array for further operations.
-		public bool LineCheck(ref string[] lineInfo, ref int lineIndex)
+		public bool LineCheck(ref string[] lineInfo, ref int lineIndex, bool disable = false)
 		{
 			if (line == null)
 			{
@@ -171,7 +171,10 @@ namespace Maartanic
 					}
 					if (x == '[')
 					{
-						ExtractEngineArgs(ref lineInfo);
+						if (!disable)
+						{
+							ExtractEngineArgs(ref lineInfo);
+						}
 						return true;
 					}
 				}
@@ -314,7 +317,7 @@ namespace Maartanic
 								while ((line = ifsr.ReadLine()) != null)
 								{
 									ifLineIndex++;
-									if (LineCheck(ref cLineInfo, ref ifLineIndex))
+									if (LineCheck(ref cLineInfo, ref ifLineIndex, true))
 									{
 										continue;
 									}
@@ -1176,7 +1179,7 @@ namespace Maartanic
 		}
 
 		// LocalMemoryGet(): Converts a given variable to its contents. Leaves it alone if it doesn't have a recognized prefix.
-		private void LocalMemoryGet(ref string varName)
+		internal void LocalMemoryGet(ref string varName)
 		{
 			if (varName.Length == 0)
 			{
@@ -1205,7 +1208,7 @@ namespace Maartanic
 			}
 			else if (applicationMode == Mode.EXTENDED)
 			{
-				if (varName[0] == '#') // Non-VSB features
+				if (varName[0] == '#') // Get memory address e.g. where A is the memory address: #A
 				{
 					if (!int.TryParse(varName[1..], out int address)) { address = -1; SendMessage(Level.ERR, "Malformed memory address found."); }
 					if (Program.memory.Exists(address))
@@ -1217,6 +1220,36 @@ namespace Maartanic
 						SendMessage(Level.ERR, $"Tried accessing unallocated memory space {address}.");
 						varName = "NULL";
 					}
+				}
+				else if (varName[0] == '%') // Get char at index A of string B: %A,B
+				{
+					if (varName.Contains('.'))
+					{
+						string variable = varName[(varName.IndexOf('.') + 1)..];
+						string index = varName[..varName.IndexOf('.')][1..];
+						LocalMemoryGet(ref variable);
+						LocalMemoryGet(ref index);
+
+						if (!int.TryParse(index, out int index_int)) { SendMessage(Level.ERR, "Malformed number found as index parameter."); }
+
+						else
+						{
+							varName = variable[index_int].ToString();
+						}
+					}
+					else
+					{
+						SendMessage(Level.ERR, $"Corrupted variable name syntax {varName} for index.");
+						varName = "NULL";
+					}
+				}
+				else if (varName[0] == '!') // Inverse statement e.g. where A is true, it will become false: !A
+				{
+					string variable = varName[1..];
+					LocalMemoryGet(ref variable);
+					variable = variable.ToLower();
+					bool statement = variable == "true" || variable == "1";
+					varName = (!statement).ToString().ToLower();
 				}
 			}
 		}
@@ -1324,18 +1357,18 @@ namespace Maartanic
 						if (applicationMode != Mode.VSB)
 						{
 							Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
+							applicationMode = Mode.VSB;
+							SendMessage(Level.INF, "Using compat mode");
 						}
-						applicationMode = Mode.VSB;
-						SendMessage(Level.INF, "Using compat mode");
 						break;
 
 					case "extended":
 						if (applicationMode != Mode.EXTENDED)
 						{
 							Program.extendedMode = new ExtendedInstructions();
+							applicationMode = Mode.EXTENDED;
+							SendMessage(Level.INF, "Using extended mode");
 						}
-						applicationMode = Mode.EXTENDED;
-						SendMessage(Level.INF, "Using extended mode");
 						break;
 
 					default:
