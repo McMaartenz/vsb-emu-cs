@@ -13,8 +13,16 @@ namespace Maartanic
 		private bool InternalCompare(ref string[] compareIn, ref string[] lineInfo, ref Engine e)
 		{
 			string[] args = e.ExtractArgs(ref lineInfo);
-			compareIn[1] = args[2];
-			compareIn[2] = args[3];
+			if (args.Length > 3)
+			{
+				compareIn[1] = args[2];
+				compareIn[2] = args[3];
+			}
+			else
+			{
+				compareIn[1] = args[1];
+				compareIn[2] = args[2];
+			}
 			return e.Compare(ref compareIn);
 		}
 
@@ -23,14 +31,16 @@ namespace Maartanic
 			switch (lineInfo[0].ToUpper())
 			{
 
-				case "ENDFOR":
+				case "ENDF":
+				case "ENDW":
+				case "ENDDW":
 					return e.lineIndex.ToString() + "." + e.returnedValue; // Return address to jump to later and the original return value separated by a dot.
 
 				case "FOR": // FOR [script] [amount] r-r =OR= FOR [amount] r (+ENDFOR)
 					if (args.Length > 1)
 					{
 						Engine forLoopEngine;
-						if (!Int32.TryParse(args[1], out int amount)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+						if (!int.TryParse(args[1], out int amount)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
 						for (int i = 0; i < amount; i++)
 						{
 							forLoopEngine = new Engine(e.scriptFile, args[0]);
@@ -47,10 +57,12 @@ namespace Maartanic
 					}
 					else
 					{
-						Engine forEngine = new Engine(e.scriptFile, e.lineIndex);
-						forEngine.localMemory = e.localMemory; // Copy over local memory, and return
-						forEngine.returnedValue = e.returnedValue;
-						forEngine.applicationMode = Engine.Mode.EXTENDED; // Enable extended
+						Engine forEngine = new Engine(e.scriptFile)
+						{
+							localMemory = e.localMemory,			// Copy over local memory, and return
+							returnedValue = e.returnedValue,
+							applicationMode = Engine.Mode.EXTENDED	// Enable extended
+						};
 
 						if (!int.TryParse(args[0], out int amount)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
 
@@ -63,13 +75,21 @@ namespace Maartanic
 							forEngine.returnedValue = forEngine.StartExecution(Program.logLevel, true, e.lineIndex);
 						}
 						e.localMemory = forEngine.localMemory; // Copy back
-						if (!int.TryParse(forEngine.returnedValue[..forEngine.returnedValue.IndexOf('.')], out int jumpLine)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
-						e.returnedValue = forEngine.returnedValue[(forEngine.returnedValue.IndexOf('.')+1)..];
-						e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
+						if (forEngine.returnedValue.Contains('.'))
+						{
+							if (!int.TryParse(forEngine.returnedValue[..forEngine.returnedValue.IndexOf('.')], out int jumpLine)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+							e.returnedValue = forEngine.returnedValue[(forEngine.returnedValue.IndexOf('.') + 1)..];
+							e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
+						}
+						else
+						{
+							e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
+						}
 					}
 					break;
 
 				case "WHILE": // WHILE [script] [compare Instr] [val 1] [val 2] r-r-r-r
+					if (args.Length > 3)
 					{
 						Engine whileLoopEngine;
 
@@ -91,9 +111,47 @@ namespace Maartanic
 						}
 
 					}
+					else
+					{
+						Engine whileEngine = new Engine(e.scriptFile)
+						{
+							localMemory = e.localMemory,			// Copy over local memory, and return
+							returnedValue = e.returnedValue,
+							applicationMode = Engine.Mode.EXTENDED	// Enable extended
+						};
+
+						string[] compareIn = new string[3];
+						compareIn[0] = args[0];
+
+						int i = 0;
+						while (InternalCompare(ref compareIn, ref lineInfo, ref e))
+						{
+							if (i != 0)
+							{
+								whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+							}
+							else
+							{
+								i++;
+							}
+							whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+						}
+						e.localMemory = whileEngine.localMemory; // Copy back
+						if (whileEngine.returnedValue.Contains('.'))
+						{
+							if (!int.TryParse(whileEngine.returnedValue[..whileEngine.returnedValue.IndexOf('.')], out int jumpLine)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+							e.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+							e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
+						}
+						else
+						{
+							e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute."); //FIXME this should probably jump to the ENDW?
+						}
+					}
 					break;
 
 				case "DOWHILE": // DOWHILE [script] [compare Instr] [val 1] [val 2] r-r-r-r
+					if (args.Length > 3)
 					{
 						Engine whileLoopEngine;
 
@@ -115,6 +173,44 @@ namespace Maartanic
 						}
 						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
 
+					}
+					else
+					{
+						Engine whileEngine = new Engine(e.scriptFile)
+						{
+							localMemory = e.localMemory,			// Copy over local memory, and return
+							returnedValue = e.returnedValue,
+							applicationMode = Engine.Mode.EXTENDED	// Enable extended
+						};
+
+						string[] compareIn = new string[3];
+						compareIn[0] = args[0];
+
+						int i = 0;
+						do
+						{
+							if (i != 0)
+							{
+								whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+							}
+							else
+							{
+								i++;
+							}
+							whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+						}
+						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
+						e.localMemory = whileEngine.localMemory; // Copy back
+						if (whileEngine.returnedValue.Contains('.'))
+						{
+							if (!int.TryParse(whileEngine.returnedValue[..whileEngine.returnedValue.IndexOf('.')], out int jumpLine)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+							e.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+							e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
+						}
+						else
+						{
+							e.SendMessage(Engine.Level.ERR, "DOWHILE statement failed to execute.");
+						}
 					}
 					break;
 

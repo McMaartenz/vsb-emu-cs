@@ -106,19 +106,6 @@ namespace Maartanic
 			scriptFile = startPos;
 		}
 
-		// Engine() OVERLOADED 2: Specify your entry point
-		public Engine(string startPos, int customStartIndex)
-		{
-			executable = File.Exists(startPos);
-			if (!executable)
-			{
-				Console.WriteLine($"The file {startPos} does not exist.");
-				return;
-			}
-			FillPredefinedList();
-			scriptFile = startPos;
-		}
-
 		// Executable(): Returns whether or not it is ready to be executed based on Engine()'s result.
 		public bool Executable()
 		{
@@ -264,14 +251,14 @@ namespace Maartanic
 					case "CLEAR":
 						if (args.Length != 0)
 						{
-							if (!Int32.TryParse(args[0], out int imax))
+							if (!int.TryParse(args[0], out int imax))
 							{
 								SendMessage(Level.ERR, "Malformed number found.");
 							}
 							for (int i = 0; i < imax; i++)
 							{
 								Console.SetCursorPosition(0, Console.CursorTop);
-								Console.Write(new String(' ', Console.BufferWidth));
+								Console.Write(new string(' ', Console.BufferWidth));
 								Console.SetCursorPosition(0, Console.CursorTop - 1);
 								if (i == imax - 1)
 								{
@@ -492,11 +479,11 @@ namespace Maartanic
 								LocalMemoryGet(ref num1IN);
 								sizeIN = args[1];
 							}
-							if (!Decimal.TryParse(num1IN, out decimal num1))
+							if (!decimal.TryParse(num1IN, out decimal num1))
 							{
 								SendMessage(Level.ERR, "Malformed number found.");
 							}
-							if (!Int32.TryParse(sizeIN, out int size))
+							if (!int.TryParse(sizeIN, out int size))
 							{
 								SendMessage(Level.ERR, "Malformed number found.");
 							}
@@ -508,9 +495,9 @@ namespace Maartanic
 					case "COLRGBTOHEX":
 						{
 							string varName = args[0];
-							if (!Int32.TryParse(args[1], out int r)) { SendMessage(Level.ERR, "Malformed number found."); }
-							if (!Int32.TryParse(args[2], out int g)) { SendMessage(Level.ERR, "Malformed number found."); }
-							if (!Int32.TryParse(args[3], out int b)) { SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[1], out int r)) { SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[2], out int g)) { SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[3], out int b)) { SendMessage(Level.ERR, "Malformed number found."); }
 							string output = $"{r:X2}{g:X2}{b:X2}";
 							SetVariable(varName, ref output);
 						}
@@ -519,8 +506,8 @@ namespace Maartanic
 					case "RAND":
 						{
 							string varName = args[0];
-							if (!Int32.TryParse(args[1], out int lowerLim)) { SendMessage(Level.ERR, "Malformed number found."); }
-							if (!Int32.TryParse(args[2], out int higherLim)) { SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[1], out int lowerLim)) { SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[2], out int higherLim)) { SendMessage(Level.ERR, "Malformed number found."); }
 							Random generator = new Random();
 							string output = generator.Next(lowerLim, higherLim + 1).ToString();
 							SetVariable(varName, ref output);
@@ -551,14 +538,14 @@ namespace Maartanic
 							decimal n;
 							if (args.Length > 1)
 							{
-								if (!Decimal.TryParse(args[1], out n)) { SendMessage(Level.ERR, "Malformed number found."); }
+								if (!decimal.TryParse(args[1], out n)) { SendMessage(Level.ERR, "Malformed number found."); }
 								output = Math.Abs(n).ToString();
 							}
 							else
 							{
 								output = '$' + varName;
 								LocalMemoryGet(ref output);
-								if (!Decimal.TryParse(output, out n)) { SendMessage(Level.ERR, "Malformed number found."); }
+								if (!decimal.TryParse(output, out n)) { SendMessage(Level.ERR, "Malformed number found."); }
 								output = Math.Abs(n).ToString();
 							}
 							SetVariable(varName, ref output);
@@ -592,7 +579,7 @@ namespace Maartanic
 
 					case "KEY":
 						{
-							if (!Char.TryParse(args[0], out char key)) { key = 'x'; SendMessage(Level.ERR, "Malformed character found."); }
+							if (!char.TryParse(args[0], out char key)) { key = 'x'; SendMessage(Level.ERR, "Malformed character found."); }
 							ConsoleKeyInfo cki;
 							if (Console.KeyAvailable)
 							{
@@ -614,15 +601,15 @@ namespace Maartanic
 							if (args.Length > 3)
 							{
 								input = args[1];
-								if (!Int32.TryParse(args[2], out start)) { SendMessage(Level.ERR, "Malformed number found."); }
-								if (!Int32.TryParse(args[3], out len)) { SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[2], out start)) { SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[3], out len)) { SendMessage(Level.ERR, "Malformed number found."); }
 							}
 							else
 							{
 								input = '$' + args[0];
 								LocalMemoryGet(ref input);
-								if (!Int32.TryParse(args[1], out start)) { SendMessage(Level.ERR, "Malformed number found."); }
-								if (!Int32.TryParse(args[2], out len)) { SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[1], out start)) { SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[2], out len)) { SendMessage(Level.ERR, "Malformed number found."); }
 							}
 							output = input.Substring(start, len);
 							SetVariable(args[0], ref output);
@@ -636,13 +623,13 @@ namespace Maartanic
 							if (args.Length > 2)
 							{
 								input = args[1];
-								if (!Int32.TryParse(args[2], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[2], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
 							}
 							else
 							{
 								input = '$' + args[0];
 								LocalMemoryGet(ref input);
-								if (!Int32.TryParse(args[1], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[1], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
 							}
 							if (index < 0 || index >= input.Length)
 							{
@@ -676,8 +663,10 @@ namespace Maartanic
 					case "DO":
 					case "CALL":
 						{
-							Engine E = new Engine(scriptFile, args[0]);
-							E.applicationMode = applicationMode; // Copy application mode
+							Engine E = new Engine(scriptFile, args[0])
+							{
+								applicationMode = applicationMode // Copy application mode
+							};
 							if (E.Executable())
 							{
 								returnedValue = E.StartExecution(logLevel);
@@ -814,7 +803,7 @@ namespace Maartanic
 
 					case "ALOC":
 						{
-							if (!Int32.TryParse(args[0], out int amount)) { SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[0], out int amount)) { SendMessage(Level.ERR, "Malformed number found."); }
 							for (int i = 0; i < amount; i++)
 							{
 								Program.memory.Add("0");
@@ -824,7 +813,7 @@ namespace Maartanic
 
 					case "FREE":
 						{
-							if (!Int32.TryParse(args[0], out int amount)) { SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[0], out int amount)) { SendMessage(Level.ERR, "Malformed number found."); }
 							for (int i = 0; i < amount; i++)
 							{
 								if (!Program.memory.Exists(0))
@@ -842,14 +831,14 @@ namespace Maartanic
 
 					case "SETM":
 						{
-							if (!Int32.TryParse(args[0], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break; }
+							if (!int.TryParse(args[0], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break; }
 							SetMemoryAddr(address, args[1]);
 						}
 						break;
 
 					case "GETM":
 						{
-							if (!Int32.TryParse(args[1], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break;  }
+							if (!int.TryParse(args[1], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break;  }
 							Program.memory.Get(address, out string output);
 							SetVariable(args[0], ref output);
 						}
@@ -924,11 +913,11 @@ namespace Maartanic
 			{
 				string tmp = '$' + destination;
 				LocalMemoryGet(ref tmp);
-				if (!Double.TryParse(tmp, out dnumA)) { SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(tmp, out dnumA)) { SendMessage(Level.ERR, "Malformed number found."); }
 			}
 			else
 			{
-				if (!Double.TryParse(number, out dnumA)) { SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(number, out dnumA)) { SendMessage(Level.ERR, "Malformed number found."); }
 			}
 			double result;
 			switch (function)
@@ -1006,13 +995,13 @@ namespace Maartanic
 			{
 				string num1_var = '$' + varName;
 				LocalMemoryGet(ref num1_var);
-				if (!Double.TryParse(num1_var, out numberA)) { SendMessage(Level.ERR, "Malformed number found."); }
-				if (!Double.TryParse(num1, out numberB)) { SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(num1_var, out numberA)) { SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(num1, out numberB)) { SendMessage(Level.ERR, "Malformed number found."); }
 			}
 			else
 			{
-				if (!Double.TryParse(num1, out numberA)) { SendMessage(Level.ERR, "Malformed number found."); }
-				if (!Double.TryParse(num2, out numberB)) { SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(num1, out numberA)) { SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(num2, out numberB)) { SendMessage(Level.ERR, "Malformed number found."); }
 			}
 			string result = "";
 			switch (operation)
@@ -1040,11 +1029,11 @@ namespace Maartanic
 			// Numbers
 			b1 = args[1] == "true" || args[1] == "1";
 			b2 = args[2] == "true" || args[2] == "1";
-			if (!Double.TryParse(args[1], out double n1))
+			if (!double.TryParse(args[1], out double n1))
 			{
 				n1 = 0.0d;
 			}
-			if (!Double.TryParse(args[2], out double n2))
+			if (!double.TryParse(args[2], out double n2))
 			{
 				n2 = 0.0d;
 			}
@@ -1134,22 +1123,22 @@ namespace Maartanic
 			{
 				string tmp1 = "$" + destination;
 				LocalMemoryGet(ref tmp1);
-				if (!Double.TryParse(tmp1, out num1))
+				if (!double.TryParse(tmp1, out num1))
 				{
 					SendMessage(Level.ERR, "Malformed number found.");
 				}
-				if (!Double.TryParse(number, out num2))
+				if (!double.TryParse(number, out num2))
 				{
 					SendMessage(Level.ERR, "Malformed number found.");
 				}
 			}
 			else
 			{
-				if (!Double.TryParse(number, out num1))
+				if (!double.TryParse(number, out num1))
 				{
 					SendMessage(Level.ERR, "Malformed number found.");
 				}
-				if (!Double.TryParse(optnumber, out num2))
+				if (!double.TryParse(optnumber, out num2))
 				{
 					SendMessage(Level.ERR, "Malformed number found.");
 				}
@@ -1218,7 +1207,7 @@ namespace Maartanic
 			{
 				if (varName[0] == '#') // Non-VSB features
 				{
-					if (!Int32.TryParse(varName[1..], out int address)) { address = -1; SendMessage(Level.ERR, "Malformed memory address found."); }
+					if (!int.TryParse(varName[1..], out int address)) { address = -1; SendMessage(Level.ERR, "Malformed memory address found."); }
 					if (Program.memory.Exists(address))
 					{
 						Program.memory.Get(address, out varName);

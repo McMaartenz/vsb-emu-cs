@@ -46,7 +46,7 @@ namespace Maartanic
 			}
 
 			Console.WriteLine("Please enter the log level (0: info 1: warning 2: error");
-			if (!Byte.TryParse(Console.ReadLine(), out logLevel))
+			if (!byte.TryParse(Console.ReadLine(), out logLevel))
 			{
 				logLevel = 0;
 			}
