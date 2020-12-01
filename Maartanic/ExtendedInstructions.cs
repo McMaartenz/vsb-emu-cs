@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 
 namespace Maartanic
 {
@@ -36,7 +35,8 @@ namespace Maartanic
 				case "ENDDW":
 					return e.lineIndex.ToString() + "." + e.returnedValue; // Return address to jump to later and the original return value separated by a dot.
 
-				case "FOR": // FOR [script] [amount] r-r =OR= FOR [amount] r (+ENDFOR)
+				case "FOR": // FOR [script] [amount]	r-r
+							// FOR [amount]				r		(+ENDFOR)
 					if (args.Length > 1)
 					{
 						Engine forLoopEngine;
@@ -88,7 +88,8 @@ namespace Maartanic
 					}
 					break;
 
-				case "WHILE": // WHILE [script] [compare Instr] [val 1] [val 2] r-r-r-r
+				case "WHILE":	// WHILE [script] [compare instr] [val 1] [val 2]	r-r-r-r
+								// WHILE [compare instr] [val 1] [val 2]			r-r-r		(+ENDW)
 					if (args.Length > 3)
 					{
 						Engine whileLoopEngine;
@@ -150,7 +151,8 @@ namespace Maartanic
 					}
 					break;
 
-				case "DOWHILE": // DOWHILE [script] [compare Instr] [val 1] [val 2] r-r-r-r
+				case "DOWHILE": // DOWHILE [script] [compare instr] [val 1] [val 2]		r-r-r-r
+								// DOWHILE [compare instr] [val 1] [val 2]				r-r-r		(+ENDDW)
 					if (args.Length > 3)
 					{
 						Engine whileLoopEngine;
