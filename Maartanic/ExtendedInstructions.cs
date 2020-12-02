@@ -60,7 +60,7 @@ namespace Maartanic
 					{
 						Engine forEngine = new Engine(e.scriptFile)
 						{
-							localMemory = e.localMemory,			// Copy over local memory, and return
+							localMemory = e.localMemory,            // Copy over local memory, and return
 							returnedValue = e.returnedValue
 						};
 
@@ -89,7 +89,7 @@ namespace Maartanic
 					}
 					break;
 
-				case "WHILE":	// WHILE [script] [compare instr] [val 1] [val 2]	r-r-r-r
+				case "WHILE":   // WHILE [script] [compare instr] [val 1] [val 2]	r-r-r-r
 								// WHILE [compare instr] [val 1] [val 2]			r-r-r		(+ENDW)
 					if (args.Length > 3)
 					{
@@ -102,7 +102,7 @@ namespace Maartanic
 						{
 							whileLoopEngine = new Engine(e.scriptFile, args[0]);
 							if (whileLoopEngine.Executable())
-							{	
+							{
 								e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution(Program.logLevel);
 							}
 							else
@@ -117,7 +117,7 @@ namespace Maartanic
 					{
 						Engine whileEngine = new Engine(e.scriptFile)
 						{
-							localMemory = e.localMemory,			// Copy over local memory, and return
+							localMemory = e.localMemory,            // Copy over local memory, and return
 							returnedValue = e.returnedValue
 						};
 
@@ -182,7 +182,7 @@ namespace Maartanic
 					{
 						Engine whileEngine = new Engine(e.scriptFile)
 						{
-							localMemory = e.localMemory,			// Copy over local memory, and return
+							localMemory = e.localMemory,            // Copy over local memory, and return
 							returnedValue = e.returnedValue
 						};
 
@@ -217,10 +217,44 @@ namespace Maartanic
 					}
 					break;
 
-				case "SLEEP":
+				case "SLEEP": // SLEEP [time] r
 					{
 						if (!int.TryParse(args[0], out int mseconds)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); break; }
 						Thread.Sleep(mseconds);
+					}
+					break;
+
+				case "CASEU": // CASEU [variable] [input] r-o
+					{
+						string output;
+						if (args.Length > 1)
+						{
+							output = args[1];
+						}
+						else
+						{
+							output = '$' + args[0];
+							e.LocalMemoryGet(ref output);
+						}
+						output = output.ToUpper();
+						e.SetVariable(args[0], ref output);
+					}
+					break;
+
+				case "CASEL": // CASEL [variable] [input] r-o
+					{
+						string output;
+						if (args.Length > 1)
+						{
+							output = args[1];
+						}
+						else
+						{
+							output = '$' + args[0];
+							e.LocalMemoryGet(ref output);
+						}
+						output = output.ToLower();
+						e.SetVariable(args[0], ref output);
 					}
 					break;
 

@@ -1213,7 +1213,7 @@ namespace Maartanic
 		}
 
 		// SetVariable(): Sets the variable with the name varName to newData. Lets the user know if it doesn't exist.
-		private void SetVariable(string varName, ref string newData)
+		internal void SetVariable(string varName, ref string newData)
 		{
 			if (localMemory.ContainsKey(varName))
 			{
