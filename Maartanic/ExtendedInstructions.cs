@@ -84,54 +84,8 @@ namespace Maartanic
 						}
 						else
 						{
-							e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute."); //TODO make function out of this, it's a mess right now. Put function inside Engine.cs
-							int scope = 0;
-							bool success = false;
-							int forWhileIndex = 0;
-							string[] cLineInfo = null;
-							StreamReader endifsr = new StreamReader(e.scriptFile);
-							while ((e.line = endifsr.ReadLine()) != null)
-							{
-								forWhileIndex++;
-								if (e.LineCheck(ref cLineInfo, ref forWhileIndex))
-								{
-									continue;
-								}
-								if (forWhileIndex > e.lineIndex)
-								{
-									if (cLineInfo[0].ToUpper() == "ENDF" && scope == 0)
-									{
-										success = true;
-										break;
-									}
-									if (cLineInfo[0].ToUpper() == "FOR")
-									{
-										scope++;
-									}
-									if (cLineInfo[0].ToUpper() == "ENDF")
-									{
-										scope--;
-									}
-								}
-
-							}
-							if (success)
-							{
-								e.SendMessage(Engine.Level.INF, "Continuing at line " + forWhileIndex);
-								for (int i = e.lineIndex; i < forWhileIndex; i++)
-								{
-									if ((e.line = e.sr.ReadLine()) == null)
-									{
-										break; // safety protection?
-									}
-								}
-								e.lineIndex = forWhileIndex;
-							}
-							else
-							{
-								e.SendMessage(Engine.Level.ERR, "Could not jump to end of FOR.");
-							}
-
+							e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
+							e.StatementJumpOut("ENDF", "FOR");
 						}
 					}
 					break;
@@ -154,53 +108,7 @@ namespace Maartanic
 							}
 							else
 							{
-								e.SendMessage(Engine.Level.ERR, "Program was not executable.");
-								int scope = 0;
-								bool success = false;
-								int whileLineIndex = 0;
-								string[] cLineInfo = null;
-								StreamReader endifsr = new StreamReader(e.scriptFile);
-								while ((e.line = endifsr.ReadLine()) != null)
-								{
-									whileLineIndex++;
-									if (e.LineCheck(ref cLineInfo, ref whileLineIndex))
-									{
-										continue;
-									}
-									if (whileLineIndex > e.lineIndex)
-									{
-										if (cLineInfo[0].ToUpper() == "ENDW" && scope == 0)
-										{
-											success = true;
-											break;
-										}
-										if (cLineInfo[0].ToUpper() == "WHILE")
-										{
-											scope++;
-										}
-										if (cLineInfo[0].ToUpper() == "ENDW")
-										{
-											scope--;
-										}
-									}
-
-								}
-								if (success)
-								{
-									e.SendMessage(Engine.Level.INF, "Continuing at line " + whileLineIndex);
-									for (int i = e.lineIndex; i < whileLineIndex; i++)
-									{
-										if ((e.line = e.sr.ReadLine()) == null)
-										{
-											break; // safety protection?
-										}
-									}
-									e.lineIndex = whileLineIndex;
-								}
-								else
-								{
-									e.SendMessage(Engine.Level.ERR, "Could not jump to end of WHILE.");
-								}
+								e.StatementJumpOut("ENDW", "WHILE");
 							}
 						}
 						break;
@@ -241,52 +149,7 @@ namespace Maartanic
 						else
 						{
 							e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute.");
-							int scope = 0;
-							bool success = false;
-							int whileLineIndex = 0;
-							string[] cLineInfo = null;
-							StreamReader endifsr = new StreamReader(e.scriptFile);
-							while ((e.line = endifsr.ReadLine()) != null)
-							{
-								whileLineIndex++;
-								if (e.LineCheck(ref cLineInfo, ref whileLineIndex))
-								{
-									continue;
-								}
-								if (whileLineIndex > e.lineIndex)
-								{
-									if (cLineInfo[0].ToUpper() == "ENDW" && scope == 0)
-									{
-										success = true;
-										break;
-									}
-									if (cLineInfo[0].ToUpper() == "WHILE")
-									{
-										scope++;
-									}
-									if (cLineInfo[0].ToUpper() == "ENDW")
-									{
-										scope--;
-									}
-								}
-
-							}
-							if (success)
-							{
-								e.SendMessage(Engine.Level.INF, "Continuing at line " + whileLineIndex);
-								for (int i = e.lineIndex; i < whileLineIndex; i++)
-								{
-									if ((e.line = e.sr.ReadLine()) == null)
-									{
-										break; // safety protection?
-									}
-								}
-								e.lineIndex = whileLineIndex;
-							}
-							else
-							{
-								e.SendMessage(Engine.Level.ERR, "Could not jump to end of WHILE.");
-							}
+							e.StatementJumpOut("ENDW", "WHILE");
 						}
 					}
 					break;

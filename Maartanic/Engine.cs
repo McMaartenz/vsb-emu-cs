@@ -50,25 +50,25 @@ namespace Maartanic
 		{
 			Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
 			{
-				{ "ww",			() => Console.WindowWidth.ToString() },
-				{ "wh",			() => Console.WindowHeight.ToString() },
-				{ "cmpr",		() => compareOutput.ToString() },
-				{ "projtime",	() => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
-				{ "projid",		() => "0" },
-				{ "user",		() => "*guest" },
-				{ "ver",		() => "1.3" },
-				{ "ask",		() => Console.ReadLine() },
-				{ "graphics",	() => "false" },
-				{ "thour",		() => DateTime.UtcNow.Hour.ToString() },
-				{ "tminute",	() => DateTime.UtcNow.Minute.ToString() },
-				{ "tsecond",	() => DateTime.UtcNow.Second.ToString() },
-				{ "tyear",		() => DateTime.UtcNow.Year.ToString() },
-				{ "tmonth",		() => DateTime.UtcNow.Month.ToString() },
-				{ "tdate",		() => DateTime.UtcNow.Day.ToString() },
-				{ "tdow",		() => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
-				{ "key",		() => keyOutput.ToString() },
-				{ "ret",		() => returnedValue },
-				{ "mx",			() => "0" }, //NOTICE mouse x and y are not supported
+				{ "ww",         () => Console.WindowWidth.ToString() },
+				{ "wh",         () => Console.WindowHeight.ToString() },
+				{ "cmpr",       () => compareOutput.ToString() },
+				{ "projtime",   () => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
+				{ "projid",     () => "0" },
+				{ "user",       () => "*guest" },
+				{ "ver",        () => "1.3" },
+				{ "ask",        () => Console.ReadLine() },
+				{ "graphics",   () => "false" },
+				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
+				{ "tminute",    () => DateTime.UtcNow.Minute.ToString() },
+				{ "tsecond",    () => DateTime.UtcNow.Second.ToString() },
+				{ "tyear",      () => DateTime.UtcNow.Year.ToString() },
+				{ "tmonth",     () => DateTime.UtcNow.Month.ToString() },
+				{ "tdate",      () => DateTime.UtcNow.Day.ToString() },
+				{ "tdow",       () => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
+				{ "key",        () => keyOutput.ToString() },
+				{ "ret",        () => returnedValue },
+				{ "mx",         () => "0" }, //NOTICE mouse x and y are not supported
 				{ "my",         () => "0" }
 			};
 
@@ -131,9 +131,9 @@ namespace Maartanic
 		// SendMessage(): Logs a message to the console with a level, including line of execution.
 		internal void SendMessage(Level a, string message)
 		{
-			if ((int) a >= logLevel)
+			if ((int)a >= logLevel)
 			{
-				switch ((int) a)
+				switch ((int)a)
 				{
 					case 0:
 						Console.Write($"\nMRT INF line {lineIndex}: {message}");
@@ -145,7 +145,7 @@ namespace Maartanic
 						Console.Write($"\nMRT ERR line {lineIndex}: {message}");
 						break;
 				}
-			}	
+			}
 		}
 
 		// LineCheck(): Splits the text into an array for further operations.
@@ -322,7 +322,7 @@ namespace Maartanic
 										continue;
 									}
 									if (ifLineIndex > lineIndex)
-									{										
+									{
 										if ((cLineInfo[0].ToUpper() == "ELSE" || cLineInfo[0].ToUpper() == "ENDIF") && scope == 0)
 										{
 											success = true;
@@ -390,7 +390,7 @@ namespace Maartanic
 										scope--;
 									}
 								}
-								
+
 							}
 							if (success)
 							{
@@ -588,7 +588,7 @@ namespace Maartanic
 							{
 								cki = Console.ReadKey();
 								keyOutput = cki.KeyChar == key;
-							}	
+							}
 						}
 						break;
 
@@ -838,7 +838,7 @@ namespace Maartanic
 
 					case "GETM":
 						{
-							if (!int.TryParse(args[1], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break;  }
+							if (!int.TryParse(args[1], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break; }
 							Program.memory.Get(address, out string output);
 							SetVariable(args[0], ref output);
 						}
@@ -862,6 +862,57 @@ namespace Maartanic
 			}
 			sr.Close(); // Close StreamReader after execution
 			return returnedValue;
+		}
+
+		internal void StatementJumpOut(string endNaming, string startNaming)
+		{
+			SendMessage(Level.ERR, "Program was not executable.");
+			int scope = 0;
+			bool success = false;
+			int whileLineIndex = 0;
+			string[] cLineInfo = null;
+			StreamReader endifsr = new StreamReader(scriptFile);
+			while ((line = endifsr.ReadLine()) != null)
+			{
+				whileLineIndex++;
+				if (LineCheck(ref cLineInfo, ref whileLineIndex))
+				{
+					continue;
+				}
+				if (whileLineIndex > lineIndex)
+				{
+					if (cLineInfo[0].ToUpper() == endNaming && scope == 0)
+					{
+						success = true;
+						break;
+					}
+					if (cLineInfo[0].ToUpper() == startNaming)
+					{
+						scope++;
+					}
+					if (cLineInfo[0].ToUpper() == endNaming)
+					{
+						scope--;
+					}
+				}
+
+			}
+			if (success)
+			{
+				SendMessage(Level.INF, "Continuing at line " + whileLineIndex);
+				for (int i = lineIndex; i < whileLineIndex; i++)
+				{
+					if ((line = sr.ReadLine()) == null)
+					{
+						break; // safety protection?
+					}
+				}
+				lineIndex = whileLineIndex;
+			}
+			else
+			{
+				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.");
+			}
 		}
 
 		internal void JumpToLine(ref StreamReader sr, ref string line, ref int lineIndex, ref int jumpLine)
