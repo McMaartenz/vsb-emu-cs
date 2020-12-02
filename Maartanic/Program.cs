@@ -4,12 +4,21 @@ namespace Maartanic
 {
 	public class Program
 	{
+
 		public const float VERSION = 0.9f;
 		public static EngineStack stack = new EngineStack();
 		public static EngineQueue queue = new EngineQueue();
 		public static EngineMemory memory = new EngineMemory();
 
-		/* Exit(): Exit process */
+		public static ExtendedInstructions extendedMode;
+		internal static Engine.Mode applicationMode = Engine.Mode.VSB;
+
+		public static int WIN_WIDTH = 120;
+		public static int WIN_HEIGHT = 30;
+
+		public static byte logLevel;
+
+		// Exit(): Exit process
 		public static void Exit(string value)
 		{
 			Console.Write($"\nProcess exited with value \"{value}\".");
@@ -17,9 +26,13 @@ namespace Maartanic
 			Environment.Exit(0);
 		}
 
-		/* Main(): Entry point */
+		// Main(): Entry point
 		public static void Main(string[] args)
 		{
+
+			Console.SetBufferSize(WIN_WIDTH, WIN_HEIGHT); // Remove scrollbar
+			Console.SetWindowSize(WIN_WIDTH, WIN_HEIGHT);
+
 			Console.WriteLine("Maartanic Engine {0} (no-gui VSB Engine Emulator on C#)\n", VERSION);
 			if (args.Length == 0)
 			{
@@ -32,8 +45,9 @@ namespace Maartanic
 				}
 				args = new string[] { "autorun.mrt" };
 			}
+
 			Console.WriteLine("Please enter the log level (0: info 1: warning 2: error");
-			if (!Byte.TryParse(Console.ReadLine(), out byte logLevel))
+			if (!byte.TryParse(Console.ReadLine(), out logLevel))
 			{
 				logLevel = 0;
 			}
@@ -44,7 +58,6 @@ namespace Maartanic
 
 			// Clear buffer
 			Console.Clear();
-
 			Engine e = new Engine(args[0]);
 			if (e.Executable())
 			{

@@ -9,66 +9,77 @@ namespace Maartanic
 {
 	class Engine
 	{
-		private StreamReader sr;
+		internal StreamReader sr;
 		private int logLevel;
 
 		private bool executable;
-		private string scriptFile;
-		private string entryPoint = "main";
+		internal string scriptFile;
+		internal string entryPoint = "main";
 
-		private string line;
-		private int lineIndex;
+		internal string line;
+		internal int lineIndex;
 		private string[] lineInfo;
 
 		private bool compareOutput = false;
 		private bool keyOutput = false;
-		private string returnedValue = "NULL";
+		internal string returnedValue = "NULL";
 
-		private Mode applicationMode = Mode.VSB; //TODO: Extend VSB instructions! It's C#, GO FOR IT!
+		//internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
 		private DateTime startTime = DateTime.UtcNow;
 
 		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
-		private Dictionary<string, string> localMemory = new Dictionary<string, string>();
+		internal Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
-		/* Level: Used in SendMessage method to indicate the message level as info, warning or error. */
-		private enum Level
+		// Level: Used in SendMessage method to indicate the message level as info, warning or error.
+		internal enum Level
 		{
 			INF,
 			WRN,
 			ERR
 		}
 
-		/* Mode: Used in applicationMode to let the engine know to enable extended MRT functions not yet included in the VSB Engine. */
-		private enum Mode
+		// Mode: Used in applicationMode to let the engine know to enable extended functions not (yet) included in the VSB Engine.
+		internal enum Mode
 		{
-			MRT,
+			EXTENDED,
 			VSB
 		}
 
-		/* FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB */
+		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
 		private void FillPredefinedList()
-		{ //TODO console cursorleft cursortop methods for mouse pos? ($_mx, $_my)
-			predefinedVariables.Add("ww", (Func<string>)(() => Console.WindowWidth.ToString()));
-			predefinedVariables.Add("wh", (Func<string>)(() => Console.WindowHeight.ToString()));
-			predefinedVariables.Add("cmpr", (Func<string>)(() => compareOutput.ToString()));
-			predefinedVariables.Add("projtime", (Func<string>)(() => (DateTime.UtcNow - startTime).TotalSeconds.ToString()));
-			predefinedVariables.Add("projid", (Func<string>)(() => "0"));
-			predefinedVariables.Add("user", (Func<string>)(() => "*guest"));
-			predefinedVariables.Add("ver", (Func<string>)(() => "1.3"));
-			predefinedVariables.Add("ask", (Func<string>)(() => Console.ReadLine()));
-			predefinedVariables.Add("graphics", (Func<string>)(() => "false"));
-			predefinedVariables.Add("thour", (Func<string>)(() => DateTime.UtcNow.Hour.ToString()));
-			predefinedVariables.Add("tminute", (Func<string>)(() => DateTime.UtcNow.Minute.ToString()));
-			predefinedVariables.Add("tsecond", (Func<string>)(() => DateTime.UtcNow.Second.ToString()));
-			predefinedVariables.Add("tyear", (Func<string>)(() => DateTime.UtcNow.Year.ToString()));
-			predefinedVariables.Add("tmonth", (Func<string>)(() => DateTime.UtcNow.Month.ToString()));
-			predefinedVariables.Add("tdate", (Func<string>)(() => DateTime.UtcNow.Day.ToString()));
-			predefinedVariables.Add("tdow", (Func<string>)(() => ((int)DateTime.UtcNow.DayOfWeek).ToString()));
-			predefinedVariables.Add("key", (Func<string>)(() => keyOutput.ToString()));
-			predefinedVariables.Add("ret", (Func<string>)(() => returnedValue));
+		{
+			Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
+			{
+				{ "ww",         () => Console.WindowWidth.ToString() },
+				{ "wh",         () => Console.WindowHeight.ToString() },
+				{ "cmpr",       () => compareOutput.ToString() },
+				{ "projtime",   () => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
+				{ "projid",     () => "0" },
+				{ "user",       () => "*guest" },
+				{ "ver",        () => "1.3" },
+				{ "ask",        () => Console.ReadLine() },
+				{ "graphics",   () => "false" },
+				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
+				{ "tminute",    () => DateTime.UtcNow.Minute.ToString() },
+				{ "tsecond",    () => DateTime.UtcNow.Second.ToString() },
+				{ "tyear",      () => DateTime.UtcNow.Year.ToString() },
+				{ "tmonth",     () => DateTime.UtcNow.Month.ToString() },
+				{ "tdate",      () => DateTime.UtcNow.Day.ToString() },
+				{ "tdow",       () => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
+				{ "key",        () => keyOutput.ToString() },
+				{ "ret",        () => returnedValue },
+				{ "mx",         () => "0" }, //NOTICE mouse x and y are not supported
+				{ "my",         () => "0" }
+			};
+
+			foreach (KeyValuePair<string, Func<string>> a in toBeAdded)
+			{
+				predefinedVariables.Add(a.Key, a.Value);
+			}
+
 		}
 
-		/* Engine(): Class constructor, returns if given file does not exist. */
+		// Engine(): Class constructor, returns if given file does not exist.
 		public Engine(string startPos)
 		{
 			executable = File.Exists(startPos);
@@ -81,7 +92,7 @@ namespace Maartanic
 			scriptFile = startPos;
 		}
 
-		/* Engine() OVERLOADED: Specify your entry point */
+		// Engine() OVERLOADED: Specify your entry point
 		public Engine(string startPos, string customEntryPoint)
 		{
 			entryPoint = customEntryPoint; // default is main
@@ -95,13 +106,13 @@ namespace Maartanic
 			scriptFile = startPos;
 		}
 
-		/* Executable(): Returns whether or not it is ready to be executed based on Engine()'s result. */
+		// Executable(): Returns whether or not it is ready to be executed based on Engine()'s result.
 		public bool Executable()
 		{
 			return executable;
 		}
 
-		/* FindProgram(): Basically -jumps- to a method declaration in code */
+		// FindProgram(): Basically -jumps- to a method declaration in code
 		private bool FindProgram(ref StreamReader sr, ref string line, ref int lineIndex)
 		{
 			while (((line = sr.ReadLine()) != null) && line != $"DEF {entryPoint}")
@@ -117,12 +128,12 @@ namespace Maartanic
 				return false; // No entry point "main"!
 		}
 
-		/* SendMessage(): Logs a message to the console with a level, including line of execution. */
-		private void SendMessage(Level a, string message)
+		// SendMessage(): Logs a message to the console with a level, including line of execution.
+		internal void SendMessage(Level a, string message)
 		{
-			if ((int) a >= logLevel)
+			if ((int)a >= logLevel)
 			{
-				switch ((int) a)
+				switch ((int)a)
 				{
 					case 0:
 						Console.Write($"\nMRT INF line {lineIndex}: {message}");
@@ -134,11 +145,11 @@ namespace Maartanic
 						Console.Write($"\nMRT ERR line {lineIndex}: {message}");
 						break;
 				}
-			}	
+			}
 		}
 
-		/* LineCheck(): Splits the text into an array for further operations. */
-		public bool LineCheck(ref string[] lineInfo, ref int lineIndex)
+		// LineCheck(): Splits the text into an array for further operations.
+		public bool LineCheck(ref string[] lineInfo, ref int lineIndex, bool disable = false)
 		{
 			if (line == null)
 			{
@@ -160,7 +171,10 @@ namespace Maartanic
 					}
 					if (x == '[')
 					{
-						ExtractEngineArgs(ref lineInfo);
+						if (!disable)
+						{
+							ExtractEngineArgs(ref lineInfo);
+						}
 						return true;
 					}
 				}
@@ -173,13 +187,17 @@ namespace Maartanic
 			return false;
 		}
 
-		/* StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions. */
-		public string StartExecution(int logLevelIN)
+		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
+		public string StartExecution(int logLevelIN, bool jump = false, int jumpLine = 0)
 		{
 			logLevel = logLevelIN;
 			lineIndex = 0;
 			sr = new StreamReader(scriptFile);
-			if (!FindProgram(ref sr, ref line, ref lineIndex))
+			if (jump)
+			{
+				JumpToLine(ref sr, ref line, ref lineIndex, ref jumpLine);
+			}
+			else if (!FindProgram(ref sr, ref line, ref lineIndex))
 			{
 				// unknown error
 				Console.WriteLine("Unknown error");
@@ -225,8 +243,7 @@ namespace Maartanic
 					case "ENDDEF": // Possible end-of-function
 						if (lineInfo[1] == entryPoint)
 						{
-							SendMessage(Level.INF, "End of definition");
-							return "NULL";
+							return returnedValue;
 						}
 						else
 						{
@@ -237,15 +254,14 @@ namespace Maartanic
 					case "CLEAR":
 						if (args.Length != 0)
 						{
-							if (!Int32.TryParse(args[0], out int imax))
+							if (!int.TryParse(args[0], out int imax))
 							{
-								imax = 0;
 								SendMessage(Level.ERR, "Malformed number found.");
 							}
 							for (int i = 0; i < imax; i++)
 							{
 								Console.SetCursorPosition(0, Console.CursorTop);
-								Console.Write(new String(' ', Console.BufferWidth));
+								Console.Write(new string(' ', Console.BufferWidth));
 								Console.SetCursorPosition(0, Console.CursorTop - 1);
 								if (i == imax - 1)
 								{
@@ -301,12 +317,12 @@ namespace Maartanic
 								while ((line = ifsr.ReadLine()) != null)
 								{
 									ifLineIndex++;
-									if (LineCheck(ref cLineInfo, ref ifLineIndex))
+									if (LineCheck(ref cLineInfo, ref ifLineIndex, true))
 									{
 										continue;
 									}
 									if (ifLineIndex > lineIndex)
-									{										
+									{
 										if ((cLineInfo[0].ToUpper() == "ELSE" || cLineInfo[0].ToUpper() == "ENDIF") && scope == 0)
 										{
 											success = true;
@@ -345,7 +361,9 @@ namespace Maartanic
 						break;
 
 					case "ELSE":
-						{
+						StatementJumpOut("ENDIF", "IF");
+						break;
+							/*
 							int scope = 0;
 							bool success = false;
 							int endifLineIndex = 0;
@@ -374,7 +392,7 @@ namespace Maartanic
 										scope--;
 									}
 								}
-								
+
 							}
 							if (success)
 							{
@@ -390,9 +408,7 @@ namespace Maartanic
 							else
 							{
 								SendMessage(Level.ERR, "Could not find a spot to jump to.");
-							}
-						}
-						break;
+							}*/
 
 					case "SET":
 						if (localMemory.ContainsKey(args[0]))
@@ -412,7 +428,7 @@ namespace Maartanic
 						}
 						else
 						{
-							SendMessage(Level.WRN, $"Tried removing a non-existing variable called {args[0]}.");
+							SendMessage(Level.WRN, $"Tried removing a non-existing variable {args[0]}.");
 						}
 						break;
 
@@ -446,7 +462,7 @@ namespace Maartanic
 
 					case "CMPR":
 						{
-							Compare(ref args);
+							compareOutput = Compare(ref args);
 						}
 						break;
 
@@ -466,14 +482,12 @@ namespace Maartanic
 								LocalMemoryGet(ref num1IN);
 								sizeIN = args[1];
 							}
-							if (!Decimal.TryParse(num1IN, out decimal num1))
+							if (!decimal.TryParse(num1IN, out decimal num1))
 							{
-								num1 = 0.0M;
 								SendMessage(Level.ERR, "Malformed number found.");
 							}
-							if (!Int32.TryParse(sizeIN, out int size))
+							if (!int.TryParse(sizeIN, out int size))
 							{
-								size = 0;
 								SendMessage(Level.ERR, "Malformed number found.");
 							}
 							string output = Math.Round(num1, size).ToString();
@@ -484,9 +498,9 @@ namespace Maartanic
 					case "COLRGBTOHEX":
 						{
 							string varName = args[0];
-							if (!Int32.TryParse(args[1], out int r)) { r = 0; SendMessage(Level.ERR, "Malformed number found."); }
-							if (!Int32.TryParse(args[2], out int g)) { g = 0; SendMessage(Level.ERR, "Malformed number found."); }
-							if (!Int32.TryParse(args[3], out int b)) { b = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[1], out int r)) { SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[2], out int g)) { SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[3], out int b)) { SendMessage(Level.ERR, "Malformed number found."); }
 							string output = $"{r:X2}{g:X2}{b:X2}";
 							SetVariable(varName, ref output);
 						}
@@ -495,8 +509,8 @@ namespace Maartanic
 					case "RAND":
 						{
 							string varName = args[0];
-							if (!Int32.TryParse(args[1], out int lowerLim)) { lowerLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
-							if (!Int32.TryParse(args[2], out int higherLim)) { higherLim = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[1], out int lowerLim)) { SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[2], out int higherLim)) { SendMessage(Level.ERR, "Malformed number found."); }
 							Random generator = new Random();
 							string output = generator.Next(lowerLim, higherLim + 1).ToString();
 							SetVariable(varName, ref output);
@@ -527,14 +541,14 @@ namespace Maartanic
 							decimal n;
 							if (args.Length > 1)
 							{
-								if (!Decimal.TryParse(args[1], out n)) { n = 0.0M; SendMessage(Level.ERR, "Malformed number found."); }
+								if (!decimal.TryParse(args[1], out n)) { SendMessage(Level.ERR, "Malformed number found."); }
 								output = Math.Abs(n).ToString();
 							}
 							else
 							{
 								output = '$' + varName;
 								LocalMemoryGet(ref output);
-								if (!Decimal.TryParse(output, out n)) { n = 0.0M; SendMessage(Level.ERR, "Malformed number found."); }
+								if (!decimal.TryParse(output, out n)) { SendMessage(Level.ERR, "Malformed number found."); }
 								output = Math.Abs(n).ToString();
 							}
 							SetVariable(varName, ref output);
@@ -568,19 +582,19 @@ namespace Maartanic
 
 					case "KEY":
 						{
-							if (!Char.TryParse(args[0], out char key)) { key = 'x'; SendMessage(Level.ERR, "Malformed character found."); }
+							if (!char.TryParse(args[0], out char key)) { key = 'x'; SendMessage(Level.ERR, "Malformed character found."); }
 							ConsoleKeyInfo cki;
 							if (Console.KeyAvailable)
 							{
 								cki = Console.ReadKey();
 								keyOutput = cki.KeyChar == key;
-							}	
+							}
 						}
 						break;
 
 					case "HLT":
 						SendMessage(Level.INF, "HLT");
-						Program.Exit("NULL");
+						Program.Exit(returnedValue);
 						break; // Unreachable code but IDE complains for some reason
 
 					case "SUBSTR":
@@ -590,15 +604,15 @@ namespace Maartanic
 							if (args.Length > 3)
 							{
 								input = args[1];
-								if (!Int32.TryParse(args[2], out start)) { start = 0; SendMessage(Level.ERR, "Malformed number found."); }
-								if (!Int32.TryParse(args[3], out len)) { len = 0; SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[2], out start)) { SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[3], out len)) { SendMessage(Level.ERR, "Malformed number found."); }
 							}
 							else
 							{
 								input = '$' + args[0];
 								LocalMemoryGet(ref input);
-								if (!Int32.TryParse(args[1], out start)) { start = 0; SendMessage(Level.ERR, "Malformed number found."); }
-								if (!Int32.TryParse(args[2], out len)) { len = 0; SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[1], out start)) { SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[2], out len)) { SendMessage(Level.ERR, "Malformed number found."); }
 							}
 							output = input.Substring(start, len);
 							SetVariable(args[0], ref output);
@@ -612,13 +626,13 @@ namespace Maartanic
 							if (args.Length > 2)
 							{
 								input = args[1];
-								if (!Int32.TryParse(args[2], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[2], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
 							}
 							else
 							{
 								input = '$' + args[0];
 								LocalMemoryGet(ref input);
-								if (!Int32.TryParse(args[1], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
+								if (!int.TryParse(args[1], out index)) { index = -1; SendMessage(Level.ERR, "Malformed number found."); }
 							}
 							if (index < 0 || index >= input.Length)
 							{
@@ -659,7 +673,7 @@ namespace Maartanic
 							}
 							else
 							{
-								SendMessage(Level.ERR, "Program was not executable");
+								SendMessage(Level.ERR, "Program was not executable.");
 							}
 						}
 						break;
@@ -789,7 +803,7 @@ namespace Maartanic
 
 					case "ALOC":
 						{
-							if (!Int32.TryParse(args[0], out int amount)) { amount = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[0], out int amount)) { SendMessage(Level.ERR, "Malformed number found."); }
 							for (int i = 0; i < amount; i++)
 							{
 								Program.memory.Add("0");
@@ -799,7 +813,7 @@ namespace Maartanic
 
 					case "FREE":
 						{
-							if (!Int32.TryParse(args[0], out int amount)) { amount = 0; SendMessage(Level.ERR, "Malformed number found."); }
+							if (!int.TryParse(args[0], out int amount)) { SendMessage(Level.ERR, "Malformed number found."); }
 							for (int i = 0; i < amount; i++)
 							{
 								if (!Program.memory.Exists(0))
@@ -817,29 +831,106 @@ namespace Maartanic
 
 					case "SETM":
 						{
-							if (!Int32.TryParse(args[0], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break; }
+							if (!int.TryParse(args[0], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break; }
 							SetMemoryAddr(address, args[1]);
 						}
 						break;
 
 					case "GETM":
 						{
-							if (!Int32.TryParse(args[1], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break;  }
+							if (!int.TryParse(args[1], out int address)) { SendMessage(Level.ERR, "Malformed number found."); break; }
 							Program.memory.Get(address, out string output);
 							SetVariable(args[0], ref output);
 						}
 						break;
 
 					default:
-						SendMessage(Level.ERR, $"Instruction {lineInfo[0]} is not recognized.");
+						if (Program.applicationMode == Mode.EXTENDED) // Enable extended instruction set
+						{
+							string output = Program.extendedMode.Instructions(this, ref lineInfo, ref args);
+							if (output != null)
+							{
+								return output;
+							}
+						}
+						else
+						{
+							SendMessage(Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (VSB)");
+						}
 						break;
 				}
 			}
 			sr.Close(); // Close StreamReader after execution
-			return "NULL";
+			return returnedValue;
 		}
 
-		/* SetMemoryAddr(): Sets a given memory address to the given value.  */
+		internal void StatementJumpOut(string endNaming, string startNaming)
+		{
+			int scope = 0;
+			bool success = false;
+			int whileLineIndex = 0;
+			string[] cLineInfo = null;
+			StreamReader endifsr = new StreamReader(scriptFile);
+			while ((line = endifsr.ReadLine()) != null)
+			{
+				whileLineIndex++;
+				if (LineCheck(ref cLineInfo, ref whileLineIndex))
+				{
+					continue;
+				}
+				if (whileLineIndex > lineIndex)
+				{
+					if (cLineInfo[0].ToUpper() == endNaming && scope == 0)
+					{
+						success = true;
+						break;
+					}
+					if (cLineInfo[0].ToUpper() == startNaming)
+					{
+						scope++;
+					}
+					if (cLineInfo[0].ToUpper() == endNaming)
+					{
+						scope--;
+					}
+				}
+
+			}
+			if (success)
+			{
+				SendMessage(Level.INF, "Continuing at line " + whileLineIndex);
+				for (int i = lineIndex; i < whileLineIndex; i++)
+				{
+					if ((line = sr.ReadLine()) == null)
+					{
+						break; // safety protection?
+					}
+				}
+				lineIndex = whileLineIndex;
+			}
+			else
+			{
+				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.");
+			}
+		}
+
+		internal void JumpToLine(ref StreamReader sr, ref string line, ref int lineIndex, ref int jumpLine)
+		{
+			while (((line = sr.ReadLine()) != null) && lineIndex < jumpLine-1)
+			{
+				lineIndex++;
+			}
+			if (lineIndex >= jumpLine-1)
+			{
+				lineIndex++;
+			}
+			else
+			{
+				SendMessage(Level.ERR, $"Unable to jump to line {jumpLine}");
+			}
+		}
+
+		// SetMemoryAddr(): Sets a given memory address to the given value. 
 		private void SetMemoryAddr(int address, string value)
 		{
 			if (!Program.memory.Exists(address))
@@ -852,19 +943,19 @@ namespace Maartanic
 			}
 		}
 
-		/* ToRadians(): Converts a given angle in degrees to radians with a limited amount of accuracy */
+		// ToRadians(): Converts a given angle in degrees to radians with a limited amount of accuracy
 		private double ToRadians(double input)
 		{
 			return 0.01745329251 * input;
 		}
 
-		/* ToDegrees(): Converts a given angle in radians to degrees with a limited amount of accuracy */
+		// ToDegrees(): Converts a given angle in radians to degrees with a limited amount of accuracy
 		private double ToDegrees(double input)
 		{
 			return 57.2957795131 * input;
 		}
 
-		/* MathFunction(): Method merges multiple cases in the big switch of StartExecution(). */
+		// MathFunction(): Method merges multiple cases in the big switch of StartExecution().
 		private void MathFunction(string function, string destination, string number)
 		{
 			double dnumA;
@@ -872,11 +963,11 @@ namespace Maartanic
 			{
 				string tmp = '$' + destination;
 				LocalMemoryGet(ref tmp);
-				if (!Double.TryParse(tmp, out dnumA)) { dnumA = 0.0d; SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(tmp, out dnumA)) { SendMessage(Level.ERR, "Malformed number found."); }
 			}
 			else
 			{
-				if (!Double.TryParse(number, out dnumA)) { dnumA = 0.0d; SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(number, out dnumA)) { SendMessage(Level.ERR, "Malformed number found."); }
 			}
 			double result;
 			switch (function)
@@ -946,7 +1037,7 @@ namespace Maartanic
 			SetVariable(destination, ref resultS);
 		}
 
-		/* PerformOp(): Performs an operation with two values given. */
+		// PerformOp(): Performs an operation with two values given.
 		private void PerformOp(string operation, string varName, string num1, string num2)
 		{
 			double numberA, numberB;
@@ -954,13 +1045,13 @@ namespace Maartanic
 			{
 				string num1_var = '$' + varName;
 				LocalMemoryGet(ref num1_var);
-				if (!Double.TryParse(num1_var, out numberA)) { numberA = 0.0d; SendMessage(Level.ERR, "Malformed number found."); }
-				if (!Double.TryParse(num1, out numberB)) { numberB = 0.0d; SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(num1_var, out numberA)) { SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(num1, out numberB)) { SendMessage(Level.ERR, "Malformed number found."); }
 			}
 			else
 			{
-				if (!Double.TryParse(num1, out numberA)) { numberA = 0.0d; SendMessage(Level.ERR, "Malformed number found."); }
-				if (!Double.TryParse(num2, out numberB)) { numberB = 0.0d; SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(num1, out numberA)) { SendMessage(Level.ERR, "Malformed number found."); }
+				if (!double.TryParse(num2, out numberB)) { SendMessage(Level.ERR, "Malformed number found."); }
 			}
 			string result = "";
 			switch (operation)
@@ -980,19 +1071,19 @@ namespace Maartanic
 			SetVariable(varName, ref result);
 		}
 
-		/* Compares two values inside the args array, and stores the result in compareOutput. */
-		private void Compare(ref string[] args)
+		// Compares two values inside the args array, and stores the result in compareOutput.
+		internal bool Compare(ref string[] args)
 		{
 			bool r; // Output variable (result)
 			bool b1, b2;
 			// Numbers
 			b1 = args[1] == "true" || args[1] == "1";
 			b2 = args[2] == "true" || args[2] == "1";
-			if (!Double.TryParse(args[1], out double n1))
+			if (!double.TryParse(args[1], out double n1))
 			{
 				n1 = 0.0d;
 			}
-			if (!Double.TryParse(args[2], out double n2))
+			if (!double.TryParse(args[2], out double n2))
 			{
 				n2 = 0.0d;
 			}
@@ -1071,10 +1162,10 @@ namespace Maartanic
 					break;
 
 			}
-			compareOutput = r;
+			return r;
 		}
 
-		/* MathOperation(): Calculator */
+		// MathOperation(): Calculator
 		private double MathOperation(char op, string destination, string number, string optnumber = null)
 		{
 			double num1, num2;
@@ -1082,27 +1173,23 @@ namespace Maartanic
 			{
 				string tmp1 = "$" + destination;
 				LocalMemoryGet(ref tmp1);
-				if (!Double.TryParse(tmp1, out num1))
+				if (!double.TryParse(tmp1, out num1))
 				{
-					num1 = 0.0d;
 					SendMessage(Level.ERR, "Malformed number found.");
 				}
-				if (!Double.TryParse(number, out num2))
+				if (!double.TryParse(number, out num2))
 				{
-					num2 = 0.0d;
 					SendMessage(Level.ERR, "Malformed number found.");
 				}
 			}
 			else
 			{
-				if (!Double.TryParse(number, out num1))
+				if (!double.TryParse(number, out num1))
 				{
-					num1 = 0.0d;
 					SendMessage(Level.ERR, "Malformed number found.");
 				}
-				if (!Double.TryParse(optnumber, out num2))
+				if (!double.TryParse(optnumber, out num2))
 				{
-					num2 = 0.0d;
 					SendMessage(Level.ERR, "Malformed number found.");
 				}
 			}
@@ -1125,7 +1212,7 @@ namespace Maartanic
 			}
 		}
 
-		/* SetVariable(): Sets the variable with the name varName to newData. Lets the user know if it doesn't exist. */
+		// SetVariable(): Sets the variable with the name varName to newData. Lets the user know if it doesn't exist.
 		private void SetVariable(string varName, ref string newData)
 		{
 			if (localMemory.ContainsKey(varName))
@@ -1138,8 +1225,8 @@ namespace Maartanic
 			}
 		}
 
-		/* LocalMemoryGet(): Converts a given variable to its contents. Leaves it alone if it doesn't have a prefix '$'. */
-		private void LocalMemoryGet(ref string varName)
+		// LocalMemoryGet(): Converts a given variable to its contents. Leaves it alone if it doesn't have a recognized prefix.
+		internal void LocalMemoryGet(ref string varName)
 		{
 			if (varName.Length == 0)
 			{
@@ -1153,26 +1240,69 @@ namespace Maartanic
 				{
 					if (predefinedVariables.ContainsKey(varName[2..]))
 					{
-						varName = (string) predefinedVariables[varName[2..]].DynamicInvoke();
+						varName = (string)predefinedVariables[varName[2..]].DynamicInvoke();
 					}
+				}
+				else if (localMemory.ContainsKey(varName[1..]))
+				{
+					varName = localMemory[varName[1..]];
 				}
 				else
 				{
-					if (localMemory.ContainsKey(varName[1..]))
+					SendMessage(Level.ERR, $"The variable {varName[1..]} does not exist.");
+					varName = "NULL";
+				}
+			}
+			else if (Program.applicationMode == Mode.EXTENDED)
+			{
+				if (varName[0] == '#') // Get memory address e.g. where A is the memory address: #A
+				{
+					if (!int.TryParse(varName[1..], out int address)) { address = -1; SendMessage(Level.ERR, "Malformed memory address found."); }
+					if (Program.memory.Exists(address))
 					{
-						varName = localMemory[varName[1..]];
+						Program.memory.Get(address, out varName);
 					}
 					else
 					{
-						SendMessage(Level.ERR, $"The variable {varName[1..]} does not exist.");
+						SendMessage(Level.ERR, $"Tried accessing unallocated memory space {address}.");
 						varName = "NULL";
 					}
+				}
+				else if (varName[0] == '%') // Get char at index A of string B: %A,B
+				{
+					if (varName.Contains('.'))
+					{
+						string variable = varName[(varName.IndexOf('.') + 1)..];
+						string index = varName[..varName.IndexOf('.')][1..];
+						LocalMemoryGet(ref variable);
+						LocalMemoryGet(ref index);
+
+						if (!int.TryParse(index, out int index_int)) { SendMessage(Level.ERR, "Malformed number found as index parameter."); }
+
+						else
+						{
+							varName = variable[index_int].ToString();
+						}
+					}
+					else
+					{
+						SendMessage(Level.ERR, $"Corrupted variable name syntax {varName} for index.");
+						varName = "NULL";
+					}
+				}
+				else if (varName[0] == '!') // Inverse statement e.g. where A is true, it will become false: !A
+				{
+					string variable = varName[1..];
+					LocalMemoryGet(ref variable);
+					variable = variable.ToLower();
+					bool statement = variable == "true" || variable == "1";
+					varName = (!statement).ToString().ToLower();
 				}
 			}
 		}
 
-		/* ExtractArgs(): Simply extracts the arguments from array lineInfo, treating quote blocks as one. */
-		private string[] ExtractArgs(ref string[] lineInfo)
+		// ExtractArgs(): Simply extracts the arguments from array lineInfo, treating quote blocks as one.
+		internal string[] ExtractArgs(ref string[] lineInfo)
 		{
 			string combined = "";
 			for (int i = 1; i < lineInfo.Length; i++)
@@ -1256,7 +1386,7 @@ namespace Maartanic
 			return newCombinedList.ToArray();
 		}
 
-		/* ExtractEngineArgs(): Extracts [A B] like stuff and applies it to internal engine variables. */
+		// ExtractEngineArgs(): Extracts [A B] like stuff and applies it to internal engine variables.
 		private void ExtractEngineArgs(ref string[] lineInfo)
 		{
 			string[] engineArgParts;
@@ -1268,16 +1398,24 @@ namespace Maartanic
 			engineArgParts = engineArg[1..].Trim('[', ']').Split(' ');
 			if (engineArgParts[0].ToLower() == "mode")
 			{
-				switch (engineArgParts[1].ToUpper())
+				switch (engineArgParts[1].ToLower())
 				{
-					case "VSB":
-						applicationMode = Mode.VSB;
-						SendMessage(Level.INF, "Using compat mode");
+					case "vsb":
+						if (Program.applicationMode != Mode.VSB)
+						{
+							Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
+							Program.applicationMode = Mode.VSB;
+							SendMessage(Level.INF, "Using compat mode");
+						}
 						break;
 
-					case "MRT":
-						applicationMode = Mode.MRT;
-						SendMessage(Level.INF, "Using extended mode");
+					case "extended":
+						if (Program.applicationMode != Mode.EXTENDED)
+						{
+							Program.extendedMode = new ExtendedInstructions();
+							Program.applicationMode = Mode.EXTENDED;
+							SendMessage(Level.INF, "Using extended mode");
+						}
 						break;
 
 					default:
