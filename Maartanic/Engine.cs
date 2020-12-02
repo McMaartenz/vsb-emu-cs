@@ -864,6 +864,7 @@ namespace Maartanic
 			return returnedValue;
 		}
 
+		// StatementJumpOut(): Jumps out of the statement.
 		internal void StatementJumpOut(string endNaming, string startNaming)
 		{
 			int scope = 0;
@@ -914,6 +915,7 @@ namespace Maartanic
 			}
 		}
 
+		// JumpToLine(): Jumps to a line in the streamreader.
 		internal void JumpToLine(ref StreamReader sr, ref string line, ref int lineIndex, ref int jumpLine)
 		{
 			while (((line = sr.ReadLine()) != null) && lineIndex < jumpLine-1)
@@ -1322,6 +1324,13 @@ namespace Maartanic
 			bool isInQuotes = false;
 			for (int i = 0; i < combined.Length; i++)
 			{
+				if (combined[i] == '\\')
+				{
+					if (combined[i - 1] == '\\' && combined[i - 2] != '\\')
+					{
+						continue;
+					}
+				}
 				if (combined[i] == '"')
 				{
 					if (isInQuotes)
