@@ -361,7 +361,9 @@ namespace Maartanic
 						break;
 
 					case "ELSE":
-						{
+						StatementJumpOut("ENDIF", "IF");
+						break;
+							/*
 							int scope = 0;
 							bool success = false;
 							int endifLineIndex = 0;
@@ -406,9 +408,7 @@ namespace Maartanic
 							else
 							{
 								SendMessage(Level.ERR, "Could not find a spot to jump to.");
-							}
-						}
-						break;
+							}*/
 
 					case "SET":
 						if (localMemory.ContainsKey(args[0]))
@@ -866,7 +866,6 @@ namespace Maartanic
 
 		internal void StatementJumpOut(string endNaming, string startNaming)
 		{
-			SendMessage(Level.ERR, "Program was not executable.");
 			int scope = 0;
 			bool success = false;
 			int whileLineIndex = 0;
