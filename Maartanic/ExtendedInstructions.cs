@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 
 namespace Maartanic
@@ -83,7 +84,54 @@ namespace Maartanic
 						}
 						else
 						{
-							e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
+							e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute."); //TODO make function out of this, it's a mess right now. Put function inside Engine.cs
+							int scope = 0;
+							bool success = false;
+							int forWhileIndex = 0;
+							string[] cLineInfo = null;
+							StreamReader endifsr = new StreamReader(e.scriptFile);
+							while ((e.line = endifsr.ReadLine()) != null)
+							{
+								forWhileIndex++;
+								if (e.LineCheck(ref cLineInfo, ref forWhileIndex))
+								{
+									continue;
+								}
+								if (forWhileIndex > e.lineIndex)
+								{
+									if (cLineInfo[0].ToUpper() == "ENDF" && scope == 0)
+									{
+										success = true;
+										break;
+									}
+									if (cLineInfo[0].ToUpper() == "FOR")
+									{
+										scope++;
+									}
+									if (cLineInfo[0].ToUpper() == "ENDF")
+									{
+										scope--;
+									}
+								}
+
+							}
+							if (success)
+							{
+								e.SendMessage(Engine.Level.INF, "Continuing at line " + forWhileIndex);
+								for (int i = e.lineIndex; i < forWhileIndex; i++)
+								{
+									if ((e.line = e.sr.ReadLine()) == null)
+									{
+										break; // safety protection?
+									}
+								}
+								e.lineIndex = forWhileIndex;
+							}
+							else
+							{
+								e.SendMessage(Engine.Level.ERR, "Could not jump to end of FOR.");
+							}
+
 						}
 					}
 					break;
@@ -107,9 +155,55 @@ namespace Maartanic
 							else
 							{
 								e.SendMessage(Engine.Level.ERR, "Program was not executable.");
-								break;
+								int scope = 0;
+								bool success = false;
+								int whileLineIndex = 0;
+								string[] cLineInfo = null;
+								StreamReader endifsr = new StreamReader(e.scriptFile);
+								while ((e.line = endifsr.ReadLine()) != null)
+								{
+									whileLineIndex++;
+									if (e.LineCheck(ref cLineInfo, ref whileLineIndex))
+									{
+										continue;
+									}
+									if (whileLineIndex > e.lineIndex)
+									{
+										if (cLineInfo[0].ToUpper() == "ENDW" && scope == 0)
+										{
+											success = true;
+											break;
+										}
+										if (cLineInfo[0].ToUpper() == "WHILE")
+										{
+											scope++;
+										}
+										if (cLineInfo[0].ToUpper() == "ENDW")
+										{
+											scope--;
+										}
+									}
+
+								}
+								if (success)
+								{
+									e.SendMessage(Engine.Level.INF, "Continuing at line " + whileLineIndex);
+									for (int i = e.lineIndex; i < whileLineIndex; i++)
+									{
+										if ((e.line = e.sr.ReadLine()) == null)
+										{
+											break; // safety protection?
+										}
+									}
+									e.lineIndex = whileLineIndex;
+								}
+								else
+								{
+									e.SendMessage(Engine.Level.ERR, "Could not jump to end of WHILE.");
+								}
 							}
 						}
+						break;
 
 					}
 					else
@@ -122,19 +216,20 @@ namespace Maartanic
 
 						string[] compareIn = new string[3];
 						compareIn[0] = args[0];
-
-						int i = 0;
-						while (InternalCompare(ref compareIn, ref lineInfo, ref e))
 						{
-							if (i != 0)
+							int i = 0;
+							while (InternalCompare(ref compareIn, ref lineInfo, ref e))
 							{
-								whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+								if (i != 0)
+								{
+									whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+								}
+								else
+								{
+									i++;
+								}
+								whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
 							}
-							else
-							{
-								i++;
-							}
-							whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
 						}
 						e.localMemory = whileEngine.localMemory; // Copy back
 						if (whileEngine.returnedValue.Contains('.'))
@@ -145,7 +240,53 @@ namespace Maartanic
 						}
 						else
 						{
-							e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute."); //FIXME this should probably jump to the ENDW?
+							e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute.");
+							int scope = 0;
+							bool success = false;
+							int whileLineIndex = 0;
+							string[] cLineInfo = null;
+							StreamReader endifsr = new StreamReader(e.scriptFile);
+							while ((e.line = endifsr.ReadLine()) != null)
+							{
+								whileLineIndex++;
+								if (e.LineCheck(ref cLineInfo, ref whileLineIndex))
+								{
+									continue;
+								}
+								if (whileLineIndex > e.lineIndex)
+								{
+									if (cLineInfo[0].ToUpper() == "ENDW" && scope == 0)
+									{
+										success = true;
+										break;
+									}
+									if (cLineInfo[0].ToUpper() == "WHILE")
+									{
+										scope++;
+									}
+									if (cLineInfo[0].ToUpper() == "ENDW")
+									{
+										scope--;
+									}
+								}
+
+							}
+							if (success)
+							{
+								e.SendMessage(Engine.Level.INF, "Continuing at line " + whileLineIndex);
+								for (int i = e.lineIndex; i < whileLineIndex; i++)
+								{
+									if ((e.line = e.sr.ReadLine()) == null)
+									{
+										break; // safety protection?
+									}
+								}
+								e.lineIndex = whileLineIndex;
+							}
+							else
+							{
+								e.SendMessage(Engine.Level.ERR, "Could not jump to end of WHILE.");
+							}
 						}
 					}
 					break;
@@ -214,7 +355,7 @@ namespace Maartanic
 					}
 					break;
 
-				case "SLEEP": //TODO add to extended instructions documentation (Sleep in milliseconds)
+				case "SLEEP":
 					{
 						if (!int.TryParse(args[0], out int mseconds)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); break; }
 						Thread.Sleep(mseconds);
