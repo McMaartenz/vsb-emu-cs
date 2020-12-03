@@ -469,6 +469,8 @@ namespace Maartanic
 						}
 						break;
 
+						//FIXNOW COLRGBTOHEX exists yet COLHEXTORGB does not? Come on..
+
 					case "RAND":
 						{
 							string varName = args[0];

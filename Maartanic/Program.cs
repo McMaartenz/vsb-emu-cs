@@ -32,29 +32,14 @@ namespace Maartanic
 		// Exit(): Exit process
 		public static void Exit(string value)
 		{
-			string R;
-			switch(value)
+			string R = value switch
 			{
-				case "-1":
-					R = "Process closed incorrectly. (code -1)";
-					break;
-
-				case "0":
-					R = "Process sucessfully closed. (code 0)";
-					break;
-
-				case "1":
-					R = "Process closed due to an internal thread. (code 1)";
-					break;
-
-				case "2":
-					R = "Process was manually halted. (code 2)";
-					break;
-
-				default:
-					R = $"Process closed with value {value}.";
-					break;
-			}
+				"-1" => "Process closed incorrectly. (code -1)",
+				"0" => "Process sucessfully closed. (code 0)",
+				"1" => "Process closed due to an internal thread. (code 1)",
+				"2" => "Process was manually halted. (code 2)",
+				_ => $"Process closed with value {value}.",
+			};
 			Console.Write('\n' + R);
 			Console.ReadLine();
 			Environment.Exit(0);

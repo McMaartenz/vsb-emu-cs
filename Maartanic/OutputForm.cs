@@ -40,6 +40,7 @@ namespace Maartanic
 			this.ForeColor = System.Drawing.Color.Black;
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
 			this.MaximizeBox = false;
+			this.MinimizeBox = false;
 			this.Name = "OutputForm";
 			this.Text = "Maartanic Engine Display";
 			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.OutputForm_FormClosing);

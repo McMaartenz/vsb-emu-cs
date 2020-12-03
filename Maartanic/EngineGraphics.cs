@@ -1,5 +1,4 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 
 namespace Maartanic
 {
@@ -9,6 +8,11 @@ namespace Maartanic
 		public EngineGraphics()
 		{
 			internalPen = new Pen(Color.White, 1.0f);
+		}
+
+		internal void SetColor(Color color)
+		{
+			internalPen.Color = color;
 		}
 
 		internal void Line(float x, float y, float x1, float y1)
