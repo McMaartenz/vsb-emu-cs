@@ -6,6 +6,9 @@ namespace Maartanic
 	public class Program
 	{
 
+		//FIXNOW We keep using tryparse, but we should just make a function out of it.
+		//TODO make wiki entries for pen instructions
+
 		public const float VERSION = 0.9f;
 
 		internal static EngineStack stack = new EngineStack();
