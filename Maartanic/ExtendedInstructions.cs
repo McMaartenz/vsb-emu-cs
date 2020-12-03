@@ -292,6 +292,17 @@ namespace Maartanic
 					}
 					break;
 
+				case "PRECT": // PRECT [x] [y] [w] [h] r-r-r-r
+					{
+						if (!float.TryParse(args[0], out float x)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
+						if (!float.TryParse(args[1], out float y)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
+						if (!float.TryParse(args[2], out float w)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
+						if (!float.TryParse(args[3], out float h)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
+
+						Program.graphics.Rectangle(x, y, w, h);
+					}
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (EXT.)");
 					break;

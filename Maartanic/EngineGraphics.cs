@@ -19,5 +19,10 @@ namespace Maartanic
 		{
 			OutputForm.windowGraphics.DrawLine(internalPen, x, y, x1, y1);
 		}
+
+		internal void Rectangle(float x, float y, float w, float h)
+		{
+			OutputForm.windowGraphics.DrawRectangle(internalPen, x, y, w, h);
+		}
 	}
 }
