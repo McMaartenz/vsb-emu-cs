@@ -252,7 +252,7 @@ namespace Maartanic
 					case "ENDDEF": // Possible end-of-function
 						if (lineInfo[1] == entryPoint)
 						{
-							return returnedValue;
+							return "0";
 						}
 						else
 						{
