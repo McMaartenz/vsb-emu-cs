@@ -58,7 +58,7 @@ namespace Maartanic
 				{ "user",       () => "*guest" },
 				{ "ver",        () => "1.3" },
 				{ "ask",        () => Console.ReadLine() },
-				{ "graphics",   () => "false" },
+				{ "graphics",   () => (Program.applicationMode == Mode.EXTENDED).ToString().ToLower() },
 				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
 				{ "tminute",    () => DateTime.UtcNow.Minute.ToString() },
 				{ "tsecond",    () => DateTime.UtcNow.Second.ToString() },
@@ -469,7 +469,7 @@ namespace Maartanic
 						}
 						break;
 
-						//FIXNOW COLRGBTOHEX exists yet COLHEXTORGB does not? Come on..
+						//FIXME COLRGBTOHEX exists yet COLHEXTORGB does not? Come on..
 
 					case "RAND":
 						{

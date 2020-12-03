@@ -6,7 +6,9 @@ namespace Maartanic
 	public class Program
 	{
 
-		//FIXNOW We keep using tryparse, but we should just make a function out of it.
+		//FIXME We keep using tryparse, but we should just make a function out of it.
+		//FIXNOW VSB Compatibility layer for graphics using extended mode.
+		//FIXME Window should hide unless in extended mode.
 
 		public const float VERSION = 0.9f;
 
