@@ -10,6 +10,11 @@ namespace Maartanic
 		public static EngineStack stack = new EngineStack();
 		public static EngineQueue queue = new EngineQueue();
 		public static EngineMemory memory = new EngineMemory();
+		internal static string[] internalShared = new string[2]
+		{
+			"TRUE", // isRunning? Threads should close when this is "FALSE"
+			"NULL" // Reason isRunning is set to false
+		};
 
 		public static ExtendedInstructions extendedMode;
 		internal static Engine.Mode applicationMode = Engine.Mode.VSB;
@@ -24,7 +29,30 @@ namespace Maartanic
 		// Exit(): Exit process
 		public static void Exit(string value)
 		{
-			Console.Write($"\nProcess exited with value \"{value}\".");
+			string R;
+			switch(value)
+			{
+				case "-1":
+					R = "Process closed incorrectly. (code -1)";
+					break;
+
+				case "0":
+					R = "Process sucessfully closed. (code 0)";
+					break;
+
+				case "1":
+					R = "Process closed due to an internal thread. (code 1)";
+					break;
+
+				case "2":
+					R = "Process was manually halted. (code 2)";
+					break;
+
+				default:
+					R = $"Process closed with value {value}.";
+					break;
+			}
+			Console.Write('\n' + R);
 			Console.ReadLine();
 			Environment.Exit(0);
 		}
@@ -79,7 +107,7 @@ namespace Maartanic
 				Exit(e.StartExecution(logLevel));
 			}
 
-			Exit("NULL");
+			Exit("0");
 		}
 	}
 }

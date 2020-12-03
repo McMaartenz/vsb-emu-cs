@@ -204,6 +204,15 @@ namespace Maartanic
 			}
 			while ((line = sr.ReadLine()) != null)
 			{
+				lock(Program.internalShared.SyncRoot)
+				{
+					if (Program.internalShared[0] == "FALSE")
+					{
+						SendMessage(Level.ERR, $"Internal process has to close due to {Program.internalShared[1]}.");
+						Program.Exit("1");
+					}
+				}
+
 				lineIndex++;
 
 				if (LineCheck(ref lineInfo, ref lineIndex))
@@ -363,52 +372,6 @@ namespace Maartanic
 					case "ELSE":
 						StatementJumpOut("ENDIF", "IF");
 						break;
-							/*
-							int scope = 0;
-							bool success = false;
-							int endifLineIndex = 0;
-							string[] cLineInfo = null;
-							StreamReader endifsr = new StreamReader(scriptFile);
-							while ((line = endifsr.ReadLine()) != null)
-							{
-								endifLineIndex++;
-								if (LineCheck(ref cLineInfo, ref endifLineIndex))
-								{
-									continue;
-								}
-								if (endifLineIndex > lineIndex)
-								{
-									if (cLineInfo[0].ToUpper() == "ENDIF" && scope == 0)
-									{
-										success = true;
-										break;
-									}
-									if (cLineInfo[0].ToUpper() == "IF")
-									{
-										scope++;
-									}
-									if (cLineInfo[0].ToUpper() == "ENDIF")
-									{
-										scope--;
-									}
-								}
-
-							}
-							if (success)
-							{
-								for (int i = lineIndex; i < endifLineIndex; i++)
-								{
-									if ((line = sr.ReadLine()) == null)
-									{
-										break; // safety protection?
-									}
-								}
-								lineIndex = endifLineIndex;
-							}
-							else
-							{
-								SendMessage(Level.ERR, "Could not find a spot to jump to.");
-							}*/
 
 					case "SET":
 						if (localMemory.ContainsKey(args[0]))
@@ -594,8 +557,8 @@ namespace Maartanic
 
 					case "HLT":
 						SendMessage(Level.INF, "HLT");
-						Program.Exit(returnedValue);
-						break; // Unreachable code but IDE complains for some reason
+						Program.Exit("2");
+						break; //NOTICE Unreachable code but IDE complains for some reason
 
 					case "SUBSTR":
 						{
@@ -683,7 +646,7 @@ namespace Maartanic
 						{
 							return args[0];
 						}
-						return "NULL";
+						return "0"; // Manual close
 
 					case "RPLC":
 						{

@@ -220,7 +220,14 @@ namespace Maartanic
 				case "SLEEP": // SLEEP [time] r
 					{
 						if (!int.TryParse(args[0], out int mseconds)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); break; }
-						Thread.Sleep(mseconds);
+						try
+						{
+							Thread.Sleep(mseconds);
+						}
+						catch(ThreadInterruptedException ex)
+						{
+							e.SendMessage(Engine.Level.WRN, "SLEEP interrupted by an internal thread.");
+						}
 					}
 					break;
 

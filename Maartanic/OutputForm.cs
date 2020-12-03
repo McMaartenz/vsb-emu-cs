@@ -45,7 +45,12 @@ namespace Maartanic
 
 		private void OutputForm_FormClosing(object sender, FormClosedEventArgs e)
 		{
-			// Gets called when closing
+			lock(Program.internalShared.SyncRoot)
+			{
+				Program.internalShared[0] = "FALSE";
+				Program.internalShared[1] = "the internal window thread being closed";
+			}
+			Program.consoleProcess.Interrupt(); //Wake up
 		}
 	}
 }
