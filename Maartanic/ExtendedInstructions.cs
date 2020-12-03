@@ -311,6 +311,23 @@ namespace Maartanic
 					}
 					break;
 
+				case "SCREENFILL": // VSB compat
+				case "PFILL": // PFILL [color] r
+					{
+						string color = args[0]; //FIXNOW make function for hex, including the try catch
+						color = color[0] == '#' ? color : '#' + color;
+						try
+						{
+							Program.graphics.Fill(System.Drawing.ColorTranslator.FromHtml(color));// System.Drawing.Color.Red); //System.Drawing.Color.FromArgb(argb)
+						}
+						catch (ArgumentException)
+						{
+							e.SendMessage(Engine.Level.ERR, "Malformed hexadecimal number found.");
+						}
+
+					}
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (EXT.)");
 					break;

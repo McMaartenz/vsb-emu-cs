@@ -24,5 +24,10 @@ namespace Maartanic
 		{
 			OutputForm.windowGraphics.DrawRectangle(internalPen, x, y, w, h);
 		}
+
+		internal void Fill(Color color)
+		{
+			OutputForm.windowGraphics.Clear(color);
+		}
 	}
 }
