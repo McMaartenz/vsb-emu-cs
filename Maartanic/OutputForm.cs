@@ -18,7 +18,7 @@ namespace Maartanic
 			app = new OutputForm();
 			app.InitializeComponent();
 
-			app.SuspendLayout();
+			app.SuspendLayout(); // Suspend, change title, resume
 			app.Text = app.Text.Insert(17, Program.VERSION + " ");
 			app.ResumeLayout(false);
 
