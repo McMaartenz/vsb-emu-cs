@@ -224,7 +224,7 @@ namespace Maartanic
 						{
 							Thread.Sleep(mseconds);
 						}
-						catch(ThreadInterruptedException ex)
+						catch (ThreadInterruptedException)
 						{
 							e.SendMessage(Engine.Level.WRN, "SLEEP interrupted by an internal thread.");
 						}
@@ -262,6 +262,17 @@ namespace Maartanic
 						}
 						output = output.ToLower();
 						e.SetVariable(args[0], ref output);
+					}
+					break;
+
+				case "PLINE": // PLINE [x] [y] [x 1] [y 1] r-r-r-r
+					{
+						if (!float.TryParse(args[0], out float x)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+						if (!float.TryParse(args[1], out float y)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+						if (!float.TryParse(args[2], out float x1)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+						if (!float.TryParse(args[3], out float y1)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+
+						Program.graphics.Line(x, y, x1, y1);
 					}
 					break;
 

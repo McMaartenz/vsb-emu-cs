@@ -7,6 +7,8 @@ namespace Maartanic
 	public class OutputForm : Form
 	{
 		public static OutputForm app;
+		internal static Graphics windowGraphics;
+
 		public OutputForm()
 		{
 		}
@@ -21,6 +23,8 @@ namespace Maartanic
 			app.SuspendLayout(); // Suspend, change title, resume
 			app.Text = app.Text.Insert(17, Program.VERSION + " ");
 			app.ResumeLayout(false);
+
+			windowGraphics = app.CreateGraphics();
 
 			Application.Run(app);
 		}

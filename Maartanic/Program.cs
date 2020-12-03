@@ -7,13 +7,16 @@ namespace Maartanic
 	{
 
 		public const float VERSION = 0.9f;
-		public static EngineStack stack = new EngineStack();
-		public static EngineQueue queue = new EngineQueue();
-		public static EngineMemory memory = new EngineMemory();
+
+		internal static EngineStack stack = new EngineStack();
+		internal static EngineQueue queue = new EngineQueue();
+		internal static EngineMemory memory = new EngineMemory();
+		internal static EngineGraphics graphics = new EngineGraphics();
+
 		internal static string[] internalShared = new string[2]
 		{
-			"TRUE", // isRunning? Threads should close when this is "FALSE"
-			"NULL" // Reason isRunning is set to false
+			"TRUE",		// isRunning? Threads should close when this is "FALSE"
+			"NULL"		// Reason isRunning is set to false
 		};
 
 		public static ExtendedInstructions extendedMode;
@@ -24,7 +27,7 @@ namespace Maartanic
 
 		internal static Thread consoleProcess;
 
-		public static byte logLevel;
+		internal static byte logLevel;
 
 		// Exit(): Exit process
 		public static void Exit(string value)
