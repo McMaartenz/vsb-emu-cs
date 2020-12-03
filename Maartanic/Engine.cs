@@ -23,6 +23,7 @@ namespace Maartanic
 		private bool compareOutput = false;
 		private bool keyOutput = false;
 		internal string returnedValue = "NULL";
+		internal bool redraw = true;
 
 		//internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
 		private DateTime startTime = DateTime.UtcNow;
@@ -69,7 +70,8 @@ namespace Maartanic
 				{ "key",        () => keyOutput.ToString() },
 				{ "ret",        () => returnedValue },
 				{ "mx",         () => "0" }, //NOTICE mouse x and y are not supported
-				{ "my",         () => "0" }
+				{ "my",         () => "0" },
+				{ "redraw",     () => redraw.ToString() }
 			};
 
 			foreach (KeyValuePair<string, Func<string>> a in toBeAdded)
@@ -223,6 +225,8 @@ namespace Maartanic
 				string[] args = ExtractArgs(ref lineInfo);
 				switch (lineInfo[0].ToUpper())
 				{
+					case "": // Empty
+						break;
 
 					case "PRINT":
 						if (lineInfo.Length == 1)
@@ -323,6 +327,7 @@ namespace Maartanic
 								int ifLineIndex = 0;
 								string[] cLineInfo = null;
 								StreamReader ifsr = new StreamReader(scriptFile);
+								JumpToLine(ref ifsr, ref line, ref ifLineIndex, ref lineIndex);
 								while ((line = ifsr.ReadLine()) != null)
 								{
 									ifLineIndex++;
@@ -330,21 +335,18 @@ namespace Maartanic
 									{
 										continue;
 									}
-									if (ifLineIndex > lineIndex)
+									if ((cLineInfo[0].ToUpper() == "ELSE" || cLineInfo[0].ToUpper() == "ENDIF") && scope == 0)
 									{
-										if ((cLineInfo[0].ToUpper() == "ELSE" || cLineInfo[0].ToUpper() == "ENDIF") && scope == 0)
-										{
-											success = true;
-											break;
-										}
-										if (cLineInfo[0].ToUpper() == "IF")
-										{
-											scope++;
-										}
-										if (cLineInfo[0].ToUpper() == "ENDIF")
-										{
-											scope--;
-										}
+										success = true;
+										break;
+									}
+									if (cLineInfo[0].ToUpper() == "IF")
+									{
+										scope++;
+									}
+									if (cLineInfo[0].ToUpper() == "ENDIF")
+									{
+										scope--;
 									}
 								}
 								if (success)
@@ -644,7 +646,7 @@ namespace Maartanic
 						break;
 
 					case "RET":
-						if (args.Length > 0)
+						if (args != null && args.Length > 0)
 						{
 							return args[0];
 						}
@@ -807,6 +809,10 @@ namespace Maartanic
 							Program.memory.Get(address, out string output);
 							SetVariable(args[0], ref output);
 						}
+						break;
+
+					case "REDRAWOK":
+						redraw = false;
 						break;
 
 					default:
