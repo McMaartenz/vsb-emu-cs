@@ -42,17 +42,46 @@ namespace Maartanic
 					{
 						Engine forLoopEngine;
 						if (!int.TryParse(args[1], out int amount)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+						bool selfRegulatedBreak = false;
+						bool skipNext = false;
 						for (int i = 0; i < amount; i++)
 						{
 							forLoopEngine = new Engine(e.scriptFile, args[0]);
 							if (forLoopEngine.Executable())
 							{
-								e.returnedValue = forLoopEngine.returnedValue = forLoopEngine.StartExecution(Program.logLevel);
+								if (!skipNext)
+								{
+									e.returnedValue = forLoopEngine.returnedValue = forLoopEngine.StartExecution(Program.logLevel);
+								}
+								else
+								{
+									skipNext = false;
+								}
+								if (forLoopEngine.returnedValue.StartsWith("3&"))
+								{
+									e.SendMessage(Engine.Level.INF, "Break statement");
+									selfRegulatedBreak = true;
+									break;
+								}
+								else if (forLoopEngine.returnedValue.StartsWith("4&"))
+								{
+									e.SendMessage(Engine.Level.INF, "Continue statement");
+									skipNext = true;
+									continue;
+								}
 							}
 							else
 							{
-								e.SendMessage(Engine.Level.ERR, "Program was not executable.");
-								break;
+								if (!selfRegulatedBreak)
+								{
+									e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
+								}
+								else
+								{
+									e.SendMessage(Engine.Level.INF, "FOR self regulated loop break");
+									e.returnedValue = forLoopEngine.returnedValue = forLoopEngine.returnedValue[(forLoopEngine.returnedValue.IndexOf('&') + 1)..];
+								}
+								e.StatementJumpOut("ENDF", "FOR");
 							}
 						}
 					}
@@ -154,6 +183,7 @@ namespace Maartanic
 								else if (whileLoopEngine.returnedValue.StartsWith("4&"))
 								{
 									e.SendMessage(Engine.Level.INF, "Continue statement");
+									skipNext = true;
 									continue;
 								}
 							}
