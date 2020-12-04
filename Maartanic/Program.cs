@@ -42,6 +42,8 @@ namespace Maartanic
 				"0" => "Process sucessfully closed. (code 0)",
 				"1" => "Process closed due to an internal thread. (code 1)",
 				"2" => "Process was manually halted. (code 2)",
+				"3" => "Process was closed due to a break statement (code 3)",
+				"4" => "Process was closed due to a continue statement (code 4)",
 				_ => $"Process closed with value {value}.",
 			};
 			Console.Write('\n' + R);

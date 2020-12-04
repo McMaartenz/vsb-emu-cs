@@ -265,7 +265,7 @@ namespace Maartanic
 						break;
 
 					case "CLEAR":
-						if (args.Length != 0)
+						if (args != null)
 						{
 							if (!int.TryParse(args[0], out int imax))
 							{
@@ -555,6 +555,10 @@ namespace Maartanic
 							{
 								cki = Console.ReadKey();
 								keyOutput = cki.KeyChar == key;
+							}
+							else
+							{
+								keyOutput = false;
 							}
 						}
 						break;
@@ -906,6 +910,7 @@ namespace Maartanic
 		// SetMemoryAddr(): Sets a given memory address to the given value. 
 		private void SetMemoryAddr(int address, string value)
 		{
+			address = Program.applicationMode == Mode.VSB ? address - 1 : address;
 			if (!Program.memory.Exists(address))
 			{
 				SendMessage(Level.ERR, $"Memory address {address} does not exist.");

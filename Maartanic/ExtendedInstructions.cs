@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Windows.Media;
 
 namespace Maartanic
 {
@@ -67,11 +66,35 @@ namespace Maartanic
 
 						if (!int.TryParse(args[0], out int amount)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
 
+						bool selfRegulatedBreak = false;
+
 						for (int i = 0; i < amount; i++)
 						{
 							if (i != 0)
 							{
-								forEngine.returnedValue = forEngine.returnedValue[(forEngine.returnedValue.IndexOf('.') + 1)..];
+								if (forEngine.returnedValue.Contains('.'))
+								{
+									forEngine.returnedValue = forEngine.returnedValue[(forEngine.returnedValue.IndexOf('.') + 1)..];
+								}
+								else
+								{
+									if (forEngine.returnedValue.StartsWith('3') && forEngine.returnedValue[1] == '&')
+									{
+										e.SendMessage(Engine.Level.INF, "Break statement");
+										selfRegulatedBreak = true;
+										break;
+									}
+
+									if (forEngine.returnedValue == "4" && forEngine.returnedValue[1] == '&')
+									{
+										e.SendMessage(Engine.Level.INF, "Continue statement");
+										forEngine.returnedValue = forEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+										continue;
+									}
+
+									e.SendMessage(Engine.Level.INF, "Return statement");
+									return forEngine.returnedValue;
+								}
 							}
 							forEngine.returnedValue = forEngine.StartExecution(Program.logLevel, true, e.lineIndex);
 						}
@@ -84,7 +107,15 @@ namespace Maartanic
 						}
 						else
 						{
-							e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
+							if (!selfRegulatedBreak)
+							{
+								e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
+							}
+							else
+							{
+								e.SendMessage(Engine.Level.INF, "FOR self regulated loop break");
+								e.returnedValue = forEngine.returnedValue = forEngine.returnedValue[(forEngine.returnedValue.IndexOf('&') + 1)..];
+							}
 							e.StatementJumpOut("ENDF", "FOR");
 						}
 					}
@@ -124,13 +155,39 @@ namespace Maartanic
 
 						string[] compareIn = new string[3];
 						compareIn[0] = args[0];
+						bool selfRegulatedBreak = false;
 						{
 							int i = 0;
 							while (InternalCompare(ref compareIn, ref lineInfo, ref e))
 							{
 								if (i != 0)
 								{
-									whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+									if (whileEngine.returnedValue.Contains('.'))
+									{
+										whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+									}
+									else
+									{
+										if (whileEngine.returnedValue.StartsWith('3') && whileEngine.returnedValue[1] == '&')
+										{
+											e.SendMessage(Engine.Level.INF, "Break statement");
+											selfRegulatedBreak = true;
+											break;
+										}
+
+										else if (whileEngine.returnedValue.StartsWith('4') && whileEngine.returnedValue[1] == '&')
+										{
+											e.SendMessage(Engine.Level.INF, "Continue statement");
+											whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+											continue;
+										}
+
+										else
+										{
+											e.SendMessage(Engine.Level.INF, "Return statement");
+											return whileEngine.returnedValue;
+										}
+									}
 								}
 								else
 								{
@@ -148,7 +205,15 @@ namespace Maartanic
 						}
 						else
 						{
-							e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute.");
+							if (!selfRegulatedBreak)
+							{
+								e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute.");
+							}
+							else
+							{
+								e.SendMessage(Engine.Level.INF, "WHILE self regulated loop break");
+								e.returnedValue = whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('&') + 1)..];
+							}
 							e.StatementJumpOut("ENDW", "WHILE");
 						}
 					}
@@ -189,18 +254,42 @@ namespace Maartanic
 
 						string[] compareIn = new string[3];
 						compareIn[0] = args[0];
+						bool selfRegulatedBreak = false;
 
 						int i = 0;
 						do
 						{
 							if (i != 0)
 							{
-								whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+								if (whileEngine.returnedValue.Contains('.'))
+								{
+									whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+								}
+								else
+								{
+									if (whileEngine.returnedValue.StartsWith('3') && whileEngine.returnedValue[1] == '&')
+									{
+										e.SendMessage(Engine.Level.INF, "Break statement");
+										selfRegulatedBreak = true;
+										break;
+									}
+
+									if (whileEngine.returnedValue == "4" && whileEngine.returnedValue[1] == '&')
+									{
+										e.SendMessage(Engine.Level.INF, "Continue statement");
+										whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+										continue;
+									}
+
+									e.SendMessage(Engine.Level.INF, "Return statement");
+									return whileEngine.returnedValue;
+								}
 							}
 							else
 							{
 								i++;
 							}
+
 							whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
 						}
 						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
@@ -213,7 +302,15 @@ namespace Maartanic
 						}
 						else
 						{
-							e.SendMessage(Engine.Level.ERR, "DOWHILE statement failed to execute.");
+							if (!selfRegulatedBreak)
+							{
+								e.SendMessage(Engine.Level.ERR, "DOWHILE statement failed to execute.");
+							}
+							else
+							{
+								e.SendMessage(Engine.Level.INF, "DOWHILE self regulated loop break");
+								e.returnedValue = whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('&') + 1)..];
+							}
 						}
 					}
 					break;
@@ -327,6 +424,12 @@ namespace Maartanic
 
 					}
 					break;
+
+				case "BREAK":
+					return "3&" + e.returnedValue;
+
+				case "CONTINUE":
+					return "4&" + e.returnedValue;
 
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (EXT.)");
