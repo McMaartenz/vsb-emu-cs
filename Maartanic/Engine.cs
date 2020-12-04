@@ -23,6 +23,7 @@ namespace Maartanic
 		private bool compareOutput = false;
 		private bool keyOutput = false;
 		internal string returnedValue = "NULL";
+		internal bool redraw = true;
 
 		//internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
 		private DateTime startTime = DateTime.UtcNow;
@@ -58,7 +59,7 @@ namespace Maartanic
 				{ "user",       () => "*guest" },
 				{ "ver",        () => "1.3" },
 				{ "ask",        () => Console.ReadLine() },
-				{ "graphics",   () => "false" },
+				{ "graphics",   () => (Program.applicationMode == Mode.EXTENDED).ToString().ToLower() },
 				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
 				{ "tminute",    () => DateTime.UtcNow.Minute.ToString() },
 				{ "tsecond",    () => DateTime.UtcNow.Second.ToString() },
@@ -69,7 +70,8 @@ namespace Maartanic
 				{ "key",        () => keyOutput.ToString() },
 				{ "ret",        () => returnedValue },
 				{ "mx",         () => "0" }, //NOTICE mouse x and y are not supported
-				{ "my",         () => "0" }
+				{ "my",         () => "0" },
+				{ "redraw",     () => redraw.ToString() }
 			};
 
 			foreach (KeyValuePair<string, Func<string>> a in toBeAdded)
@@ -204,6 +206,15 @@ namespace Maartanic
 			}
 			while ((line = sr.ReadLine()) != null)
 			{
+				lock(Program.internalShared.SyncRoot)
+				{
+					if (Program.internalShared[0] == "FALSE")
+					{
+						SendMessage(Level.ERR, $"Internal process has to close due to {Program.internalShared[1]}.");
+						Program.Exit("1");
+					}
+				}
+
 				lineIndex++;
 
 				if (LineCheck(ref lineInfo, ref lineIndex))
@@ -214,6 +225,8 @@ namespace Maartanic
 				string[] args = ExtractArgs(ref lineInfo);
 				switch (lineInfo[0].ToUpper())
 				{
+					case "": // Empty
+						break;
 
 					case "PRINT":
 						if (lineInfo.Length == 1)
@@ -243,7 +256,7 @@ namespace Maartanic
 					case "ENDDEF": // Possible end-of-function
 						if (lineInfo[1] == entryPoint)
 						{
-							return returnedValue;
+							return "0";
 						}
 						else
 						{
@@ -252,7 +265,7 @@ namespace Maartanic
 						break;
 
 					case "CLEAR":
-						if (args.Length != 0)
+						if (args != null)
 						{
 							if (!int.TryParse(args[0], out int imax))
 							{
@@ -314,6 +327,7 @@ namespace Maartanic
 								int ifLineIndex = 0;
 								string[] cLineInfo = null;
 								StreamReader ifsr = new StreamReader(scriptFile);
+								JumpToLine(ref ifsr, ref line, ref ifLineIndex, ref lineIndex);
 								while ((line = ifsr.ReadLine()) != null)
 								{
 									ifLineIndex++;
@@ -321,21 +335,18 @@ namespace Maartanic
 									{
 										continue;
 									}
-									if (ifLineIndex > lineIndex)
+									if ((cLineInfo[0].ToUpper() == "ELSE" || cLineInfo[0].ToUpper() == "ENDIF") && scope == 0)
 									{
-										if ((cLineInfo[0].ToUpper() == "ELSE" || cLineInfo[0].ToUpper() == "ENDIF") && scope == 0)
-										{
-											success = true;
-											break;
-										}
-										if (cLineInfo[0].ToUpper() == "IF")
-										{
-											scope++;
-										}
-										if (cLineInfo[0].ToUpper() == "ENDIF")
-										{
-											scope--;
-										}
+										success = true;
+										break;
+									}
+									if (cLineInfo[0].ToUpper() == "IF")
+									{
+										scope++;
+									}
+									if (cLineInfo[0].ToUpper() == "ENDIF")
+									{
+										scope--;
 									}
 								}
 								if (success)
@@ -363,52 +374,6 @@ namespace Maartanic
 					case "ELSE":
 						StatementJumpOut("ENDIF", "IF");
 						break;
-							/*
-							int scope = 0;
-							bool success = false;
-							int endifLineIndex = 0;
-							string[] cLineInfo = null;
-							StreamReader endifsr = new StreamReader(scriptFile);
-							while ((line = endifsr.ReadLine()) != null)
-							{
-								endifLineIndex++;
-								if (LineCheck(ref cLineInfo, ref endifLineIndex))
-								{
-									continue;
-								}
-								if (endifLineIndex > lineIndex)
-								{
-									if (cLineInfo[0].ToUpper() == "ENDIF" && scope == 0)
-									{
-										success = true;
-										break;
-									}
-									if (cLineInfo[0].ToUpper() == "IF")
-									{
-										scope++;
-									}
-									if (cLineInfo[0].ToUpper() == "ENDIF")
-									{
-										scope--;
-									}
-								}
-
-							}
-							if (success)
-							{
-								for (int i = lineIndex; i < endifLineIndex; i++)
-								{
-									if ((line = sr.ReadLine()) == null)
-									{
-										break; // safety protection?
-									}
-								}
-								lineIndex = endifLineIndex;
-							}
-							else
-							{
-								SendMessage(Level.ERR, "Could not find a spot to jump to.");
-							}*/
 
 					case "SET":
 						if (localMemory.ContainsKey(args[0]))
@@ -506,6 +471,8 @@ namespace Maartanic
 						}
 						break;
 
+						//FIXME COLRGBTOHEX exists yet COLHEXTORGB does not? Come on..
+
 					case "RAND":
 						{
 							string varName = args[0];
@@ -589,13 +556,17 @@ namespace Maartanic
 								cki = Console.ReadKey();
 								keyOutput = cki.KeyChar == key;
 							}
+							else
+							{
+								keyOutput = false;
+							}
 						}
 						break;
 
 					case "HLT":
 						SendMessage(Level.INF, "HLT");
-						Program.Exit(returnedValue);
-						break; // Unreachable code but IDE complains for some reason
+						Program.Exit("2");
+						break; //NOTICE Unreachable code but IDE complains for some reason
 
 					case "SUBSTR":
 						{
@@ -679,11 +650,11 @@ namespace Maartanic
 						break;
 
 					case "RET":
-						if (args.Length > 0)
+						if (args != null && args.Length > 0)
 						{
 							return args[0];
 						}
-						return "NULL";
+						return "0"; // Manual close
 
 					case "RPLC":
 						{
@@ -844,6 +815,10 @@ namespace Maartanic
 						}
 						break;
 
+					case "REDRAWOK":
+						redraw = false;
+						break;
+
 					default:
 						if (Program.applicationMode == Mode.EXTENDED) // Enable extended instruction set
 						{
@@ -864,6 +839,7 @@ namespace Maartanic
 			return returnedValue;
 		}
 
+		// StatementJumpOut(): Jumps out of the statement.
 		internal void StatementJumpOut(string endNaming, string startNaming)
 		{
 			int scope = 0;
@@ -914,6 +890,7 @@ namespace Maartanic
 			}
 		}
 
+		// JumpToLine(): Jumps to a line in the streamreader.
 		internal void JumpToLine(ref StreamReader sr, ref string line, ref int lineIndex, ref int jumpLine)
 		{
 			while (((line = sr.ReadLine()) != null) && lineIndex < jumpLine-1)
@@ -933,6 +910,7 @@ namespace Maartanic
 		// SetMemoryAddr(): Sets a given memory address to the given value. 
 		private void SetMemoryAddr(int address, string value)
 		{
+			address = Program.applicationMode == Mode.VSB ? address - 1 : address;
 			if (!Program.memory.Exists(address))
 			{
 				SendMessage(Level.ERR, $"Memory address {address} does not exist.");
@@ -1213,7 +1191,7 @@ namespace Maartanic
 		}
 
 		// SetVariable(): Sets the variable with the name varName to newData. Lets the user know if it doesn't exist.
-		private void SetVariable(string varName, ref string newData)
+		internal void SetVariable(string varName, ref string newData)
 		{
 			if (localMemory.ContainsKey(varName))
 			{
@@ -1322,6 +1300,13 @@ namespace Maartanic
 			bool isInQuotes = false;
 			for (int i = 0; i < combined.Length; i++)
 			{
+				if (combined[i] == '\\')
+				{
+					if (combined[i - 1] == '\\' && combined[i - 2] != '\\')
+					{
+						continue;
+					}
+				}
 				if (combined[i] == '"')
 				{
 					if (isInQuotes)

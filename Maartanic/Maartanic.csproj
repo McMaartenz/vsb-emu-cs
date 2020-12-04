@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,9 +9,11 @@
     <Copyright>MIT License</Copyright>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <SignAssembly>false</SignAssembly>
+    <StartupObject>Maartanic.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
     <None Include="LICENSE.txt">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
