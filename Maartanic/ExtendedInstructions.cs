@@ -129,16 +129,45 @@ namespace Maartanic
 
 						string[] compareIn = new string[3];
 						compareIn[0] = args[1];
+						bool selfRegulatedBreak = false;
+						bool skipNext = false;
 
 						while (InternalCompare(ref compareIn, ref lineInfo, ref e))
 						{
 							whileLoopEngine = new Engine(e.scriptFile, args[0]);
 							if (whileLoopEngine.Executable())
 							{
-								e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution(Program.logLevel);
+								if (!skipNext)
+								{
+									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution(Program.logLevel);
+								}
+								else
+								{
+									skipNext = false;
+								}
+								if (whileLoopEngine.returnedValue.StartsWith("3&"))
+								{
+									e.SendMessage(Engine.Level.INF, "Break statement");
+									selfRegulatedBreak = true;
+									break;
+								}
+								else if (whileLoopEngine.returnedValue.StartsWith("4&"))
+								{
+									e.SendMessage(Engine.Level.INF, "Continue statement");
+									continue;
+								}
 							}
 							else
 							{
+								if (!selfRegulatedBreak)
+								{
+									e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute.");
+								}
+								else
+								{
+									e.SendMessage(Engine.Level.INF, "WHILE self regulated loop break");
+									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.returnedValue[(whileLoopEngine.returnedValue.IndexOf('&') + 1)..];
+								}
 								e.StatementJumpOut("ENDW", "WHILE");
 							}
 						}
@@ -168,14 +197,14 @@ namespace Maartanic
 									}
 									else
 									{
-										if (whileEngine.returnedValue.StartsWith('3') && whileEngine.returnedValue[1] == '&')
+										if (whileEngine.returnedValue.StartsWith("3&"))
 										{
 											e.SendMessage(Engine.Level.INF, "Break statement");
 											selfRegulatedBreak = true;
 											break;
 										}
 
-										else if (whileEngine.returnedValue.StartsWith('4') && whileEngine.returnedValue[1] == '&')
+										else if (whileEngine.returnedValue.StartsWith("4&"))
 										{
 											e.SendMessage(Engine.Level.INF, "Continue statement");
 											whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
