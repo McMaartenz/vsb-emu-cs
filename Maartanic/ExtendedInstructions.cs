@@ -256,18 +256,46 @@ namespace Maartanic
 
 						string[] compareIn = new string[3];
 						compareIn[0] = args[1];
+						bool selfRegulatedBreak = false;
+						bool skipNext = false;
 
 						do
 						{
 							whileLoopEngine = new Engine(e.scriptFile, args[0]);
 							if (whileLoopEngine.Executable())
 							{
-								e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution(Program.logLevel);
+								if (!skipNext)
+								{
+									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution(Program.logLevel);
+								}
+								else
+								{
+									skipNext = false;
+								}
+								if (whileLoopEngine.returnedValue.StartsWith("3&"))
+								{
+									e.SendMessage(Engine.Level.INF, "Break statement");
+									selfRegulatedBreak = true;
+									break;
+								}
+								else if (whileLoopEngine.returnedValue.StartsWith("4&"))
+								{
+									e.SendMessage(Engine.Level.INF, "Continue statement");
+									continue;
+								}
 							}
 							else
 							{
-								e.SendMessage(Engine.Level.ERR, "Program was not executable.");
-								break;
+								if (!selfRegulatedBreak)
+								{
+									e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute.");
+								}
+								else
+								{
+									e.SendMessage(Engine.Level.INF, "WHILE self regulated loop break");
+									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.returnedValue[(whileLoopEngine.returnedValue.IndexOf('&') + 1)..];
+								}
+								e.StatementJumpOut("ENDDW", "DOWHILE");
 							}
 						}
 						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
