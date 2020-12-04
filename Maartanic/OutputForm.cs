@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace Maartanic
 {
@@ -11,6 +12,16 @@ namespace Maartanic
 
 		public OutputForm()
 		{
+			try
+			{
+				Thread.Sleep(Timeout.Infinite);
+			}
+			catch(ThreadInterruptedException)
+			{
+				SuspendLayout();
+				ResumeLayout(false);
+			}
+			windowGraphics = CreateGraphics();
 		}
 
 		[STAThread]
@@ -24,8 +35,7 @@ namespace Maartanic
 			app.Text = app.Text.Insert(17, Program.VERSION + " ");
 			app.ResumeLayout(false);
 
-			windowGraphics = app.CreateGraphics();
-
+			
 			Application.Run(app);
 		}
 
@@ -43,6 +53,7 @@ namespace Maartanic
 			this.MinimizeBox = false;
 			this.Name = "OutputForm";
 			this.Text = "Maartanic Engine Display";
+			this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
 			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.OutputForm_FormClosing);
 			this.ResumeLayout(false);
 
@@ -57,5 +68,6 @@ namespace Maartanic
 			}
 			Program.consoleProcess.Interrupt(); //Wake up
 		}
+
 	}
 }

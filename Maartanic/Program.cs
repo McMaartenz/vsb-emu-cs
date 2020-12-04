@@ -8,7 +8,7 @@ namespace Maartanic
 
 		//FIXME We keep using tryparse, but we should just make a function out of it.
 		//FIXNOW VSB Compatibility layer for graphics using extended mode.
-		//FIXME Window should hide unless in extended mode.
+		//FIXME Window should hide unless in extended mode. (Almost done, fix restoring using P/invoke)
 
 		public const float VERSION = 0.9f;
 
@@ -30,6 +30,7 @@ namespace Maartanic
 		public static int WIN_HEIGHT = 30;
 
 		internal static Thread consoleProcess;
+		internal static Thread windowProcess;
 
 		internal static byte logLevel;
 
@@ -58,7 +59,7 @@ namespace Maartanic
 			consoleProcess.Name = "consoleProcess";
 
 			ThreadStart formWindowStarter = new ThreadStart(OutputForm.Main); // Window thread
-			Thread windowProcess = new Thread(formWindowStarter)
+			windowProcess = new Thread(formWindowStarter)
 			{
 				Name = "windowProcess"
 			};
@@ -98,7 +99,14 @@ namespace Maartanic
 
 			if (e.Executable())
 			{
-				Exit(e.StartExecution(logLevel));
+				try
+				{
+					Exit(e.StartExecution(logLevel));
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine("INTERNAL MRT ERROR: " + ex.ToString());
+				}
 			}
 
 			Exit("0");

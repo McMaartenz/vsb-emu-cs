@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 #pragma warning disable IDE0044 // Add readonly modifier
 
@@ -461,6 +462,7 @@ namespace Maartanic
 						break;
 
 					case "COLRGBTOHEX":
+					case "RGBTOHEX": // RGBTOHEX preferred instruction for Maartanic
 						{
 							string varName = args[0];
 							if (!int.TryParse(args[1], out int r)) { SendMessage(Level.ERR, "Malformed number found."); }
@@ -471,7 +473,32 @@ namespace Maartanic
 						}
 						break;
 
-						//FIXME COLRGBTOHEX exists yet COLHEXTORGB does not? Come on..
+					//FIXME COLRGBTOHEX exists yet COLHEXTORGB does not? Come on..
+					case "HEXTORGB":
+						{
+							string[] varNames = new string[3] { args[0], args[1], args[2] };
+							string[] colorsOut = new string[3];
+							string color = args[3];
+							color = color[0] == '#' ? color : '#' + color;
+							System.Drawing.Color colorOutput;
+							try
+							{
+								colorOutput = System.Drawing.ColorTranslator.FromHtml(color);
+							}
+							catch (ArgumentException)
+							{
+								SendMessage(Level.ERR, "Malformed hexadecimal number found.");
+								colorOutput = new System.Drawing.Color();
+							}
+							colorsOut[0] = colorOutput.R.ToString();
+							colorsOut[1] = colorOutput.G.ToString();
+							colorsOut[2] = colorOutput.B.ToString();
+							for (int i = 0; i < 3; i++)
+							{
+								SetVariable(varNames[i], ref colorsOut[i]);
+							}
+						}
+						break;
 
 					case "RAND":
 						{
@@ -1400,6 +1427,7 @@ namespace Maartanic
 							Program.extendedMode = new ExtendedInstructions();
 							Program.applicationMode = Mode.EXTENDED;
 							SendMessage(Level.INF, "Using extended mode");
+							Program.windowProcess.Interrupt();
 						}
 						break;
 
