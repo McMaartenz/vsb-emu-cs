@@ -56,9 +56,29 @@ namespace Maartanic
 			Environment.Exit(0);
 		}
 
+		public static T Parse<T> (string input)
+		{
+			try
+			{
+				return (T)typeof(T).GetMethod("Parse", new[] { typeof(string) }).Invoke(null, new string[] { input });
+			}
+			catch (System.Reflection.TargetInvocationException)
+			{
+				if (EN != null)
+				{
+					EN.SendMessage(Engine.Level.ERR, $"Malformed {typeof(T).Name} '{input}' found.");
+				}
+				else
+				{
+					Console.WriteLine($"INTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
+				}
+				return default(T);
+			}
+		}
+
 		// Main(): Entry point
 		public static void Main(string[] args)
-		{
+		{			
 			consoleProcess = Thread.CurrentThread; // Current thread
 			consoleProcess.Name = "consoleProcess";
 
@@ -88,11 +108,8 @@ namespace Maartanic
 			}
 
 			Console.WriteLine("Please enter the log level (0: info 1: warning 2: error");
-			if (!byte.TryParse(Console.ReadLine(), out logLevel))
-			{
-				logLevel = 0;
-			}
-			if (logLevel < 0 || logLevel > 2)
+			logLevel = Parse<byte>(Console.ReadLine());
+			if (logLevel < 0 || logLevel > 3)
 			{
 				logLevel = 0;
 			}

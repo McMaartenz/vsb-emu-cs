@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-#pragma warning disable IDE0044 //TODO check if readonly really is necessary
+//TODO check if readonly really is necessary
+#pragma warning disable IDE0044
 
 namespace Maartanic
 {
