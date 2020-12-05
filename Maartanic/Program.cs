@@ -87,7 +87,7 @@ namespace Maartanic
 			catch (ArgumentException)
 			{
 				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '{input[1..]}' found.");
-				return Color.Red;
+				return default(Color);
 			}
 		}
 
