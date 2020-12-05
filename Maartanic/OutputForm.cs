@@ -65,11 +65,12 @@ namespace Maartanic
 
 		private void DoSomething() // Excited moment: event works and can minimize a window again!
 		{
-			Invoke(new Action(() => // Invoke code onto the windowProcess thread
+			BeginInvoke(new Action(() =>// Invoke code onto the windowProcess thread
 			{
 				SuspendLayout();
 				WindowState = FormWindowState.Minimized;
 				ResumeLayout(false);
+				StartTimeout();
 			}));
 		}
 
