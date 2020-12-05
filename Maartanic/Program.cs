@@ -11,7 +11,7 @@ namespace Maartanic
 		//BUG VSB Compatibility layer for graphics using extended mode.
 		//IDEA probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
 
-		internal const float VERSION = 0.9f;
+		internal const float VERSION = 1.0f;
 
 		internal static EngineStack stack = new EngineStack();
 		internal static EngineQueue queue = new EngineQueue();
