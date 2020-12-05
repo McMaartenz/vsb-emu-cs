@@ -2,15 +2,14 @@
 using System.Drawing;
 using System.Threading;
 using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace Maartanic
 {
 	public class Program
 	{
-		//FIXNOW null reference, most instructions require arguments but if none are given it returns a null reference exception.
-		//FIXNOW VSB Compatibility layer for graphics using extended mode.
-		//NOTICE probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
+		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception.
+		//BUG VSB Compatibility layer for graphics using extended mode.
+		//IDEA probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
 
 		internal const float VERSION = 0.9f;
 
