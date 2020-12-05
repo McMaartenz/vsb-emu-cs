@@ -23,10 +23,7 @@ namespace Maartanic
 			}
 		}
 
-		public OutputForm()
-		{	
-			//TODO windowGraphics = CreateGraphics();
-		}
+		public OutputForm() {}
 
 		internal void StartTimeout()
 		{

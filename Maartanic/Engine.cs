@@ -1462,6 +1462,7 @@ namespace Maartanic
 									Program.internalShared[2] = "TRUE";
 								}
 								Program.windowProcess.Interrupt();
+								Thread.Sleep(160); //FIXME This should not stay like this due to inconsistent delay it causes, maybe lock check again for "INTOK".
 							}
 						}
 						break;

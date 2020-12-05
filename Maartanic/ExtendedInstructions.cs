@@ -518,6 +518,9 @@ namespace Maartanic
 				case "CONTINUE":
 					return "4&" + e.returnedValue;
 
+				case "NOP": // NO OPERATION
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (EXT.)");
 					break;

@@ -9,7 +9,6 @@ namespace Maartanic
 		//FIXME We keep using tryparse, but we should just make a function out of it.
 		//FIXNOW null reference, most instructions require arguments but if none are given it returns a null reference exception.
 		//FIXNOW VSB Compatibility layer for graphics using extended mode.
-		//FIXME Window should hide unless in extended mode. (Restoring using P/invoke, now minimizing again)
 		//NOTICE probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
 
 		internal const float VERSION = 0.9f;
