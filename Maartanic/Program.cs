@@ -80,19 +80,11 @@ namespace Maartanic
 		public static Color HexHTML (string input)
 		{
 			input = (input[0] == '#' ? input : '#' + input).Trim();
-			if (Regex.IsMatch(input, "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"))
+			try
 			{
-				try
-				{
-					return ColorTranslator.FromHtml(input[1..]);
-				}
-				catch (ArgumentException)
-				{
-					EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '{input[1..]}' found.");
-					return Color.Red;
-				}
+				return ColorTranslator.FromHtml(input);
 			}
-			else
+			catch (ArgumentException)
 			{
 				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '{input[1..]}' found.");
 				return Color.Red;
