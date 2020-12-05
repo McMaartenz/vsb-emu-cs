@@ -52,6 +52,11 @@ namespace Maartanic
 			VSB
 		}
 
+		private static T Parse<T>(string input)
+		{
+			return Program.Parse<T>(input);
+		}
+
 		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
 		private void FillPredefinedList()
 		{
@@ -273,15 +278,13 @@ namespace Maartanic
 					case "CLEAR":
 						if (args != null)
 						{
-							if (!int.TryParse(args[0], out int imax))
+							int imax = Program.Parse<int>(args[0]);
+							Console.SetCursorPosition(0, Console.CursorTop);
+							Console.Write(new string(' ', Console.BufferWidth));
+							for (int i = 1; i < imax; i++)
 							{
-								SendMessage(Level.ERR, "Malformed number found.");
-							}
-							for (int i = 0; i < imax; i++)
-							{
-								Console.SetCursorPosition(0, Console.CursorTop);
+								Console.SetCursorPosition(0, Console.CursorTop - 2);
 								Console.Write(new string(' ', Console.BufferWidth));
-								Console.SetCursorPosition(0, Console.CursorTop - 1);
 								if (i == imax - 1)
 								{
 									Console.SetCursorPosition(0, Console.CursorTop - 1);
