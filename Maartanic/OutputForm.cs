@@ -14,12 +14,12 @@ namespace Maartanic
 		// P/Invoke user32.dll to show window with uint 0x09
 		[DllImport("user32.dll")]
 		private static extern int ShowWindow(IntPtr hWnd, uint Msg);
-
+		private const uint SW_RESTORE = 0x09;
 		internal static void Restore(Form form)
 		{
 			if (form.WindowState == FormWindowState.Minimized)
 			{
-				ShowWindow(form.Handle, 0x09);
+				ShowWindow(form.Handle, SW_RESTORE);
 			}
 		}
 
@@ -43,6 +43,7 @@ namespace Maartanic
 				}
 				catch (ThreadInterruptedException)
 				{
+					Thread.Sleep(80);
 					lock (Program.internalShared.SyncRoot)
 					{
 						if (Program.internalShared[2] == "TRUE")
@@ -83,6 +84,7 @@ namespace Maartanic
 			this.MinimizeBox = false;
 			this.Name = "OutputForm";
 			this.Text = "Maartanic Engine Display";
+			this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
 			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.OutputForm_FormClosing);
 			this.Shown += new System.EventHandler(this.Form1_Shown);
 			this.ResumeLayout(false);
@@ -96,7 +98,7 @@ namespace Maartanic
 				Program.internalShared[0] = "FALSE";
 				Program.internalShared[1] = "the internal window thread being closed";
 			}
-			Program.consoleProcess.Interrupt(); //Wake up
+			Program.consoleProcess.Interrupt(); // Wake up if sleeping
 		}
 
 		private void Form1_Shown(Object sender, EventArgs e)

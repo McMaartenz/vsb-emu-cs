@@ -1429,7 +1429,7 @@ namespace Maartanic
 							SendMessage(Level.INF, "Using extended mode");
 
 							bool isAvailable = false;
-							for (int attempts = 10; attempts > 0; attempts--)
+							for (int attempts = 1; attempts <= 10; attempts++)
 							{
 								lock (Program.internalShared.SyncRoot)
 								{
@@ -1451,6 +1451,10 @@ namespace Maartanic
 							}
 							else
 							{
+								lock (Program.internalShared.SyncRoot)
+								{
+									Program.internalShared[2] = "TRUE";
+								}
 								Program.windowProcess.Interrupt();
 							}
 						}
