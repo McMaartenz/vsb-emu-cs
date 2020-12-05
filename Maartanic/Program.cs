@@ -9,6 +9,7 @@ namespace Maartanic
 		//FIXME We keep using tryparse, but we should just make a function out of it.
 		//FIXNOW VSB Compatibility layer for graphics using extended mode.
 		//FIXME Window should hide unless in extended mode. (Almost done, fix restoring using P/invoke)
+		//NOTICE probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
 
 		public const float VERSION = 0.9f;
 
@@ -17,10 +18,12 @@ namespace Maartanic
 		internal static EngineMemory memory = new EngineMemory();
 		internal static EngineGraphics graphics = new EngineGraphics();
 
-		internal static string[] internalShared = new string[2]
+		internal static string[] internalShared = new string[4]
 		{
 			"TRUE",		// isRunning? Threads should close when this is "FALSE"
-			"NULL"		// Reason isRunning is set to false
+			"NULL",		// Reason isRunning is set to false
+			"FALSE",	// If window is ready to show
+			"FALSE"		// If window process is ready to be interrupted
 		};
 
 		public static ExtendedInstructions extendedMode;

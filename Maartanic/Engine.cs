@@ -1427,7 +1427,32 @@ namespace Maartanic
 							Program.extendedMode = new ExtendedInstructions();
 							Program.applicationMode = Mode.EXTENDED;
 							SendMessage(Level.INF, "Using extended mode");
-							Program.windowProcess.Interrupt();
+
+							bool isAvailable = false;
+							for (int attempts = 10; attempts > 0; attempts--)
+							{
+								lock (Program.internalShared.SyncRoot)
+								{
+									isAvailable = Program.internalShared[3] == "TRUE";
+								}
+								if (!isAvailable)
+								{
+									SendMessage(Level.WRN, "Screen component is unavailable. Attempt nr. " + attempts);
+									Thread.Sleep(80);
+								}
+								else
+								{
+									break;
+								}
+							}
+							if (!isAvailable)
+							{
+								SendMessage(Level.ERR, "Screen component is unavailable. Failed.");
+							}
+							else
+							{
+								Program.windowProcess.Interrupt();
+							}
 						}
 						break;
 

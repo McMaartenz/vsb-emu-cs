@@ -1,27 +1,58 @@
 ﻿using System;
 using System.Drawing;
-using System.Windows.Forms;
 using System.Threading;
+using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace Maartanic
 {
 	public class OutputForm : Form
 	{
-		public static OutputForm app;
+		internal static OutputForm app;
 		internal static Graphics windowGraphics;
 
-		public OutputForm()
+		// P/Invoke user32.dll to show window with uint 0x09
+		[DllImport("user32.dll")]
+		private static extern int ShowWindow(IntPtr hWnd, uint Msg);
+
+		internal static void Restore(Form form)
 		{
-			try
+			if (form.WindowState == FormWindowState.Minimized)
 			{
-				Thread.Sleep(Timeout.Infinite);
+				ShowWindow(form.Handle, 0x09);
 			}
-			catch(ThreadInterruptedException)
-			{
-				SuspendLayout();
-				ResumeLayout(false);
-			}
+		}
+
+		public OutputForm()
+		{	
 			windowGraphics = CreateGraphics();
+		}
+
+		internal void StartTimeout()
+		{
+			bool exitCase = false;
+			lock(Program.internalShared.SyncRoot)
+			{
+				Program.internalShared[3] = "TRUE";
+			}
+			while (!exitCase)
+			{
+				try
+				{
+					Thread.Sleep(Timeout.Infinite);
+				}
+				catch (ThreadInterruptedException)
+				{
+					lock (Program.internalShared.SyncRoot)
+					{
+						if (Program.internalShared[2] == "TRUE")
+						{
+							exitCase = true;
+						}
+					}
+				}
+			}
+			Restore(this);
 		}
 
 		[STAThread]
@@ -34,7 +65,6 @@ namespace Maartanic
 			app.SuspendLayout(); // Suspend, change title, resume
 			app.Text = app.Text.Insert(17, Program.VERSION + " ");
 			app.ResumeLayout(false);
-
 			
 			Application.Run(app);
 		}
@@ -53,8 +83,8 @@ namespace Maartanic
 			this.MinimizeBox = false;
 			this.Name = "OutputForm";
 			this.Text = "Maartanic Engine Display";
-			this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
 			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.OutputForm_FormClosing);
+			this.Shown += new System.EventHandler(this.Form1_Shown);
 			this.ResumeLayout(false);
 
 		}
@@ -67,6 +97,11 @@ namespace Maartanic
 				Program.internalShared[1] = "the internal window thread being closed";
 			}
 			Program.consoleProcess.Interrupt(); //Wake up
+		}
+
+		private void Form1_Shown(Object sender, EventArgs e)
+		{
+			StartTimeout(); // Start waiting for a signal
 		}
 
 	}
