@@ -9,6 +9,10 @@ namespace Maartanic
 		{
 			GC.SuppressFinalize(this);
 		}
+		private static T Parse<T>(string input)
+		{
+			return Program.Parse<T>(input);
+		}
 
 		private bool InternalCompare(ref string[] compareIn, ref string[] lineInfo, ref Engine e)
 		{
@@ -41,7 +45,7 @@ namespace Maartanic
 					if (args.Length > 1)
 					{
 						Engine forLoopEngine;
-						if (!int.TryParse(args[1], out int amount)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+						int amount = Parse<int>(args[1]);
 						bool selfRegulatedBreak = false;
 						bool skipNext = false;
 						for (int i = 0; i < amount; i++)
@@ -92,9 +96,7 @@ namespace Maartanic
 							localMemory = e.localMemory,            // Copy over local memory, and return
 							returnedValue = e.returnedValue
 						};
-
-						if (!int.TryParse(args[0], out int amount)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
-
+						int amount = Parse<int>(args[0]);
 						bool selfRegulatedBreak = false;
 
 						for (int i = 0; i < amount; i++)
@@ -130,7 +132,7 @@ namespace Maartanic
 						e.localMemory = forEngine.localMemory; // Copy back
 						if (forEngine.returnedValue.Contains('.'))
 						{
-							if (!int.TryParse(forEngine.returnedValue[..forEngine.returnedValue.IndexOf('.')], out int jumpLine)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+							int jumpLine = Parse<int>(forEngine.returnedValue[..forEngine.returnedValue.IndexOf('.')]);
 							e.returnedValue = forEngine.returnedValue[(forEngine.returnedValue.IndexOf('.') + 1)..];
 							e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
 						}
@@ -258,7 +260,7 @@ namespace Maartanic
 						e.localMemory = whileEngine.localMemory; // Copy back
 						if (whileEngine.returnedValue.Contains('.'))
 						{
-							if (!int.TryParse(whileEngine.returnedValue[..whileEngine.returnedValue.IndexOf('.')], out int jumpLine)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+							int jumpLine = Parse<int>(whileEngine.returnedValue[..whileEngine.returnedValue.IndexOf('.')]);
 							e.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
 							e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
 						}
@@ -383,7 +385,7 @@ namespace Maartanic
 						e.localMemory = whileEngine.localMemory; // Copy back
 						if (whileEngine.returnedValue.Contains('.'))
 						{
-							if (!int.TryParse(whileEngine.returnedValue[..whileEngine.returnedValue.IndexOf('.')], out int jumpLine)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); }
+							int jumpLine = Parse<int>(whileEngine.returnedValue[..whileEngine.returnedValue.IndexOf('.')]);
 							e.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
 							e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
 						}
@@ -404,7 +406,7 @@ namespace Maartanic
 
 				case "SLEEP": // SLEEP [time] r
 					{
-						if (!int.TryParse(args[0], out int mseconds)) { e.SendMessage(Engine.Level.ERR, "Malformed number found."); break; }
+						int mseconds = Parse<int>(args[0]);
 						try
 						{
 							Thread.Sleep(mseconds);
@@ -453,10 +455,10 @@ namespace Maartanic
 				case "SCREENLN": // VSB compat
 				case "PLINE": // PLINE [x] [y] [x 1] [y 1] r-r-r-r
 					{
-						if (!float.TryParse(args[0], out float x)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
-						if (!float.TryParse(args[1], out float y)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
-						if (!float.TryParse(args[2], out float x1)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
-						if (!float.TryParse(args[3], out float y1)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
+						float x = Parse<float>(args[0]);
+						float y = Parse<float>(args[1]);
+						float x1 = Parse<float>(args[2]);
+						float y1 = Parse<float>(args[3]);
 
 						Program.graphics.Line(x, y, x1, y1);
 					}
@@ -480,10 +482,10 @@ namespace Maartanic
 				case "SCREENREC": // VSB compat
 				case "PRECT": // PRECT [x] [y] [w] [h] r-r-r-r
 					{
-						if (!float.TryParse(args[0], out float x)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
-						if (!float.TryParse(args[1], out float y)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
-						if (!float.TryParse(args[2], out float w)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
-						if (!float.TryParse(args[3], out float h)) { e.SendMessage(Engine.Level.ERR, "Malformed floating point number found."); }
+						float x = Parse<float>(args[0]);
+						float y = Parse<float>(args[1]);
+						float w = Parse<float>(args[2]);
+						float h = Parse<float>(args[3]);
 
 						if (lineInfo[0].ToUpper() == "SCREENREC")
 						{
