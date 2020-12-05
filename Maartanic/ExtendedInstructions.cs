@@ -465,18 +465,7 @@ namespace Maartanic
 					break;
 
 				case "PCOL": // PCOL [Color] r
-					{
-						string color = args[0];
-						color = color[0] == '#' ? color : '#' + color;
-						try
-						{
-							Program.graphics.SetColor(System.Drawing.ColorTranslator.FromHtml(color));// System.Drawing.Color.Red); //System.Drawing.Color.FromArgb(argb)
-						}
-						catch (ArgumentException)
-						{
-							e.SendMessage(Engine.Level.ERR, "Malformed hexadecimal number found.");
-						}
-					}
+						Program.graphics.SetColor(System.Drawing.ColorTranslator.FromHtml(Program.HexHTML(args[0])));// System.Drawing.Color.Red); //System.Drawing.Color.FromArgb(argb)
 					break;
 
 				case "SCREENREC": // VSB compat
@@ -499,19 +488,7 @@ namespace Maartanic
 
 				case "SCREENFILL": // VSB compat
 				case "PFILL": // PFILL [color] r
-					{
-						string color = args[0]; //FIXNOW make function for hex, including the try catch
-						color = color[0] == '#' ? color : '#' + color;
-						try
-						{
-							Program.graphics.Fill(System.Drawing.ColorTranslator.FromHtml(color));// System.Drawing.Color.Red); //System.Drawing.Color.FromArgb(argb)
-						}
-						catch (ArgumentException)
-						{
-							e.SendMessage(Engine.Level.ERR, "Malformed hexadecimal number found.");
-						}
-
-					}
+					Program.graphics.Fill(System.Drawing.ColorTranslator.FromHtml(Program.HexHTML(args[0])));// System.Drawing.Color.Red); //System.Drawing.Color.FromArgb(argb)
 					break;
 
 				case "BREAK":

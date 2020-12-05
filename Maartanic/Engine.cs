@@ -479,18 +479,10 @@ namespace Maartanic
 						{
 							string[] varNames = new string[3] { args[0], args[1], args[2] };
 							string[] colorsOut = new string[3];
-							string color = args[3];
-							color = color[0] == '#' ? color : '#' + color;
+
 							System.Drawing.Color colorOutput;
-							try
-							{
-								colorOutput = System.Drawing.ColorTranslator.FromHtml(color);
-							}
-							catch (ArgumentException)
-							{
-								SendMessage(Level.ERR, "Malformed hexadecimal number found.");
-								colorOutput = new System.Drawing.Color();
-							}
+							colorOutput = System.Drawing.ColorTranslator.FromHtml(Program.HexHTML(args[3]));
+
 							colorsOut[0] = colorOutput.R.ToString();
 							colorsOut[1] = colorOutput.G.ToString();
 							colorsOut[2] = colorOutput.B.ToString();

@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace Maartanic
 {
 	public class Program
 	{
-
-		//FIXME We keep using tryparse, but we should just make a function out of it.
 		//FIXNOW null reference, most instructions require arguments but if none are given it returns a null reference exception.
 		//FIXNOW VSB Compatibility layer for graphics using extended mode.
 		//NOTICE probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
@@ -73,6 +72,20 @@ namespace Maartanic
 					Console.WriteLine($"INTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
 				}
 				return default(T);
+			}
+		}
+
+		public static string HexHTML (string input)
+		{
+			input = (input[0] == '#' ? input : '#' + input).Trim();
+			if (Regex.IsMatch(input, "/^#[a-fA-F0-9]{6}$/"))
+			{
+				return input;
+			}
+			else
+			{
+				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '{input}' found.");
+				return "#000000";
 			}
 		}
 
