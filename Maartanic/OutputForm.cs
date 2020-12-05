@@ -25,7 +25,7 @@ namespace Maartanic
 
 		public OutputForm()
 		{	
-			windowGraphics = CreateGraphics();
+			//TODO windowGraphics = CreateGraphics();
 		}
 
 		internal void StartTimeout()
