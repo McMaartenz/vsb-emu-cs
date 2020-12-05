@@ -12,7 +12,7 @@ namespace Maartanic
 		//FIXME Window should hide unless in extended mode. (Restoring using P/invoke, now minimizing again)
 		//NOTICE probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
 
-		public const float VERSION = 0.9f;
+		internal const float VERSION = 0.9f;
 
 		internal static EngineStack stack = new EngineStack();
 		internal static EngineQueue queue = new EngineQueue();
@@ -27,19 +27,20 @@ namespace Maartanic
 			"FALSE"		// If window process is ready to be interrupted
 		};
 
-		public static ExtendedInstructions extendedMode;
+		internal static ExtendedInstructions extendedMode;
 		internal static Engine.Mode applicationMode = Engine.Mode.VSB;
 
-		public static int WIN_WIDTH = 120;
-		public static int WIN_HEIGHT = 30;
+		internal static int WIN_WIDTH = 120;
+		internal static int WIN_HEIGHT = 30;
 
 		internal static Thread consoleProcess;
 		internal static Thread windowProcess;
 
 		internal static byte logLevel;
+		internal static Engine EN;
 
 		// Exit(): Exit process
-		public static void Exit(string value)
+		internal static void Exit(string value)
 		{
 			string R = value switch
 			{
@@ -99,13 +100,13 @@ namespace Maartanic
 
 			// Clear buffer
 			Console.Clear();
-			Engine e = new Engine(args[0]);
+			EN = new Engine(args[0]);
 
-			if (e.Executable())
+			if (EN.Executable())
 			{
 				try
 				{
-					Exit(e.StartExecution(logLevel));
+					Exit(EN.StartExecution(logLevel));
 				}
 				catch (Exception ex)
 				{

@@ -4,12 +4,16 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0044 //TODO check if readonly really is necessary
 
 namespace Maartanic
 {
 	class Engine
 	{
+		internal delegate void EventHandler(object sender, EventArgs args);
+		internal event EventHandler ThrowEvent = delegate { };
+		internal void SomethingHappened() => ThrowEvent(this, new EventArgs());
+
 		internal StreamReader sr;
 		private int logLevel;
 
@@ -1418,6 +1422,8 @@ namespace Maartanic
 							Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
 							Program.applicationMode = Mode.VSB;
 							SendMessage(Level.INF, "Using compat mode");
+
+							SomethingHappened();
 						}
 						break;
 

@@ -10,6 +10,7 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <SignAssembly>false</SignAssembly>
     <StartupObject>Maartanic.Program</StartupObject>
+    <AssemblyOriginatorKeyFile>KEY.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>

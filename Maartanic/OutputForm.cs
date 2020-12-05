@@ -53,7 +53,24 @@ namespace Maartanic
 					}
 				}
 			}
+
+			// RESET
+			lock (Program.internalShared.SyncRoot)
+			{
+				Program.internalShared[2] = "FALSE";
+			}
 			Restore(this);
+			Program.EN.ThrowEvent += (sender, args) => { DoSomething(); };
+		}
+
+		private void DoSomething() // Excited moment: event works and can minimize a window again!
+		{
+			Invoke(new Action(() => // Invoke code onto the windowProcess thread
+			{
+				SuspendLayout();
+				WindowState = FormWindowState.Minimized;
+				ResumeLayout(false);
+			}));
 		}
 
 		[STAThread]
