@@ -41,7 +41,7 @@ namespace Maartanic
 					return e.lineIndex.ToString() + "." + e.returnedValue; // Return address to jump to later and the original return value separated by a dot.
 
 				case "FOR": // FOR [script] [amount]	r-r
-							// FOR [amount]				r		(+ENDFOR)
+							// FOR [amount]				r		(+ENDF)
 					if (args.Length > 1)
 					{
 						Engine forLoopEngine;

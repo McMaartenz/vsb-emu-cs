@@ -81,7 +81,7 @@ namespace Maartanic
 				{ "tdow",       () => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
 				{ "key",        () => keyOutput.ToString() },
 				{ "ret",        () => returnedValue },
-				{ "mx",         () => "0" }, //NOTICE mouse x and y are not supported
+				{ "mx",         () => "0" }, //INFO mouse x and y are not supported
 				{ "my",         () => "0" },
 				{ "redraw",     () => redraw.ToString() }
 			};
@@ -587,7 +587,7 @@ namespace Maartanic
 					case "HLT":
 						SendMessage(Level.INF, "HLT");
 						Program.Exit("2");
-						break; //NOTICE Unreachable code but IDE complains for some reason
+						break; //INFO Unreachable code but IDE complains for some reason
 
 					case "SUBSTR":
 						{
