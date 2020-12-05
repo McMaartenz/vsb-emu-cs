@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace Maartanic
 {
-	public class ExtendedInstructions : IDisposable
+	internal class ExtendedInstructions : IDisposable
 	{
 		public void Dispose() // Garbage collect it when switching to compat (VSB)
 		{

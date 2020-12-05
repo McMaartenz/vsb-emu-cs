@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Maartanic
 {
-	public class OutputForm : Form
+	internal class OutputForm : Form
 	{
 		internal static OutputForm app;
 		internal static Graphics windowGraphics;
@@ -23,7 +23,7 @@ namespace Maartanic
 			}
 		}
 
-		public OutputForm() {}
+		internal OutputForm() {}
 
 		internal void StartTimeout()
 		{
@@ -72,7 +72,7 @@ namespace Maartanic
 		}
 
 		[STAThread]
-		public static void Main()
+		internal static void Main()
 		{
 			Application.EnableVisualStyles();
 			app = new OutputForm();

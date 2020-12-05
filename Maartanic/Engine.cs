@@ -94,7 +94,7 @@ namespace Maartanic
 		}
 
 		// Engine(): Class constructor, returns if given file does not exist.
-		public Engine(string startPos)
+		internal Engine(string startPos)
 		{
 			executable = File.Exists(startPos);
 			if (!executable)
@@ -107,7 +107,7 @@ namespace Maartanic
 		}
 
 		// Engine() OVERLOADED: Specify your entry point
-		public Engine(string startPos, string customEntryPoint)
+		internal Engine(string startPos, string customEntryPoint)
 		{
 			entryPoint = customEntryPoint; // default is main
 			executable = File.Exists(startPos);
@@ -121,7 +121,7 @@ namespace Maartanic
 		}
 
 		// Executable(): Returns whether or not it is ready to be executed based on Engine()'s result.
-		public bool Executable()
+		internal bool Executable()
 		{
 			return executable;
 		}
@@ -163,7 +163,7 @@ namespace Maartanic
 		}
 
 		// LineCheck(): Splits the text into an array for further operations.
-		public bool LineCheck(ref string[] lineInfo, ref int lineIndex, bool disable = false)
+		internal bool LineCheck(ref string[] lineInfo, ref int lineIndex, bool disable = false)
 		{
 			if (line == null)
 			{
@@ -202,7 +202,7 @@ namespace Maartanic
 		}
 
 		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
-		public string StartExecution(int logLevelIN, bool jump = false, int jumpLine = 0)
+		internal string StartExecution(int logLevelIN, bool jump = false, int jumpLine = 0)
 		{
 			logLevel = logLevelIN;
 			lineIndex = 0;

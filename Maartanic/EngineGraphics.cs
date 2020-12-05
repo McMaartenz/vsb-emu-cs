@@ -2,10 +2,10 @@
 
 namespace Maartanic
 {
-	public class EngineGraphics
+	internal class EngineGraphics
 	{
 		private Pen internalPen;
-		public EngineGraphics()
+		internal EngineGraphics()
 		{
 			internalPen = new Pen(Color.White, 1.0f);
 		}

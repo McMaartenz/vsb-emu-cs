@@ -11,6 +11,7 @@
     <SignAssembly>false</SignAssembly>
     <StartupObject>Maartanic.Program</StartupObject>
     <AssemblyOriginatorKeyFile>KEY.pfx</AssemblyOriginatorKeyFile>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
