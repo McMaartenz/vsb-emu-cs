@@ -83,6 +83,7 @@ namespace Maartanic
 			app.ResumeLayout(false);
 			
 			Application.Run(app);
+			GC.Collect();
 		}
 
 		private void InitializeComponent()

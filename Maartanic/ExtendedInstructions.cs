@@ -500,6 +500,14 @@ namespace Maartanic
 				case "NOP": // NO OPERATION
 					break;
 
+				case "TOBIN": // TOBIN [variable] [integer] r-r //TODO make wiki entry for instruction
+					{
+						int value = Parse<int>(args[1]);
+						string binary = Convert.ToString(value, 2);
+						e.SetVariable(args[0], ref binary);
+					}
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (EXT.)");
 					break;
