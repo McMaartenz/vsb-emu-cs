@@ -465,7 +465,7 @@ namespace Maartanic
 					break;
 
 				case "PCOL": // PCOL [Color] r
-						Program.graphics.SetColor(System.Drawing.ColorTranslator.FromHtml(Program.HexHTML(args[0])));// System.Drawing.Color.Red); //System.Drawing.Color.FromArgb(argb)
+						Program.graphics.SetColor(Program.HexHTML(args[0]));
 					break;
 
 				case "SCREENREC": // VSB compat
@@ -488,7 +488,7 @@ namespace Maartanic
 
 				case "SCREENFILL": // VSB compat
 				case "PFILL": // PFILL [color] r
-					Program.graphics.Fill(System.Drawing.ColorTranslator.FromHtml(Program.HexHTML(args[0])));// System.Drawing.Color.Red); //System.Drawing.Color.FromArgb(argb)
+					Program.graphics.Fill(Program.HexHTML(args[0]));
 					break;
 
 				case "BREAK":

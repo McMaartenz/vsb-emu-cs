@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Drawing;
+using System.Threading;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 //TODO check if readonly really is necessary
 #pragma warning disable IDE0044
@@ -480,8 +481,8 @@ namespace Maartanic
 							string[] varNames = new string[3] { args[0], args[1], args[2] };
 							string[] colorsOut = new string[3];
 
-							System.Drawing.Color colorOutput;
-							colorOutput = System.Drawing.ColorTranslator.FromHtml(Program.HexHTML(args[3]));
+							Color colorOutput;
+							colorOutput = Program.HexHTML(args[3]);
 
 							colorsOut[0] = colorOutput.R.ToString();
 							colorsOut[1] = colorOutput.G.ToString();

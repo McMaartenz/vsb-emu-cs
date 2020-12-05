@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Drawing;
 using System.Threading;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace Maartanic
@@ -61,7 +63,7 @@ namespace Maartanic
 			{
 				return (T)typeof(T).GetMethod("Parse", new[] { typeof(string) }).Invoke(null, new string[] { input });
 			}
-			catch (System.Reflection.TargetInvocationException)
+			catch (TargetInvocationException)
 			{
 				if (EN != null)
 				{
@@ -75,17 +77,25 @@ namespace Maartanic
 			}
 		}
 
-		public static string HexHTML (string input)
+		public static Color HexHTML (string input)
 		{
 			input = (input[0] == '#' ? input : '#' + input).Trim();
-			if (Regex.IsMatch(input, "/^#[a-fA-F0-9]{6}$/"))
+			if (Regex.IsMatch(input, "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"))
 			{
-				return input;
+				try
+				{
+					return ColorTranslator.FromHtml(input[1..]);
+				}
+				catch (ArgumentException)
+				{
+					EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '{input[1..]}' found.");
+					return Color.Red;
+				}
 			}
 			else
 			{
-				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '{input}' found.");
-				return "#000000";
+				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '{input[1..]}' found.");
+				return Color.Red;
 			}
 		}
 
