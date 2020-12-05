@@ -1,40 +1,45 @@
 ﻿using System;
+using System.Drawing;
 using System.Threading;
+using System.Reflection;
 
 namespace Maartanic
 {
 	public class Program
 	{
+		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception.
+		//BUG VSB Compatibility layer for graphics using extended mode.
+		//IDEA probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
 
-		//FIXME We keep using tryparse, but we should just make a function out of it.
-		//FIXNOW VSB Compatibility layer for graphics using extended mode.
-		//FIXME Window should hide unless in extended mode.
-
-		public const float VERSION = 0.9f;
+		internal const float VERSION = 1.0f;
 
 		internal static EngineStack stack = new EngineStack();
 		internal static EngineQueue queue = new EngineQueue();
 		internal static EngineMemory memory = new EngineMemory();
 		internal static EngineGraphics graphics = new EngineGraphics();
 
-		internal static string[] internalShared = new string[2]
+		internal static string[] internalShared = new string[4]
 		{
 			"TRUE",		// isRunning? Threads should close when this is "FALSE"
-			"NULL"		// Reason isRunning is set to false
+			"NULL",		// Reason isRunning is set to false
+			"FALSE",	// If window is ready to show
+			"FALSE"		// If window process is ready to be interrupted
 		};
 
-		public static ExtendedInstructions extendedMode;
+		internal static ExtendedInstructions extendedMode;
 		internal static Engine.Mode applicationMode = Engine.Mode.VSB;
 
-		public static int WIN_WIDTH = 120;
-		public static int WIN_HEIGHT = 30;
+		internal static int WIN_WIDTH = 120;
+		internal static int WIN_HEIGHT = 30;
 
 		internal static Thread consoleProcess;
+		internal static Thread windowProcess;
 
 		internal static byte logLevel;
+		internal static Engine EN;
 
 		// Exit(): Exit process
-		public static void Exit(string value)
+		internal static void Exit(string value)
 		{
 			string R = value switch
 			{
@@ -51,14 +56,48 @@ namespace Maartanic
 			Environment.Exit(0);
 		}
 
+		public static T Parse<T> (string input)
+		{
+			try
+			{
+				return (T)typeof(T).GetMethod("Parse", new[] { typeof(string) }).Invoke(null, new string[] { input });
+			}
+			catch (TargetInvocationException)
+			{
+				if (EN != null)
+				{
+					EN.SendMessage(Engine.Level.ERR, $"Malformed {typeof(T).Name} '{input}' found.");
+				}
+				else
+				{
+					Console.WriteLine($"INTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
+				}
+				return default(T);
+			}
+		}
+
+		public static Color HexHTML (string input)
+		{
+			input = (input[0] == '#' ? input : '#' + input).Trim();
+			try
+			{
+				return ColorTranslator.FromHtml(input);
+			}
+			catch (ArgumentException)
+			{
+				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '{input[1..]}' found.");
+				return default(Color);
+			}
+		}
+
 		// Main(): Entry point
 		public static void Main(string[] args)
-		{
+		{			
 			consoleProcess = Thread.CurrentThread; // Current thread
 			consoleProcess.Name = "consoleProcess";
 
 			ThreadStart formWindowStarter = new ThreadStart(OutputForm.Main); // Window thread
-			Thread windowProcess = new Thread(formWindowStarter)
+			windowProcess = new Thread(formWindowStarter)
 			{
 				Name = "windowProcess"
 			};
@@ -83,22 +122,26 @@ namespace Maartanic
 			}
 
 			Console.WriteLine("Please enter the log level (0: info 1: warning 2: error");
-			if (!byte.TryParse(Console.ReadLine(), out logLevel))
-			{
-				logLevel = 0;
-			}
-			if (logLevel < 0 || logLevel > 2)
+			logLevel = Parse<byte>(Console.ReadLine());
+			if (logLevel < 0 || logLevel > 3)
 			{
 				logLevel = 0;
 			}
 
 			// Clear buffer
 			Console.Clear();
-			Engine e = new Engine(args[0]);
+			EN = new Engine(args[0]);
 
-			if (e.Executable())
+			if (EN.Executable())
 			{
-				Exit(e.StartExecution(logLevel));
+				try
+				{
+					Exit(EN.StartExecution(logLevel));
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine("INTERNAL MRT ERROR: " + ex.ToString());
+				}
 			}
 
 			Exit("0");
