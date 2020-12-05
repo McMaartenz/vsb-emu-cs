@@ -477,7 +477,6 @@ namespace Maartanic
 						}
 						break;
 
-					//FIXME COLRGBTOHEX exists yet COLHEXTORGB does not? Come on..
 					case "HEXTORGB":
 						{
 							string[] varNames = new string[3] { args[0], args[1], args[2] };
