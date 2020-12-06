@@ -93,7 +93,7 @@ namespace Maartanic
 
 				inputWindow.Text = "User input required";
 				inputWindowLabel.Text = "This program is asking for user input:";
-				inputWindowTextBox.Text = "abc";
+				inputWindowTextBox.PlaceholderText = "Enter text..";
 				inputWindowOK.Text = "OK";
 				inputWindowCANCEL.Text = "Cancel";
 				inputWindowOK.DialogResult = DialogResult.OK;
@@ -115,6 +115,7 @@ namespace Maartanic
 				inputWindow.MaximizeBox = false;
 				inputWindow.AcceptButton = inputWindowOK;
 				inputWindow.CancelButton = inputWindowCANCEL;
+
 				if (inputWindow.ShowDialog() == DialogResult.OK)
 				{
 					output = inputWindowTextBox.Text;
