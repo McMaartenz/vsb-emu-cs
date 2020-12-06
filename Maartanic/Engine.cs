@@ -13,8 +13,8 @@ namespace Maartanic
 	class Engine
 	{
 		internal delegate void EventHandler(object sender, EventArgs args);
-		internal event EventHandler ThrowEvent = delegate { };
-		internal void SomethingHappened() => ThrowEvent(this, new EventArgs());
+		internal event EventHandler MinimizeNow = delegate { };
+		internal void MinimizeWindow() => MinimizeNow(this, new EventArgs());
 
 		internal StreamReader sr;
 		private int logLevel;
@@ -1395,8 +1395,7 @@ namespace Maartanic
 							Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
 							Program.applicationMode = Mode.VSB;
 							SendMessage(Level.INF, "Using compat mode");
-
-							SomethingHappened();
+							MinimizeWindow();
 						}
 						break;
 

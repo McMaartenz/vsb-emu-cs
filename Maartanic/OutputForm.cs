@@ -57,10 +57,10 @@ namespace Maartanic
 				Program.internalShared[2] = "FALSE";
 			}
 			Restore(this);
-			Program.EN.ThrowEvent += (sender, args) => { DoSomething(); };
+			Program.EN.MinimizeNow += (sender, args) => { Minimize(); };
 		}
 
-		private void DoSomething() // Excited moment: event works and can minimize a window again!
+		private void Minimize() // Excited moment: event works and can minimize a window again!
 		{
 			BeginInvoke(new Action(() =>// Invoke code onto the windowProcess thread
 			{
