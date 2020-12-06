@@ -13,7 +13,7 @@ namespace Maartanic
 
 		internal ExtendedInstructions()
 		{
-			foreach (KeyValuePair<string, Func<string>> x in toBeAdded)
+			foreach (KeyValuePair<string, Func<string>> x in toBeAdded) // extend predefined variables
 			{
 				Engine.predefinedVariables.Add(x.Key, x.Value);
 			}
@@ -527,7 +527,7 @@ namespace Maartanic
 				case "NOP": // NO OPERATION
 					break;
 
-				case "TOBIN": // TOBIN [variable] [integer] r-r //TODO make wiki entry for instruction
+				case "TOBIN": // TOBIN [variable] [integer] r-o
 					{
 						int value;
 						if (args.Length > 1)
@@ -542,6 +542,23 @@ namespace Maartanic
 						}
 						string binary = Convert.ToString(value, 2);
 						e.SetVariable(args[0], ref binary);
+					}
+					break;
+
+				case "BINTOINT": // BINTOINT [variable] [integer] r-o //TODO make wiki entry for instruction
+					{
+						string value;
+						if (args.Length > 1)
+						{
+							value = args[1];
+						}
+						else
+						{
+							value = '$' + args[0];
+							e.LocalMemoryGet(ref value);
+						}
+						value = Convert.ToInt32(value, 2).ToString();
+						e.SetVariable(args[0], ref value);
 					}
 					break;
 
