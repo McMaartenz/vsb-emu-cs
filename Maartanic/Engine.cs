@@ -1397,6 +1397,7 @@ namespace Maartanic
 							SendMessage(Level.INF, "Using compat mode");
 							MinimizeWindow();
 						}
+						Program.ShowWindow(Program.GetConsoleWindow(), 5);
 						break;
 
 					case "extended":

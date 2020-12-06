@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Threading;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Maartanic
 {
@@ -38,6 +39,13 @@ namespace Maartanic
 
 		internal static byte logLevel;
 		internal static Engine EN;
+
+		// P/Invoke
+		[DllImport("kernel32.dll")]
+		internal static extern IntPtr GetConsoleWindow();
+
+		[DllImport("user32.dll")]
+		internal static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
 		// Exit(): Exit process
 		internal static void Exit(string value)

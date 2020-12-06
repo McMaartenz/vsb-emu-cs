@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Maartanic
 {
@@ -545,7 +546,7 @@ namespace Maartanic
 					}
 					break;
 
-				case "BINTOINT": // BINTOINT [variable] [integer] r-o //TODO make wiki entry for instruction
+				case "BINTOINT": // BINTOINT [variable] [integer] r-o
 					{
 						string value;
 						if (args.Length > 1)
@@ -559,6 +560,17 @@ namespace Maartanic
 						}
 						value = Convert.ToInt32(value, 2).ToString();
 						e.SetVariable(args[0], ref value);
+					}
+					break;
+
+				case "CONMODE": // CONMODE [hide|show] r //TODO make wiki entry for instruction
+					if (args[0].ToUpper() == "HIDE") // 0: SW_HIDE 5: SW_SHOW
+					{
+						Program.ShowWindow(Program.GetConsoleWindow(), 0);
+					}
+					else
+					{
+						Program.ShowWindow(Program.GetConsoleWindow(), 5);
 					}
 					break;
 
