@@ -35,7 +35,7 @@ namespace Maartanic
 		//internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
 		private DateTime startTime = DateTime.UtcNow;
 
-		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
+		internal static Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
 		internal Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
 		// Level: Used in SendMessage method to indicate the message level as info, warning or error.
@@ -59,7 +59,7 @@ namespace Maartanic
 		}
 
 		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
-		private void FillPredefinedList()
+		internal void FillPredefinedList()
 		{
 			Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
 			{
@@ -102,7 +102,6 @@ namespace Maartanic
 				Console.WriteLine($"The file {startPos} does not exist.");
 				return;
 			}
-			FillPredefinedList();
 			scriptFile = startPos;
 		}
 

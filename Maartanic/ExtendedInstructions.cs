@@ -1,10 +1,24 @@
 ﻿using System;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace Maartanic
 {
 	internal class ExtendedInstructions : IDisposable
 	{
+		internal ExtendedInstructions()
+		{
+			Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
+			{
+				{ "pask", () => OutputForm.app.AskInput() } // ask with gui interface, invoke on windowProcess thread
+			};
+
+			foreach (KeyValuePair<string, Func<string>> a in toBeAdded)
+			{
+				Engine.predefinedVariables.Add(a.Key, a.Value);
+			}
+		}
+
 		public void Dispose() // Garbage collect it when switching to compat (VSB)
 		{
 			GC.SuppressFinalize(this);

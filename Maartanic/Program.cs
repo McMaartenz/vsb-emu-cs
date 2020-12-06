@@ -132,7 +132,7 @@ namespace Maartanic
 			// Clear buffer
 			Console.Clear();
 			EN = new Engine(args[0]);
-
+			EN.FillPredefinedList();
 			if (EN.Executable())
 			{
 				try
