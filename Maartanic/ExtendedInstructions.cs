@@ -6,21 +6,25 @@ namespace Maartanic
 {
 	internal class ExtendedInstructions : IDisposable
 	{
+		private Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
+		{
+			{ "pask", () => OutputForm.app.AskInput() } // ask with gui interface, invoke on windowProcess thread
+		};
+
 		internal ExtendedInstructions()
 		{
-			Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
+			foreach (KeyValuePair<string, Func<string>> x in toBeAdded)
 			{
-				{ "pask", () => OutputForm.app.AskInput() } // ask with gui interface, invoke on windowProcess thread
-			};
-
-			foreach (KeyValuePair<string, Func<string>> a in toBeAdded)
-			{
-				Engine.predefinedVariables.Add(a.Key, a.Value);
+				Engine.predefinedVariables.Add(x.Key, x.Value);
 			}
 		}
 
 		public void Dispose() // Garbage collect it when switching to compat (VSB)
 		{
+			foreach (KeyValuePair<string, Func<string>> x in toBeAdded)
+			{
+				Engine.predefinedVariables.Remove(x.Key);
+			}
 			GC.SuppressFinalize(this);
 		}
 		private static T Parse<T>(string input)
