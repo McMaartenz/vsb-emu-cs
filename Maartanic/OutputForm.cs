@@ -17,13 +17,14 @@ namespace Maartanic
 		private const uint SW_RESTORE = 0x09;
 		internal static void Restore(Form form)
 		{
+			form.SuspendLayout();
+			form.ShowInTaskbar = true;
+			form.FormBorderStyle = FormBorderStyle.FixedSingle;
+			form.ResumeLayout(false);
 			if (form.WindowState == FormWindowState.Minimized)
 			{
 				ShowWindow(form.Handle, SW_RESTORE);
 			}
-			form.SuspendLayout();
-			form.ShowInTaskbar = true;
-			form.ResumeLayout(false);
 		}
 
 		internal OutputForm() {}
@@ -70,6 +71,7 @@ namespace Maartanic
 				SuspendLayout();
 				WindowState = FormWindowState.Minimized;
 				ShowInTaskbar = false;
+				FormBorderStyle = FormBorderStyle.FixedToolWindow;
 				ResumeLayout(false);
 				StartTimeout();
 			}));
@@ -99,7 +101,7 @@ namespace Maartanic
 			this.BackColor = System.Drawing.Color.Black;
 			this.ClientSize = new System.Drawing.Size(480, 360);
 			this.ForeColor = System.Drawing.Color.Black;
-			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
 			this.Name = "OutputForm";
