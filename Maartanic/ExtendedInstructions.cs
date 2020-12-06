@@ -502,7 +502,17 @@ namespace Maartanic
 
 				case "TOBIN": // TOBIN [variable] [integer] r-r //TODO make wiki entry for instruction
 					{
-						int value = Parse<int>(args[1]);
+						int value;
+						if (args.Length > 1)
+						{
+							value = Parse<int>(args[1]);
+						}
+						else
+						{
+							string varName = '$' + args[0];
+							e.LocalMemoryGet(ref varName);
+							value = Parse<int>(varName);
+						}
 						string binary = Convert.ToString(value, 2);
 						e.SetVariable(args[0], ref binary);
 					}
