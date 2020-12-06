@@ -564,6 +564,7 @@ namespace Maartanic
 
 					case "KEY":
 						{
+							//TODO REDO WITH KEYBOARD NAMESPACE System.Windows.Input.Keyboard -> Keyboard.IsKeyDown(System.Windows.Input.Key);
 							ConsoleKeyInfo cki;
 							if (Console.KeyAvailable)
 							{
