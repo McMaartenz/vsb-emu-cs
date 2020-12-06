@@ -88,6 +88,7 @@ namespace Maartanic
 								e.StatementJumpOut("ENDF", "FOR");
 							}
 						}
+						GC.Collect();
 					}
 					else
 					{
@@ -149,6 +150,7 @@ namespace Maartanic
 							}
 							e.StatementJumpOut("ENDF", "FOR");
 						}
+						GC.Collect();
 					}
 					break;
 
@@ -203,6 +205,7 @@ namespace Maartanic
 								e.StatementJumpOut("ENDW", "WHILE");
 							}
 						}
+						GC.Collect();
 						break;
 
 					}
@@ -246,7 +249,9 @@ namespace Maartanic
 										else
 										{
 											e.SendMessage(Engine.Level.INF, "Return statement");
-											return whileEngine.returnedValue;
+											string returned = whileEngine.returnedValue;
+											GC.Collect();
+											return returned;
 										}
 									}
 								}
@@ -277,6 +282,7 @@ namespace Maartanic
 							}
 							e.StatementJumpOut("ENDW", "WHILE");
 						}
+						GC.Collect();
 					}
 					break;
 
@@ -331,7 +337,7 @@ namespace Maartanic
 							}
 						}
 						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
-
+						GC.Collect();
 					}
 					else
 					{
@@ -371,7 +377,9 @@ namespace Maartanic
 									}
 
 									e.SendMessage(Engine.Level.INF, "Return statement");
-									return whileEngine.returnedValue;
+									string returned = whileEngine.returnedValue;
+									GC.Collect();
+									return returned;
 								}
 							}
 							else
@@ -401,6 +409,7 @@ namespace Maartanic
 								e.returnedValue = whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('&') + 1)..];
 							}
 						}
+						GC.Collect();
 					}
 					break;
 

@@ -223,6 +223,7 @@ namespace Maartanic
 					if (Program.internalShared[0] == "FALSE")
 					{
 						SendMessage(Level.ERR, $"Internal process has to close due to {Program.internalShared[1]}.");
+						sr.Dispose();
 						Program.Exit("1");
 					}
 				}
@@ -359,6 +360,7 @@ namespace Maartanic
 										scope--;
 									}
 								}
+								ifsr.Dispose();
 								if (success)
 								{
 									for (int i = lineIndex; i < ifLineIndex; i++)
@@ -586,6 +588,7 @@ namespace Maartanic
 
 					case "HLT":
 						SendMessage(Level.INF, "HLT");
+						sr.Dispose();
 						Program.Exit("2");
 						break; //INFO Unreachable code but IDE complains for some reason
 
@@ -667,6 +670,7 @@ namespace Maartanic
 							{
 								SendMessage(Level.ERR, "Program was not executable.");
 							}
+							GC.Collect();
 						}
 						break;
 
@@ -846,6 +850,7 @@ namespace Maartanic
 							string output = Program.extendedMode.Instructions(this, ref lineInfo, ref args);
 							if (output != null)
 							{
+								sr.Dispose();
 								return output;
 							}
 						}
@@ -856,7 +861,7 @@ namespace Maartanic
 						break;
 				}
 			}
-			sr.Close(); // Close StreamReader after execution
+			sr.Dispose(); // Close StreamReader after execution
 			return returnedValue;
 		}
 

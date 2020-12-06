@@ -137,14 +137,16 @@ namespace Maartanic
 			{
 				try
 				{
-					Exit(EN.StartExecution(logLevel));
+					string returnVariable = EN.StartExecution(logLevel);
+					EN.sr.Close();
+					EN.sr.Dispose();
+					Exit(returnVariable);
 				}
 				catch (Exception ex)
 				{
 					Console.WriteLine("INTERNAL MRT ERROR: " + ex.ToString());
 				}
 			}
-
 			Exit("0");
 		}
 	}

@@ -14,13 +14,13 @@ internal class EngineMemory
 	internal int Add(string value)
 	{
 		x.Add(value);
-		return x.Count;
+		return Count();
 	}
 
 	// Remove(): Removes a given amount of the memory space
 	internal void Remove(int amount)
 	{
-		x.RemoveRange(x.Count - amount, amount);
+		x.RemoveRange(Count() - amount, amount);
 	}
 
 	// Set(): Sets the space at a given memory address to the given value
@@ -32,7 +32,7 @@ internal class EngineMemory
 	// Exists(): Returns whether or not the index is in bounds
 	internal bool Exists(int index)
 	{
-		return x.Count > index && index >= 0;
+		return Count() > index && index >= 0;
 	}
 
 	// Get(): Gets the data at a given memory address
