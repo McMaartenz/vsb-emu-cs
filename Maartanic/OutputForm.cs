@@ -21,6 +21,9 @@ namespace Maartanic
 			{
 				ShowWindow(form.Handle, SW_RESTORE);
 			}
+			form.SuspendLayout();
+			form.ShowInTaskbar = true;
+			form.ResumeLayout(false);
 		}
 
 		internal OutputForm() {}
@@ -66,6 +69,7 @@ namespace Maartanic
 			{
 				SuspendLayout();
 				WindowState = FormWindowState.Minimized;
+				ShowInTaskbar = false;
 				ResumeLayout(false);
 				StartTimeout();
 			}));
