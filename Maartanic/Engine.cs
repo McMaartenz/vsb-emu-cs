@@ -459,9 +459,7 @@ namespace Maartanic
 								LocalMemoryGet(ref num1IN);
 								sizeIN = args[1];
 							}
-							decimal num1 = Parse<decimal>(num1IN);
-							int size = Parse<int>(sizeIN);
-							string output = Math.Round(num1, size).ToString();
+							string output = Math.Round(Parse<decimal>(num1IN), Parse<int>(sizeIN)).ToString();
 							SetVariable(args[0], ref output);
 						}
 						break;
@@ -470,10 +468,7 @@ namespace Maartanic
 					case "RGBTOHEX": // RGBTOHEX preferred instruction for Maartanic
 						{
 							string varName = args[0];
-							int r = Parse<int>(args[1]);
-							int g = Parse<int>(args[2]);
-							int b = Parse<int>(args[3]);
-							string output = $"{r:X2}{g:X2}{b:X2}";
+							string output = $"{Parse<int>(args[1]):X2}{Parse<int>(args[2]):X2}{Parse<int>(args[3]):X2}";
 							SetVariable(varName, ref output);
 						}
 						break;
@@ -499,10 +494,8 @@ namespace Maartanic
 					case "RAND":
 						{
 							string varName = args[0];
-							int lowerLim = Parse<int>(args[1]);
-							int higherLim = Parse<int>(args[2]);
 							Random generator = new Random();
-							string output = generator.Next(lowerLim, higherLim + 1).ToString();
+							string output = generator.Next(Parse<int>(args[1]), Parse<int>(args[2]) + 1).ToString();
 							SetVariable(varName, ref output);
 						}
 						break;
@@ -532,15 +525,14 @@ namespace Maartanic
 							if (args.Length > 1)
 							{
 								n = Parse<decimal>(args[1]);
-								output = Math.Abs(n).ToString();
 							}
 							else
 							{
 								output = '$' + varName;
 								LocalMemoryGet(ref output);
 								n = Parse<decimal>(output);
-								output = Math.Abs(n).ToString();
 							}
+							output = Math.Abs(n).ToString();
 							SetVariable(varName, ref output);
 						}
 						break;
@@ -572,12 +564,11 @@ namespace Maartanic
 
 					case "KEY":
 						{
-							char key = Parse<char>(args[0]);
 							ConsoleKeyInfo cki;
 							if (Console.KeyAvailable)
 							{
 								cki = Console.ReadKey();
-								keyOutput = cki.KeyChar == key;
+								keyOutput = cki.KeyChar == Parse<char>(args[0]);
 							}
 							else
 							{
@@ -798,44 +789,36 @@ namespace Maartanic
 						break;
 
 					case "ALOC":
+						for (int i = 0; i < Parse<int>(args[0]); i++)
 						{
-							int amount = Parse<int>(args[0]);
-							for (int i = 0; i < amount; i++)
-							{
-								Program.memory.Add("0");
-							}
+							Program.memory.Add("0");
 						}
 						break;
 
 					case "FREE":
+						for (int i = 0; i < Parse<int>(args[0]); i++)
 						{
-							int amount = Parse<int>(args[0]);
-							for (int i = 0; i < amount; i++)
+							if (!Program.memory.Exists(0))
 							{
-								if (!Program.memory.Exists(0))
-								{
-									SendMessage(Level.WRN, "Tried freeing memory that doesn't exist.");
-									continue;
-								}
-								else
-								{
-									Program.memory.Remove(1);
-								}
+								SendMessage(Level.WRN, "Tried freeing memory that doesn't exist.");
+								continue;
+							}
+							else
+							{
+								Program.memory.Remove(1);
 							}
 						}
 						break;
 
 					case "SETM":
 						{
-							int address = Parse<int>(args[0]);
-							SetMemoryAddr(address, args[1]);
+							SetMemoryAddr(Parse<int>(args[0]), args[1]);
 						}
 						break;
 
 					case "GETM":
 						{
-							int address = Parse<int>(args[0]);
-							Program.memory.Get(address, out string output);
+							Program.memory.Get(Parse<int>(args[0]), out string output);
 							SetVariable(args[0], ref output);
 						}
 						break;
@@ -1262,9 +1245,7 @@ namespace Maartanic
 						string index = varName[..varName.IndexOf('.')][1..];
 						LocalMemoryGet(ref variable);
 						LocalMemoryGet(ref index);
-
-						int index_int = Parse<int>(index);
-						varName = variable[index_int].ToString();
+						varName = variable[Parse<int>(index)].ToString();
 					}
 					else
 					{

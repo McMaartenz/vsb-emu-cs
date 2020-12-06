@@ -482,14 +482,7 @@ namespace Maartanic
 
 				case "SCREENLN": // VSB compat
 				case "PLINE": // PLINE [x] [y] [x 1] [y 1] r-r-r-r
-					{
-						float x = Parse<float>(args[0]);
-						float y = Parse<float>(args[1]);
-						float x1 = Parse<float>(args[2]);
-						float y1 = Parse<float>(args[3]);
-
-						Program.graphics.Line(x, y, x1, y1);
-					}
+					Program.graphics.Line(Parse<float>(args[0]), Parse<float>(args[1]), Parse<float>(args[2]), Parse<float>(args[3]));
 					break;
 
 				case "PCOL": // PCOL [Color] r
@@ -517,6 +510,11 @@ namespace Maartanic
 				case "SCREENFILL": // VSB compat
 				case "PFILL": // PFILL [color] r
 					Program.graphics.Fill(Program.HexHTML(args[0]));
+					break;
+
+				case "SCREENPX": // VSB compat
+				case "PPX": // PPX [x] [y] r-r
+					Program.graphics.Pixel(Parse<float>(args[0]), Parse<float>(args[1]));
 					break;
 
 				case "BREAK":
@@ -563,7 +561,7 @@ namespace Maartanic
 					}
 					break;
 
-				case "CONMODE": // CONMODE [hide|show] r //TODO make wiki entry for instruction
+				case "CONMODE": // CONMODE [hide|show] r
 					if (args[0].ToUpper() == "HIDE") // 0: SW_HIDE 5: SW_SHOW
 					{
 						Program.ShowWindow(Program.GetConsoleWindow(), 0);

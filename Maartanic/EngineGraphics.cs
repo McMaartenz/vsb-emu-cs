@@ -5,6 +5,7 @@ namespace Maartanic
 	internal class EngineGraphics
 	{
 		private Pen internalPen;
+		private Brush internalBrush;
 		internal EngineGraphics()
 		{
 			internalPen = new Pen(Color.White, 1.0f);
@@ -44,6 +45,15 @@ namespace Maartanic
 			Initialize();
 			OutputForm.windowGraphics.Clear(color);
 			DisposeGraphics();
+		}
+
+		internal void Pixel(float x, float y)
+		{
+			internalBrush = new SolidBrush(internalPen.Color);
+			Initialize();
+			OutputForm.windowGraphics.FillRectangle(internalBrush, x, y, 1, 1);
+			DisposeGraphics();
+			internalBrush.Dispose();
 		}
 	}
 }
