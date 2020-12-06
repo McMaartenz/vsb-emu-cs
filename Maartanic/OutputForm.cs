@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
+using System.Windows.Input;
 using System.Runtime.InteropServices;
 
 namespace Maartanic
@@ -27,7 +28,7 @@ namespace Maartanic
 			}
 		}
 
-		internal OutputForm() {}
+		internal OutputForm() { }
 
 		internal void StartTimeout()
 		{

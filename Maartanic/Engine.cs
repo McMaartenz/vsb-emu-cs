@@ -2,6 +2,7 @@
 using System.IO;
 using System.Drawing;
 using System.Threading;
+using System.Windows.Input;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -28,7 +29,7 @@ namespace Maartanic
 		private string[] lineInfo;
 
 		private bool compareOutput = false;
-		private bool keyOutput = false;
+		internal bool keyOutput = false;
 		internal string returnedValue = "NULL";
 		internal bool redraw = true;
 
@@ -58,6 +59,12 @@ namespace Maartanic
 			return Program.Parse<T>(input);
 		}
 
+		internal string TestKeyOutput() //FIXNOW This does NOT seem to work for some odd peculiar reason that the .NET core runtime is giving us.
+		{
+			string outp = 'k' + keyOutput.ToString();
+			return outp;
+		}
+
 		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
 		internal void FillPredefinedList()
 		{
@@ -79,7 +86,7 @@ namespace Maartanic
 				{ "tmonth",     () => DateTime.UtcNow.Month.ToString() },
 				{ "tdate",      () => DateTime.UtcNow.Day.ToString() },
 				{ "tdow",       () => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
-				{ "key",        () => keyOutput.ToString() },
+				{ "key",        () => TestKeyOutput() },
 				{ "ret",        () => returnedValue },
 				{ "mx",         () => "0" }, //INFO mouse x and y are not supported
 				{ "my",         () => "0" },
@@ -90,11 +97,10 @@ namespace Maartanic
 			{
 				predefinedVariables.Add(a.Key, a.Value);
 			}
-
 		}
 
 		// Engine(): Class constructor, returns if given file does not exist.
-		internal Engine(string startPos)
+		internal Engine (string startPos)
 		{
 			executable = File.Exists(startPos);
 			if (!executable)
@@ -563,19 +569,8 @@ namespace Maartanic
 						break;
 
 					case "KEY":
-						{
-							//TODO REDO WITH KEYBOARD NAMESPACE System.Windows.Input.Keyboard -> Keyboard.IsKeyDown(System.Windows.Input.Key);
-							ConsoleKeyInfo cki;
-							if (Console.KeyAvailable)
-							{
-								cki = Console.ReadKey();
-								keyOutput = cki.KeyChar == Parse<char>(args[0]);
-							}
-							else
-							{
-								keyOutput = false;
-							}
-						}
+						//TODO REDO WITH KEYBOARD NAMESPACE System.Windows.Input.Keyboard -> Keyboard.IsKeyDown(System.Windows.Input.Key);
+						keyOutput = Program.GetAsyncKeyState((int)VK.ConvertKey(args[0][0])) != 0;
 						break;
 
 					case "HLT":

@@ -20,12 +20,13 @@ namespace Maartanic
 		internal static EngineMemory memory = new EngineMemory();
 		internal static EngineGraphics graphics = new EngineGraphics();
 
-		internal static string[] internalShared = new string[4]
+		internal static string[] internalShared = new string[5]
 		{
 			"TRUE",		// isRunning? Threads should close when this is "FALSE"
 			"NULL",		// Reason isRunning is set to false
 			"FALSE",	// If window is ready to show
-			"FALSE"		// If window process is ready to be interrupted
+			"FALSE",	// If window process is ready to be interrupted
+			"FALSE"			// If EN is initialized properly
 		};
 
 		internal static ExtendedInstructions extendedMode;
@@ -46,6 +47,9 @@ namespace Maartanic
 
 		[DllImport("user32.dll")]
 		internal static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+		[DllImport("user32.dll")]
+		internal static extern int GetAsyncKeyState(int vKeys);
 
 		// Exit(): Exit process
 		internal static void Exit(string value)
@@ -79,8 +83,13 @@ namespace Maartanic
 				}
 				else
 				{
-					Console.WriteLine($"INTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
+					Console.Write($"\nINTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
 				}
+				return default(T);
+			}
+			catch (Exception ex)
+			{
+				Console.Write($"\nINTERNAL MRT ERROR: " + ex);
 				return default(T);
 			}
 		}
@@ -100,6 +109,7 @@ namespace Maartanic
 		}
 
 		// Main(): Entry point
+		[STAThread]
 		public static void Main(string[] args)
 		{			
 			consoleProcess = Thread.CurrentThread; // Current thread
