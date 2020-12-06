@@ -1389,7 +1389,8 @@ namespace Maartanic
 							SendMessage(Level.INF, "Using extended mode");
 
 							bool isAvailable = false;
-							for (int attempts = 1; attempts <= 10; attempts++)
+							byte times = 1;
+							while (!isAvailable)
 							{
 								lock (Program.internalShared.SyncRoot)
 								{
@@ -1397,8 +1398,13 @@ namespace Maartanic
 								}
 								if (!isAvailable)
 								{
-									SendMessage(Level.WRN, "Screen component is unavailable. Attempt nr. " + attempts);
-									Thread.Sleep(80);
+									times++;
+									if (times > 254)
+									{
+										break;
+									}
+									SendMessage(Level.INF, "Screen component is still loading.");
+									Thread.Sleep(4);
 								}
 								else
 								{
@@ -1407,7 +1413,7 @@ namespace Maartanic
 							}
 							if (!isAvailable)
 							{
-								SendMessage(Level.ERR, "Screen component is unavailable. Failed.");
+								SendMessage(Level.ERR, "Screen component took too long to load.");
 							}
 							else
 							{
@@ -1416,7 +1422,23 @@ namespace Maartanic
 									Program.internalShared[2] = "TRUE";
 								}
 								Program.windowProcess.Interrupt();
-								Thread.Sleep(160); //FIXME This should not stay like this due to inconsistent delay it causes, maybe lock check again for "INTOK".
+								bool okToExit = false;
+								times = 1;
+								while (!okToExit)
+								{
+									lock (Program.internalShared.SyncRoot)
+									{
+										okToExit = !Parse<bool>(Program.internalShared[2]);
+									}
+									Thread.Sleep(4);
+									times++;
+									if (times > 254)
+									{
+										SendMessage(Level.ERR, "Screen component did not respond.");
+										break;
+									}
+									SendMessage(Level.INF, "Waiting for screen component response..");
+								}
 							}
 						}
 						break;

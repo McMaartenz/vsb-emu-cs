@@ -2,7 +2,6 @@
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
-using Microsoft.VisualBasic;
 using System.Runtime.InteropServices;
 
 namespace Maartanic
@@ -57,12 +56,12 @@ namespace Maartanic
 			}
 
 			// RESET
+			Restore(this);
+			Program.EN.MinimizeNow += (sender, args) => { Minimize(); };
 			lock (Program.internalShared.SyncRoot)
 			{
 				Program.internalShared[2] = "FALSE";
 			}
-			Restore(this);
-			Program.EN.MinimizeNow += (sender, args) => { Minimize(); };
 		}
 
 		private void Minimize() // Excited moment: event works and can minimize a window again!
