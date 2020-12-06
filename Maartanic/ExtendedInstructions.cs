@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Maartanic
 {
-	internal class ExtendedInstructions : IDisposable
+	internal class ExtendedInstructions
 	{
 		private Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
 		{
@@ -26,7 +26,6 @@ namespace Maartanic
 			{
 				Engine.predefinedVariables.Remove(x.Key);
 			}
-			GC.SuppressFinalize(this);
 		}
 		private static T Parse<T>(string input)
 		{
@@ -107,7 +106,6 @@ namespace Maartanic
 								e.StatementJumpOut("ENDF", "FOR");
 							}
 						}
-						GC.Collect();
 					}
 					else
 					{
@@ -169,7 +167,6 @@ namespace Maartanic
 							}
 							e.StatementJumpOut("ENDF", "FOR");
 						}
-						GC.Collect();
 					}
 					break;
 
@@ -224,7 +221,6 @@ namespace Maartanic
 								e.StatementJumpOut("ENDW", "WHILE");
 							}
 						}
-						GC.Collect();
 						break;
 
 					}
@@ -269,7 +265,6 @@ namespace Maartanic
 										{
 											e.SendMessage(Engine.Level.INF, "Return statement");
 											string returned = whileEngine.returnedValue;
-											GC.Collect();
 											return returned;
 										}
 									}
@@ -301,7 +296,6 @@ namespace Maartanic
 							}
 							e.StatementJumpOut("ENDW", "WHILE");
 						}
-						GC.Collect();
 					}
 					break;
 
@@ -356,7 +350,6 @@ namespace Maartanic
 							}
 						}
 						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
-						GC.Collect();
 					}
 					else
 					{
@@ -397,7 +390,6 @@ namespace Maartanic
 
 									e.SendMessage(Engine.Level.INF, "Return statement");
 									string returned = whileEngine.returnedValue;
-									GC.Collect();
 									return returned;
 								}
 							}
@@ -428,7 +420,6 @@ namespace Maartanic
 								e.returnedValue = whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('&') + 1)..];
 							}
 						}
-						GC.Collect();
 					}
 					break;
 

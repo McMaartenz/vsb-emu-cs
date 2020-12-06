@@ -661,7 +661,6 @@ namespace Maartanic
 							{
 								SendMessage(Level.ERR, "Program was not executable.");
 							}
-							GC.Collect();
 						}
 						break;
 
