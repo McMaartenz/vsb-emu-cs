@@ -223,6 +223,7 @@ namespace Maartanic
 					if (Program.internalShared[0] == "FALSE")
 					{
 						SendMessage(Level.ERR, $"Internal process has to close due to {Program.internalShared[1]}.");
+						OutputForm.app.Dispose();
 						sr.Dispose();
 						Program.Exit("1");
 					}

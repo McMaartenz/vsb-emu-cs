@@ -99,6 +99,7 @@ namespace Maartanic
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
 			this.Name = "OutputForm";
+			this.ShowInTaskbar = false;
 			this.Text = "Maartanic Engine Display";
 			this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
 			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.OutputForm_FormClosing);
