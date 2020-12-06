@@ -110,7 +110,7 @@ namespace Maartanic
 				inputWindow.Controls.AddRange(new Control[] { inputWindowLabel, inputWindowTextBox, inputWindowOK, inputWindowCANCEL });
 				inputWindow.ClientSize = new Size(Math.Max(300, inputWindowLabel.Right + 10), inputWindow.ClientSize.Height);
 				inputWindow.FormBorderStyle = FormBorderStyle.FixedDialog;
-				inputWindow.StartPosition = FormStartPosition.CenterParent; //TODO make center on windowProcess
+				inputWindow.StartPosition = FormStartPosition.CenterParent;
 				inputWindow.MinimizeBox = false;
 				inputWindow.MaximizeBox = false;
 				inputWindow.AcceptButton = inputWindowOK;
