@@ -81,8 +81,8 @@ namespace Maartanic
 				{ "tdow",       () => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
 				{ "key",        () => keyOutput.ToString() },
 				{ "ret",        () => returnedValue },
-				{ "mx",         () => OutputForm.app.GetMouseX().ToString() }, //INFO mouse x and y are not supported, YET! Implement with Form's cursor library?
-				{ "my",         () => OutputForm.app.GetMouseY().ToString() },
+				{ "mx",         () => OutputForm.app.GetMouseX(this).ToString() }, //INFO mouse x and y are not supported, YET! Implement with Form's cursor library?
+				{ "my",         () => OutputForm.app.GetMouseY(this).ToString() },
 				{ "redraw",     () => redraw.ToString() }
 			};
 		}

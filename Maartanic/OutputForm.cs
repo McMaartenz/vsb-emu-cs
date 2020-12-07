@@ -144,23 +144,37 @@ namespace Maartanic
 		}
 
 		// System.Drawing.Point
-		internal int GetMouseX() 
+		internal int GetMouseX(Engine e) 
 		{
 			int ret = 0;
-			Invoke(new Action(() => //TODO check if Program.applicationMode is extended SAME FOR GetMouseY()
+			if (Program.applicationMode == Engine.Mode.EXTENDED)
 			{
-				ret = MakeInRange(PointToClient(Cursor.Position).X, 0, Program.WIN_WIDTH);
-			}));
+				Invoke(new Action(() => //TODO check if Program.applicationMode is extended SAME FOR GetMouseY()
+				{
+					ret = MakeInRange(PointToClient(Cursor.Position).X, 0, Program.WIN_WIDTH);
+				}));
+			}
+			else
+			{
+				e.SendMessage(Engine.Level.ERR, "Attempted to access mouse X position outside of extended mode.");
+			}
 			return ret;
 		}
 
-		internal int GetMouseY()
+		internal int GetMouseY(Engine e)
 		{
 			int ret = 0;
-			Invoke(new Action(() =>
+			if (Program.applicationMode == Engine.Mode.EXTENDED)
 			{
-				ret = MakeInRange(PointToClient(Cursor.Position).Y, 0, Program.WIN_HEIGHT);
-			}));
+				Invoke(new Action(() =>
+				{
+					ret = MakeInRange(PointToClient(Cursor.Position).Y, 0, Program.WIN_HEIGHT);
+				}));
+			}
+			else
+			{
+				e.SendMessage(Engine.Level.ERR, "Attempted to access mouse Y position outside of extended mode.");
+			}
 			return ret;
 		}
 
