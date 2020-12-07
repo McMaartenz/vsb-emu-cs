@@ -2,11 +2,12 @@
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
+using System.Windows.Input;
 using System.Runtime.InteropServices;
 
 namespace Maartanic
 {
-	public class OutputForm : Form
+	internal class OutputForm : Form
 	{
 		internal static OutputForm app;
 		internal static Graphics windowGraphics;
@@ -17,13 +18,17 @@ namespace Maartanic
 		private const uint SW_RESTORE = 0x09;
 		internal static void Restore(Form form)
 		{
+			form.SuspendLayout();
+			form.ShowInTaskbar = true;
+			form.FormBorderStyle = FormBorderStyle.FixedSingle;
+			form.ResumeLayout(false);
 			if (form.WindowState == FormWindowState.Minimized)
 			{
 				ShowWindow(form.Handle, SW_RESTORE);
 			}
 		}
 
-		public OutputForm() {}
+		internal OutputForm() { }
 
 		internal void StartTimeout()
 		{
@@ -52,27 +57,81 @@ namespace Maartanic
 			}
 
 			// RESET
+			Restore(this);
+			Program.EN.MinimizeNow += (sender, args) => { Minimize(); };
 			lock (Program.internalShared.SyncRoot)
 			{
 				Program.internalShared[2] = "FALSE";
 			}
-			Restore(this);
-			Program.EN.ThrowEvent += (sender, args) => { DoSomething(); };
 		}
 
-		private void DoSomething() // Excited moment: event works and can minimize a window again!
+		private void Minimize() // Excited moment: event works and can minimize a window again!
 		{
 			BeginInvoke(new Action(() =>// Invoke code onto the windowProcess thread
 			{
 				SuspendLayout();
 				WindowState = FormWindowState.Minimized;
+				ShowInTaskbar = false;
+				FormBorderStyle = FormBorderStyle.FixedToolWindow;
 				ResumeLayout(false);
 				StartTimeout();
 			}));
 		}
 
+		internal static string output;
+
+		internal string AskInput()
+		{
+			output = "error";
+			Invoke(new Action(() =>
+			{
+				Form inputWindow = new Form();
+				Label inputWindowLabel = new Label();
+				TextBox inputWindowTextBox = new TextBox();
+				Button inputWindowOK = new Button();
+				Button inputWindowCANCEL = new Button();
+
+				inputWindow.Text = "User input required";
+				inputWindowLabel.Text = "This program is asking for user input:";
+				inputWindowTextBox.PlaceholderText = "Enter text..";
+				inputWindowOK.Text = "OK";
+				inputWindowCANCEL.Text = "Cancel";
+				inputWindowOK.DialogResult = DialogResult.OK;
+				inputWindowCANCEL.DialogResult = DialogResult.Cancel;
+				inputWindowLabel.SetBounds(9, 10, 372, 13);
+				inputWindowTextBox.SetBounds(12, 36, 372, 20);
+				inputWindowOK.SetBounds(228, 72, 75, 23);
+				inputWindowCANCEL.SetBounds(309, 72, 75, 23);
+				inputWindowLabel.AutoSize = true;
+				inputWindowTextBox.Anchor = inputWindowTextBox.Anchor | AnchorStyles.Right;
+				inputWindowOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+				inputWindowCANCEL.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+				inputWindow.ClientSize = new Size(396, 107);
+				inputWindow.Controls.AddRange(new Control[] { inputWindowLabel, inputWindowTextBox, inputWindowOK, inputWindowCANCEL });
+				inputWindow.ClientSize = new Size(Math.Max(300, inputWindowLabel.Right + 10), inputWindow.ClientSize.Height);
+				inputWindow.FormBorderStyle = FormBorderStyle.FixedDialog;
+				inputWindow.StartPosition = FormStartPosition.CenterParent;
+				inputWindow.MinimizeBox = false;
+				inputWindow.MaximizeBox = false;
+				inputWindow.AcceptButton = inputWindowOK;
+				inputWindow.CancelButton = inputWindowCANCEL;
+
+				if (inputWindow.ShowDialog() == DialogResult.OK)
+				{
+					output = inputWindowTextBox.Text;
+				}
+				else
+				{
+					output = "ERROR";
+				}	
+				inputWindow.Dispose();
+
+			}));
+			return output;
+		}
+
 		[STAThread]
-		public static void Main()
+		internal static void Main()
 		{
 			Application.EnableVisualStyles();
 			app = new OutputForm();
@@ -94,10 +153,11 @@ namespace Maartanic
 			this.BackColor = System.Drawing.Color.Black;
 			this.ClientSize = new System.Drawing.Size(480, 360);
 			this.ForeColor = System.Drawing.Color.Black;
-			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
 			this.Name = "OutputForm";
+			this.ShowInTaskbar = false;
 			this.Text = "Maartanic Engine Display";
 			this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
 			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.OutputForm_FormClosing);

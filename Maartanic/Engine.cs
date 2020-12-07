@@ -13,8 +13,8 @@ namespace Maartanic
 	class Engine
 	{
 		internal delegate void EventHandler(object sender, EventArgs args);
-		internal event EventHandler ThrowEvent = delegate { };
-		internal void SomethingHappened() => ThrowEvent(this, new EventArgs());
+		internal event EventHandler MinimizeNow = delegate { };
+		internal void MinimizeWindow() => MinimizeNow(this, new EventArgs());
 
 		internal StreamReader sr;
 		private int logLevel;
@@ -28,14 +28,14 @@ namespace Maartanic
 		private string[] lineInfo;
 
 		private bool compareOutput = false;
-		private bool keyOutput = false;
+		internal static bool keyOutput;
 		internal string returnedValue = "NULL";
 		internal bool redraw = true;
 
 		//internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
 		private DateTime startTime = DateTime.UtcNow;
 
-		private Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
+		internal static Dictionary<string, Func<string>> predefinedVariables;
 		internal Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
 		// Level: Used in SendMessage method to indicate the message level as info, warning or error.
@@ -59,9 +59,9 @@ namespace Maartanic
 		}
 
 		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
-		private void FillPredefinedList()
+		internal void FillPredefinedList()
 		{
-			Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
+			predefinedVariables = new Dictionary<string, Func<string>>()
 			{
 				{ "ww",         () => Console.WindowWidth.ToString() },
 				{ "wh",         () => Console.WindowHeight.ToString() },
@@ -69,7 +69,7 @@ namespace Maartanic
 				{ "projtime",   () => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
 				{ "projid",     () => "0" },
 				{ "user",       () => "*guest" },
-				{ "ver",        () => "1.3" },
+				{ "ver",        () => "1.3" }, // VSB version not Maartanic Engine version
 				{ "ask",        () => Console.ReadLine() },
 				{ "graphics",   () => (Program.applicationMode == Mode.EXTENDED).ToString().ToLower() },
 				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
@@ -81,34 +81,29 @@ namespace Maartanic
 				{ "tdow",       () => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
 				{ "key",        () => keyOutput.ToString() },
 				{ "ret",        () => returnedValue },
-				{ "mx",         () => "0" }, //INFO mouse x and y are not supported
+				{ "mx",         () => "0" }, //INFO mouse x and y are not supported, YET! Implement with Form's cursor library?
 				{ "my",         () => "0" },
 				{ "redraw",     () => redraw.ToString() }
 			};
-
-			foreach (KeyValuePair<string, Func<string>> a in toBeAdded)
-			{
-				predefinedVariables.Add(a.Key, a.Value);
-			}
-
 		}
 
 		// Engine(): Class constructor, returns if given file does not exist.
-		public Engine(string startPos)
+		internal Engine (string startPos)
 		{
+			keyOutput = false;
 			executable = File.Exists(startPos);
 			if (!executable)
 			{
 				Console.WriteLine($"The file {startPos} does not exist.");
 				return;
 			}
-			FillPredefinedList();
 			scriptFile = startPos;
 		}
 
 		// Engine() OVERLOADED: Specify your entry point
-		public Engine(string startPos, string customEntryPoint)
+		internal Engine(string startPos, string customEntryPoint)
 		{
+			keyOutput = false;
 			entryPoint = customEntryPoint; // default is main
 			executable = File.Exists(startPos);
 			if (!executable)
@@ -121,7 +116,7 @@ namespace Maartanic
 		}
 
 		// Executable(): Returns whether or not it is ready to be executed based on Engine()'s result.
-		public bool Executable()
+		internal bool Executable()
 		{
 			return executable;
 		}
@@ -163,7 +158,7 @@ namespace Maartanic
 		}
 
 		// LineCheck(): Splits the text into an array for further operations.
-		public bool LineCheck(ref string[] lineInfo, ref int lineIndex, bool disable = false)
+		internal bool LineCheck(ref string[] lineInfo, ref int lineIndex, bool disable = false)
 		{
 			if (line == null)
 			{
@@ -202,7 +197,7 @@ namespace Maartanic
 		}
 
 		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
-		public string StartExecution(int logLevelIN, bool jump = false, int jumpLine = 0)
+		internal string StartExecution(int logLevelIN, bool jump = false, int jumpLine = 0)
 		{
 			logLevel = logLevelIN;
 			lineIndex = 0;
@@ -223,6 +218,8 @@ namespace Maartanic
 					if (Program.internalShared[0] == "FALSE")
 					{
 						SendMessage(Level.ERR, $"Internal process has to close due to {Program.internalShared[1]}.");
+						OutputForm.app.Dispose();
+						sr.Dispose();
 						Program.Exit("1");
 					}
 				}
@@ -359,6 +356,7 @@ namespace Maartanic
 										scope--;
 									}
 								}
+								ifsr.Dispose();
 								if (success)
 								{
 									for (int i = lineIndex; i < ifLineIndex; i++)
@@ -457,9 +455,7 @@ namespace Maartanic
 								LocalMemoryGet(ref num1IN);
 								sizeIN = args[1];
 							}
-							decimal num1 = Parse<decimal>(num1IN);
-							int size = Parse<int>(sizeIN);
-							string output = Math.Round(num1, size).ToString();
+							string output = Math.Round(Parse<decimal>(num1IN), Parse<int>(sizeIN)).ToString();
 							SetVariable(args[0], ref output);
 						}
 						break;
@@ -468,10 +464,7 @@ namespace Maartanic
 					case "RGBTOHEX": // RGBTOHEX preferred instruction for Maartanic
 						{
 							string varName = args[0];
-							int r = Parse<int>(args[1]);
-							int g = Parse<int>(args[2]);
-							int b = Parse<int>(args[3]);
-							string output = $"{r:X2}{g:X2}{b:X2}";
+							string output = $"{Parse<int>(args[1]):X2}{Parse<int>(args[2]):X2}{Parse<int>(args[3]):X2}";
 							SetVariable(varName, ref output);
 						}
 						break;
@@ -497,10 +490,8 @@ namespace Maartanic
 					case "RAND":
 						{
 							string varName = args[0];
-							int lowerLim = Parse<int>(args[1]);
-							int higherLim = Parse<int>(args[2]);
 							Random generator = new Random();
-							string output = generator.Next(lowerLim, higherLim + 1).ToString();
+							string output = generator.Next(Parse<int>(args[1]), Parse<int>(args[2]) + 1).ToString();
 							SetVariable(varName, ref output);
 						}
 						break;
@@ -530,15 +521,14 @@ namespace Maartanic
 							if (args.Length > 1)
 							{
 								n = Parse<decimal>(args[1]);
-								output = Math.Abs(n).ToString();
 							}
 							else
 							{
 								output = '$' + varName;
 								LocalMemoryGet(ref output);
 								n = Parse<decimal>(output);
-								output = Math.Abs(n).ToString();
 							}
+							output = Math.Abs(n).ToString();
 							SetVariable(varName, ref output);
 						}
 						break;
@@ -569,23 +559,13 @@ namespace Maartanic
 						break;
 
 					case "KEY":
-						{
-							char key = Parse<char>(args[0]);
-							ConsoleKeyInfo cki;
-							if (Console.KeyAvailable)
-							{
-								cki = Console.ReadKey();
-								keyOutput = cki.KeyChar == key;
-							}
-							else
-							{
-								keyOutput = false;
-							}
-						}
+						//TODO REDO WITH KEYBOARD NAMESPACE System.Windows.Input.Keyboard -> Keyboard.IsKeyDown(System.Windows.Input.Key);
+						keyOutput = Program.GetAsyncKeyState((int)VK.ConvertKey(args[0][0])) != 0;
 						break;
 
 					case "HLT":
 						SendMessage(Level.INF, "HLT");
+						sr.Dispose();
 						Program.Exit("2");
 						break; //INFO Unreachable code but IDE complains for some reason
 
@@ -794,44 +774,36 @@ namespace Maartanic
 						break;
 
 					case "ALOC":
+						for (int i = 0; i < Parse<int>(args[0]); i++)
 						{
-							int amount = Parse<int>(args[0]);
-							for (int i = 0; i < amount; i++)
-							{
-								Program.memory.Add("0");
-							}
+							Program.memory.Add("0");
 						}
 						break;
 
 					case "FREE":
+						for (int i = 0; i < Parse<int>(args[0]); i++)
 						{
-							int amount = Parse<int>(args[0]);
-							for (int i = 0; i < amount; i++)
+							if (!Program.memory.Exists(0))
 							{
-								if (!Program.memory.Exists(0))
-								{
-									SendMessage(Level.WRN, "Tried freeing memory that doesn't exist.");
-									continue;
-								}
-								else
-								{
-									Program.memory.Remove(1);
-								}
+								SendMessage(Level.WRN, "Tried freeing memory that doesn't exist.");
+								continue;
+							}
+							else
+							{
+								Program.memory.Remove(1);
 							}
 						}
 						break;
 
 					case "SETM":
 						{
-							int address = Parse<int>(args[0]);
-							SetMemoryAddr(address, args[1]);
+							SetMemoryAddr(Parse<int>(args[0]), args[1]);
 						}
 						break;
 
 					case "GETM":
 						{
-							int address = Parse<int>(args[0]);
-							Program.memory.Get(address, out string output);
+							Program.memory.Get(Parse<int>(args[0]), out string output);
 							SetVariable(args[0], ref output);
 						}
 						break;
@@ -846,6 +818,7 @@ namespace Maartanic
 							string output = Program.extendedMode.Instructions(this, ref lineInfo, ref args);
 							if (output != null)
 							{
+								sr.Dispose();
 								return output;
 							}
 						}
@@ -856,7 +829,7 @@ namespace Maartanic
 						break;
 				}
 			}
-			sr.Close(); // Close StreamReader after execution
+			sr.Dispose(); // Close StreamReader after execution
 			return returnedValue;
 		}
 
@@ -1220,8 +1193,8 @@ namespace Maartanic
 				if (varName[1] == '_')
 				{
 					if (predefinedVariables.ContainsKey(varName[2..]))
-					{
-						varName = (string)predefinedVariables[varName[2..]].DynamicInvoke();
+					{ //BUG keyOutput reset itself, maybe others do as well, maybe do not use INVOKE()?
+						varName = predefinedVariables[varName[2..]]();
 					}
 				}
 				else if (localMemory.ContainsKey(varName[1..]))
@@ -1257,9 +1230,7 @@ namespace Maartanic
 						string index = varName[..varName.IndexOf('.')][1..];
 						LocalMemoryGet(ref variable);
 						LocalMemoryGet(ref index);
-
-						int index_int = Parse<int>(index);
-						varName = variable[index_int].ToString();
+						varName = variable[Parse<int>(index)].ToString();
 					}
 					else
 					{
@@ -1390,9 +1361,9 @@ namespace Maartanic
 							Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
 							Program.applicationMode = Mode.VSB;
 							SendMessage(Level.INF, "Using compat mode");
-
-							SomethingHappened();
+							MinimizeWindow();
 						}
+						Program.ShowWindow(Program.GetConsoleWindow(), 5);
 						break;
 
 					case "extended":
@@ -1403,7 +1374,8 @@ namespace Maartanic
 							SendMessage(Level.INF, "Using extended mode");
 
 							bool isAvailable = false;
-							for (int attempts = 1; attempts <= 10; attempts++)
+							byte times = 1;
+							while (!isAvailable)
 							{
 								lock (Program.internalShared.SyncRoot)
 								{
@@ -1411,8 +1383,13 @@ namespace Maartanic
 								}
 								if (!isAvailable)
 								{
-									SendMessage(Level.WRN, "Screen component is unavailable. Attempt nr. " + attempts);
-									Thread.Sleep(80);
+									times++;
+									if (times > 254)
+									{
+										break;
+									}
+									SendMessage(Level.INF, "Screen component is still loading.");
+									Thread.Sleep(4);
 								}
 								else
 								{
@@ -1421,7 +1398,7 @@ namespace Maartanic
 							}
 							if (!isAvailable)
 							{
-								SendMessage(Level.ERR, "Screen component is unavailable. Failed.");
+								SendMessage(Level.ERR, "Screen component took too long to load.");
 							}
 							else
 							{
@@ -1430,7 +1407,23 @@ namespace Maartanic
 									Program.internalShared[2] = "TRUE";
 								}
 								Program.windowProcess.Interrupt();
-								Thread.Sleep(160); //FIXME This should not stay like this due to inconsistent delay it causes, maybe lock check again for "INTOK".
+								bool okToExit = false;
+								times = 1;
+								while (!okToExit)
+								{
+									lock (Program.internalShared.SyncRoot)
+									{
+										okToExit = !Parse<bool>(Program.internalShared[2]);
+									}
+									Thread.Sleep(4);
+									times++;
+									if (times > 254)
+									{
+										SendMessage(Level.ERR, "Screen component did not respond.");
+										break;
+									}
+									SendMessage(Level.INF, "Waiting for screen component response..");
+								}
 							}
 						}
 						break;

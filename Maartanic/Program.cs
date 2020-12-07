@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Threading;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Maartanic
 {
@@ -10,6 +11,7 @@ namespace Maartanic
 		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception.
 		//BUG VSB Compatibility layer for graphics using extended mode.
 		//IDEA probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
+		//ISSUE Keystrokes not detected when done in window
 
 		internal const float VERSION = 1.0f;
 
@@ -18,12 +20,13 @@ namespace Maartanic
 		internal static EngineMemory memory = new EngineMemory();
 		internal static EngineGraphics graphics = new EngineGraphics();
 
-		internal static string[] internalShared = new string[4]
+		internal static string[] internalShared = new string[5]
 		{
 			"TRUE",		// isRunning? Threads should close when this is "FALSE"
 			"NULL",		// Reason isRunning is set to false
 			"FALSE",	// If window is ready to show
-			"FALSE"		// If window process is ready to be interrupted
+			"FALSE",	// If window process is ready to be interrupted
+			"FALSE"			// If EN is initialized properly
 		};
 
 		internal static ExtendedInstructions extendedMode;
@@ -37,6 +40,16 @@ namespace Maartanic
 
 		internal static byte logLevel;
 		internal static Engine EN;
+
+		// P/Invoke
+		[DllImport("kernel32.dll")]
+		internal static extern IntPtr GetConsoleWindow();
+
+		[DllImport("user32.dll")]
+		internal static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+		[DllImport("user32.dll")]
+		internal static extern int GetAsyncKeyState(int vKeys);
 
 		// Exit(): Exit process
 		internal static void Exit(string value)
@@ -56,7 +69,7 @@ namespace Maartanic
 			Environment.Exit(0);
 		}
 
-		public static T Parse<T> (string input)
+		internal static T Parse<T> (string input)
 		{
 			try
 			{
@@ -70,13 +83,18 @@ namespace Maartanic
 				}
 				else
 				{
-					Console.WriteLine($"INTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
+					Console.Write($"\nINTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
 				}
+				return default(T);
+			}
+			catch (Exception ex)
+			{
+				Console.Write($"\nINTERNAL MRT ERROR: " + ex);
 				return default(T);
 			}
 		}
 
-		public static Color HexHTML (string input)
+		internal static Color HexHTML (string input)
 		{
 			input = (input[0] == '#' ? input : '#' + input).Trim();
 			try
@@ -91,6 +109,7 @@ namespace Maartanic
 		}
 
 		// Main(): Entry point
+		[STAThread]
 		public static void Main(string[] args)
 		{			
 			consoleProcess = Thread.CurrentThread; // Current thread
@@ -108,7 +127,7 @@ namespace Maartanic
 
 			Console.Title = $"Maartanic Engine {VERSION}";
 
-			Console.WriteLine("Maartanic Engine {0} (no-gui VSB Engine Emulator on C#)\n", VERSION);
+			Console.WriteLine("Maartanic Engine {0} (partial-gui VSB Engine Emulator on C#)\n", VERSION);
 			if (args.Length == 0)
 			{
 				Console.WriteLine("Usage: mrt [..file]\n"
@@ -116,7 +135,7 @@ namespace Maartanic
 				char ans = Console.ReadLine()[0];
 				if (ans != 'y')
 				{
-					return;
+					Exit("0");
 				}
 				args = new string[] { "autorun.mrt" };
 			}
@@ -131,19 +150,21 @@ namespace Maartanic
 			// Clear buffer
 			Console.Clear();
 			EN = new Engine(args[0]);
-
+			EN.FillPredefinedList();
 			if (EN.Executable())
 			{
 				try
 				{
-					Exit(EN.StartExecution(logLevel));
+					string returnVariable = EN.StartExecution(logLevel);
+					EN.sr.Close();
+					EN.sr.Dispose();
+					Exit(returnVariable);
 				}
 				catch (Exception ex)
 				{
-					Console.WriteLine("INTERNAL MRT ERROR: " + ex.ToString());
+					Console.Write("\nINTERNAL MRT ERROR: " + ex.ToString());
 				}
 			}
-
 			Exit("0");
 		}
 	}

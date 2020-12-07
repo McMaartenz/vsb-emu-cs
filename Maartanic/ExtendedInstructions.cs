@@ -1,13 +1,33 @@
 ﻿using System;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace Maartanic
 {
-	public class ExtendedInstructions : IDisposable
+	internal class ExtendedInstructions
 	{
+		internal static object keyDown;
+
+		private Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
+		{
+			{ "pask", () => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
+			{ "pkey", () => {lock(keyDown) { return (string)keyDown; } } }
+		};
+
+		internal ExtendedInstructions()
+		{
+			foreach (KeyValuePair<string, Func<string>> x in toBeAdded) // extend predefined variables
+			{
+				Engine.predefinedVariables.Add(x.Key, x.Value);
+			}
+		}
+
 		public void Dispose() // Garbage collect it when switching to compat (VSB)
 		{
-			GC.SuppressFinalize(this);
+			foreach (KeyValuePair<string, Func<string>> x in toBeAdded)
+			{
+				Engine.predefinedVariables.Remove(x.Key);
+			}
 		}
 		private static T Parse<T>(string input)
 		{
@@ -246,7 +266,8 @@ namespace Maartanic
 										else
 										{
 											e.SendMessage(Engine.Level.INF, "Return statement");
-											return whileEngine.returnedValue;
+											string returned = whileEngine.returnedValue;
+											return returned;
 										}
 									}
 								}
@@ -331,7 +352,6 @@ namespace Maartanic
 							}
 						}
 						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
-
 					}
 					else
 					{
@@ -371,7 +391,8 @@ namespace Maartanic
 									}
 
 									e.SendMessage(Engine.Level.INF, "Return statement");
-									return whileEngine.returnedValue;
+									string returned = whileEngine.returnedValue;
+									return returned;
 								}
 							}
 							else
@@ -454,14 +475,7 @@ namespace Maartanic
 
 				case "SCREENLN": // VSB compat
 				case "PLINE": // PLINE [x] [y] [x 1] [y 1] r-r-r-r
-					{
-						float x = Parse<float>(args[0]);
-						float y = Parse<float>(args[1]);
-						float x1 = Parse<float>(args[2]);
-						float y1 = Parse<float>(args[3]);
-
-						Program.graphics.Line(x, y, x1, y1);
-					}
+					Program.graphics.Line(Parse<float>(args[0]), Parse<float>(args[1]), Parse<float>(args[2]), Parse<float>(args[3]));
 					break;
 
 				case "PCOL": // PCOL [Color] r
@@ -491,6 +505,11 @@ namespace Maartanic
 					Program.graphics.Fill(Program.HexHTML(args[0]));
 					break;
 
+				case "SCREENPX": // VSB compat
+				case "PPX": // PPX [x] [y] r-r
+					Program.graphics.Pixel(Parse<float>(args[0]), Parse<float>(args[1]));
+					break;
+
 				case "BREAK":
 					return "3&" + e.returnedValue;
 
@@ -498,6 +517,52 @@ namespace Maartanic
 					return "4&" + e.returnedValue;
 
 				case "NOP": // NO OPERATION
+					break;
+
+				case "TOBIN": // TOBIN [variable] [integer] r-o
+					{
+						int value;
+						if (args.Length > 1)
+						{
+							value = Parse<int>(args[1]);
+						}
+						else
+						{
+							string varName = '$' + args[0];
+							e.LocalMemoryGet(ref varName);
+							value = Parse<int>(varName);
+						}
+						string binary = Convert.ToString(value, 2);
+						e.SetVariable(args[0], ref binary);
+					}
+					break;
+
+				case "BINTOINT": // BINTOINT [variable] [integer] r-o
+					{
+						string value;
+						if (args.Length > 1)
+						{
+							value = args[1];
+						}
+						else
+						{
+							value = '$' + args[0];
+							e.LocalMemoryGet(ref value);
+						}
+						value = Convert.ToInt32(value, 2).ToString();
+						e.SetVariable(args[0], ref value);
+					}
+					break;
+
+				case "CONMODE": // CONMODE [hide|show] r
+					if (args[0].ToUpper() == "HIDE") // 0: SW_HIDE 5: SW_SHOW
+					{
+						Program.ShowWindow(Program.GetConsoleWindow(), 0);
+					}
+					else
+					{
+						Program.ShowWindow(Program.GetConsoleWindow(), 5);
+					}
 					break;
 
 				default:
