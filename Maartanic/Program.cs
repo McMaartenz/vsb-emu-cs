@@ -11,6 +11,7 @@ namespace Maartanic
 		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception.
 		//BUG VSB Compatibility layer for graphics using extended mode.
 		//IDEA probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
+		//TODO Add single value for WHILE, FOR, DOWHILE: Just entering TRUE or FALSE. + Support for method true/false instead of compare instruction.
 
 		internal const float VERSION = 1.0f;
 
