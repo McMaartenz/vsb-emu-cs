@@ -2,7 +2,6 @@
 using System.IO;
 using System.Drawing;
 using System.Threading;
-using System.Windows.Input;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -29,14 +28,14 @@ namespace Maartanic
 		private string[] lineInfo;
 
 		private bool compareOutput = false;
-		internal bool keyOutput = false;
+		internal static bool keyOutput;
 		internal string returnedValue = "NULL";
 		internal bool redraw = true;
 
 		//internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
 		private DateTime startTime = DateTime.UtcNow;
 
-		internal static Dictionary<string, Delegate> predefinedVariables = new Dictionary<string, Delegate>();
+		internal static Dictionary<string, Func<string>> predefinedVariables;
 		internal Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
 		// Level: Used in SendMessage method to indicate the message level as info, warning or error.
@@ -59,16 +58,10 @@ namespace Maartanic
 			return Program.Parse<T>(input);
 		}
 
-		internal string TestKeyOutput() //FIXNOW This does NOT seem to work for some odd peculiar reason that the .NET core runtime is giving us.
-		{
-			string outp = 'k' + keyOutput.ToString();
-			return outp;
-		}
-
 		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
 		internal void FillPredefinedList()
 		{
-			Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
+			predefinedVariables = new Dictionary<string, Func<string>>()
 			{
 				{ "ww",         () => Console.WindowWidth.ToString() },
 				{ "wh",         () => Console.WindowHeight.ToString() },
@@ -76,7 +69,7 @@ namespace Maartanic
 				{ "projtime",   () => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
 				{ "projid",     () => "0" },
 				{ "user",       () => "*guest" },
-				{ "ver",        () => "1.3" },
+				{ "ver",        () => "1.3" }, // VSB version not Maartanic Engine version
 				{ "ask",        () => Console.ReadLine() },
 				{ "graphics",   () => (Program.applicationMode == Mode.EXTENDED).ToString().ToLower() },
 				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
@@ -86,22 +79,18 @@ namespace Maartanic
 				{ "tmonth",     () => DateTime.UtcNow.Month.ToString() },
 				{ "tdate",      () => DateTime.UtcNow.Day.ToString() },
 				{ "tdow",       () => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
-				{ "key",        () => TestKeyOutput() },
+				{ "key",        () => keyOutput.ToString() },
 				{ "ret",        () => returnedValue },
-				{ "mx",         () => "0" }, //INFO mouse x and y are not supported
+				{ "mx",         () => "0" }, //INFO mouse x and y are not supported, YET! Implement with Form's cursor library?
 				{ "my",         () => "0" },
 				{ "redraw",     () => redraw.ToString() }
 			};
-
-			foreach (KeyValuePair<string, Func<string>> a in toBeAdded)
-			{
-				predefinedVariables.Add(a.Key, a.Value);
-			}
 		}
 
 		// Engine(): Class constructor, returns if given file does not exist.
 		internal Engine (string startPos)
 		{
+			keyOutput = false;
 			executable = File.Exists(startPos);
 			if (!executable)
 			{
@@ -114,6 +103,7 @@ namespace Maartanic
 		// Engine() OVERLOADED: Specify your entry point
 		internal Engine(string startPos, string customEntryPoint)
 		{
+			keyOutput = false;
 			entryPoint = customEntryPoint; // default is main
 			executable = File.Exists(startPos);
 			if (!executable)
@@ -1203,8 +1193,8 @@ namespace Maartanic
 				if (varName[1] == '_')
 				{
 					if (predefinedVariables.ContainsKey(varName[2..]))
-					{
-						varName = (string)predefinedVariables[varName[2..]].DynamicInvoke();
+					{ //BUG keyOutput reset itself, maybe others do as well, maybe do not use INVOKE()?
+						varName = predefinedVariables[varName[2..]]();
 					}
 				}
 				else if (localMemory.ContainsKey(varName[1..]))

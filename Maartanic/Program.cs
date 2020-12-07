@@ -127,7 +127,7 @@ namespace Maartanic
 
 			Console.Title = $"Maartanic Engine {VERSION}";
 
-			Console.WriteLine("Maartanic Engine {0} (no-gui VSB Engine Emulator on C#)\n", VERSION);
+			Console.WriteLine("Maartanic Engine {0} (partial-gui VSB Engine Emulator on C#)\n", VERSION);
 			if (args.Length == 0)
 			{
 				Console.WriteLine("Usage: mrt [..file]\n"
@@ -135,7 +135,7 @@ namespace Maartanic
 				char ans = Console.ReadLine()[0];
 				if (ans != 'y')
 				{
-					return;
+					Exit("0");
 				}
 				args = new string[] { "autorun.mrt" };
 			}
