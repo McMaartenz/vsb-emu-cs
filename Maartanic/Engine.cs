@@ -1192,6 +1192,7 @@ namespace Maartanic
 				if (varName[1] == '_')
 				{
 					if (predefinedVariables.ContainsKey(varName[2..]))
+					{
 						varName = predefinedVariables[varName[2..]]();
 					}
 				}
