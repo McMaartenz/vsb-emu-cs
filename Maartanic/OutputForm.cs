@@ -147,7 +147,7 @@ namespace Maartanic
 		internal int GetMouseX() 
 		{
 			int ret = 0;
-			Invoke(new Action(() =>
+			Invoke(new Action(() => //TODO check if Program.applicationMode is extended SAME FOR GetMouseY()
 			{
 				ret = MakeInRange(PointToClient(Cursor.Position).X, 0, Program.WIN_WIDTH);
 			}));
