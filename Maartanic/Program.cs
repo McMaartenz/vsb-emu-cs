@@ -32,8 +32,11 @@ namespace Maartanic
 		internal static ExtendedInstructions extendedMode;
 		internal static Engine.Mode applicationMode = Engine.Mode.VSB;
 
-		internal static int WIN_WIDTH = 120;
-		internal static int WIN_HEIGHT = 30;
+		internal static int CON_WIDTH = 120;
+		internal static int CON_HEIGHT = 30;
+
+		internal static int WIN_WIDTH = 480;
+		internal static int WIN_HEIGHT = 360;
 
 		internal static Thread consoleProcess;
 		internal static Thread windowProcess;
@@ -122,8 +125,8 @@ namespace Maartanic
 			};
 			windowProcess.Start();
 
-			Console.SetBufferSize(WIN_WIDTH, WIN_HEIGHT); // Remove scrollbar
-			Console.SetWindowSize(WIN_WIDTH, WIN_HEIGHT);
+			Console.SetBufferSize(CON_WIDTH, CON_HEIGHT); // Remove scrollbar
+			Console.SetWindowSize(CON_WIDTH, CON_HEIGHT);
 
 			Console.Title = $"Maartanic Engine {VERSION}";
 

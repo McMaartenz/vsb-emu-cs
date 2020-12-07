@@ -2,7 +2,6 @@
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
-using System.Windows.Input;
 using System.Runtime.InteropServices;
 
 namespace Maartanic
@@ -28,7 +27,8 @@ namespace Maartanic
 			}
 		}
 
-		internal OutputForm() { }
+		// Unnecessary
+		//internal OutputForm() { }
 
 		internal void StartTimeout()
 		{
@@ -130,6 +130,40 @@ namespace Maartanic
 			return output;
 		}
 
+		private static int MakeInRange(int value, int min, int max)
+		{
+			if (value > max)
+			{
+				value = max;
+			}
+			else if (value < min)
+			{
+				value = min;
+			}
+			return value;
+		}
+
+		// System.Drawing.Point
+		internal int GetMouseX() 
+		{
+			int ret = 0;
+			Invoke(new Action(() =>
+			{
+				ret = MakeInRange(PointToClient(Cursor.Position).X, 0, Program.WIN_WIDTH);
+			}));
+			return ret;
+		}
+
+		internal int GetMouseY()
+		{
+			int ret = 0;
+			Invoke(new Action(() =>
+			{
+				ret = MakeInRange(PointToClient(Cursor.Position).Y, 0, Program.WIN_HEIGHT);
+			}));
+			return ret;
+		}
+
 		[STAThread]
 		internal static void Main()
 		{
@@ -139,6 +173,7 @@ namespace Maartanic
 
 			app.SuspendLayout(); // Suspend, change title, resume
 			app.Text = app.Text.Insert(17, Program.VERSION + " ");
+			app.ClientSize = new Size(Program.WIN_WIDTH, Program.WIN_HEIGHT);
 			app.ResumeLayout(false);
 			
 			Application.Run(app);

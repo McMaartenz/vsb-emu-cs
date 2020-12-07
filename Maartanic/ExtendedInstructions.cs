@@ -6,12 +6,10 @@ namespace Maartanic
 {
 	internal class ExtendedInstructions
 	{
-		internal static object keyDown;
 
 		private Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
 		{
-			{ "pask", () => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
-			{ "pkey", () => {lock(keyDown) { return (string)keyDown; } } }
+			{ "pask", () => OutputForm.app.AskInput() } // ask with gui interface, invoke on windowProcess thread
 		};
 
 		internal ExtendedInstructions()
