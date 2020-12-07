@@ -11,7 +11,6 @@ namespace Maartanic
 		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception.
 		//BUG VSB Compatibility layer for graphics using extended mode.
 		//IDEA probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
-		//ISSUE Keystrokes not detected when done in window
 
 		internal const float VERSION = 1.0f;
 

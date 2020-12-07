@@ -559,7 +559,6 @@ namespace Maartanic
 						break;
 
 					case "KEY":
-						//TODO REDO WITH KEYBOARD NAMESPACE System.Windows.Input.Keyboard -> Keyboard.IsKeyDown(System.Windows.Input.Key);
 						keyOutput = Program.GetAsyncKeyState((int)VK.ConvertKey(args[0][0])) != 0;
 						break;
 
@@ -1193,7 +1192,6 @@ namespace Maartanic
 				if (varName[1] == '_')
 				{
 					if (predefinedVariables.ContainsKey(varName[2..]))
-					{ //BUG keyOutput reset itself, maybe others do as well, maybe do not use INVOKE()?
 						varName = predefinedVariables[varName[2..]]();
 					}
 				}
