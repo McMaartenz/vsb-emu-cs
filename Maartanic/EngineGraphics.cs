@@ -4,7 +4,7 @@ namespace Maartanic
 {
 	internal class EngineGraphics
 	{
-		private Pen internalPen;
+		private readonly Pen internalPen;
 		private Brush internalBrush;
 		internal EngineGraphics()
 		{

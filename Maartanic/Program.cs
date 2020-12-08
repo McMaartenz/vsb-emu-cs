@@ -88,12 +88,12 @@ namespace Maartanic
 				{
 					Console.Write($"\nINTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
 				}
-				return default(T);
+				return default;
 			}
 			catch (Exception ex)
 			{
 				Console.Write($"\nINTERNAL MRT ERROR: " + ex);
-				return default(T);
+				return default;
 			}
 		}
 
@@ -107,7 +107,7 @@ namespace Maartanic
 			catch (ArgumentException)
 			{
 				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '{input[1..]}' found.");
-				return default(Color);
+				return default;
 			}
 		}
 

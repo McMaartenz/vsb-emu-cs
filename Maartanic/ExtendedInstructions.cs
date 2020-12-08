@@ -7,7 +7,7 @@ namespace Maartanic
 	internal class ExtendedInstructions
 	{
 
-		private Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
+		private readonly Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
 		{
 			{ "pask", () => OutputForm.app.AskInput() } // ask with gui interface, invoke on windowProcess thread
 		};

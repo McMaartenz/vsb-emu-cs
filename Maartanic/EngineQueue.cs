@@ -2,7 +2,7 @@
 
 internal class EngineQueue
 {
-	private Queue<string> x;
+	private readonly Queue<string> x;
 
 	// EngineQueue(): Class constructor, creates a queue
 	internal EngineQueue()

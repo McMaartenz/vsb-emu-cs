@@ -2,7 +2,7 @@
 
 internal class EngineStack
 {
-	private Stack<string> x;
+	private readonly Stack<string> x;
 	
 	// EngineStack(): Class constructor, creates a stack
 	internal EngineStack()

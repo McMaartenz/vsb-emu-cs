@@ -103,7 +103,7 @@ namespace Maartanic
 				inputWindowOK.SetBounds(228, 72, 75, 23);
 				inputWindowCANCEL.SetBounds(309, 72, 75, 23);
 				inputWindowLabel.AutoSize = true;
-				inputWindowTextBox.Anchor = inputWindowTextBox.Anchor | AnchorStyles.Right;
+				inputWindowTextBox.Anchor |= AnchorStyles.Right;
 				inputWindowOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
 				inputWindowCANCEL.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
 				inputWindow.ClientSize = new Size(396, 107);
@@ -149,7 +149,7 @@ namespace Maartanic
 			int ret = 0;
 			if (Program.applicationMode == Engine.Mode.EXTENDED)
 			{
-				Invoke(new Action(() => //TODO check if Program.applicationMode is extended SAME FOR GetMouseY()
+				Invoke(new Action(() =>
 				{
 					ret = MakeInRange(PointToClient(Cursor.Position).X, 0, Program.WIN_WIDTH);
 				}));

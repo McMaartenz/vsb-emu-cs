@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 //TODO check if readonly really is necessary
-#pragma warning disable IDE0044
+//#pragma warning disable IDE0044
 
 namespace Maartanic
 {
@@ -19,8 +19,8 @@ namespace Maartanic
 		internal StreamReader sr;
 		private int logLevel;
 
-		private bool executable;
-		internal string scriptFile;
+		private readonly bool executable;
+		internal readonly string scriptFile;
 		internal string entryPoint = "main";
 
 		internal string line;
@@ -33,7 +33,7 @@ namespace Maartanic
 		internal bool redraw = true;
 
 		//internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
-		private DateTime startTime = DateTime.UtcNow;
+		private readonly DateTime startTime = DateTime.UtcNow;
 
 		internal static Dictionary<string, Func<string>> predefinedVariables;
 		internal Dictionary<string, string> localMemory = new Dictionary<string, string>();
@@ -81,7 +81,7 @@ namespace Maartanic
 				{ "tdow",       () => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
 				{ "key",        () => keyOutput.ToString() },
 				{ "ret",        () => returnedValue },
-				{ "mx",         () => OutputForm.app.GetMouseX(this).ToString() }, //INFO mouse x and y are not supported, YET! Implement with Form's cursor library?
+				{ "mx",         () => OutputForm.app.GetMouseX(this).ToString() },
 				{ "my",         () => OutputForm.app.GetMouseY(this).ToString() },
 				{ "redraw",     () => redraw.ToString() }
 			};
@@ -566,7 +566,7 @@ namespace Maartanic
 						SendMessage(Level.INF, "HLT");
 						sr.Dispose();
 						Program.Exit("2");
-						break; //INFO Unreachable code but IDE complains for some reason
+						break;
 
 					case "SUBSTR":
 						{
