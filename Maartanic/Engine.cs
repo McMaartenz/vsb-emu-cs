@@ -70,7 +70,7 @@ namespace Maartanic
 				{ "user",       () => "*guest" },
 				{ "ver",        () => "1.3" }, // VSB version not Maartanic Engine version
 				{ "ask",        () => Console.ReadLine() },
-				{ "graphics",   () => "true" },//(Program.applicationMode == Mode.EXTENDED).ToString().ToLower() },
+				{ "graphics",   () => (Program.applicationMode == Mode.EXTENDED).ToString().ToLower() },
 				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
 				{ "tminute",    () => DateTime.UtcNow.Minute.ToString() },
 				{ "tsecond",    () => DateTime.UtcNow.Second.ToString() },
