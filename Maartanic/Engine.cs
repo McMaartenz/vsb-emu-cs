@@ -16,7 +16,6 @@ namespace Maartanic
 		internal void MinimizeWindow() => MinimizeNow(this, new EventArgs());
 
 		internal StreamReader sr;
-		private int logLevel;
 
 		private readonly bool executable;
 		internal readonly string scriptFile;
@@ -139,7 +138,7 @@ namespace Maartanic
 		// SendMessage(): Logs a message to the console with a level, including line of execution.
 		internal void SendMessage(Level a, string message)
 		{
-			if ((int)a >= logLevel)
+			if ((int)a >= Program.logLevel)
 			{
 				switch ((int)a)
 				{
@@ -196,9 +195,8 @@ namespace Maartanic
 		}
 
 		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
-		internal string StartExecution(int logLevelIN, bool jump = false, int jumpLine = 0)
+		internal string StartExecution(bool jump = false, int jumpLine = 0)
 		{
-			logLevel = logLevelIN;
 			lineIndex = 0;
 			sr = new StreamReader(scriptFile);
 			if (jump)
@@ -639,7 +637,7 @@ namespace Maartanic
 							Engine E = new Engine(scriptFile, args[0]);
 							if (E.Executable())
 							{
-								returnedValue = E.StartExecution(logLevel);
+								returnedValue = E.StartExecution();
 							}
 							else
 							{
@@ -1452,6 +1450,7 @@ namespace Maartanic
 					{
 						case "enable":
 							EnableGraphics();
+							SendMessage(Level.INF, "Graphics enabled");
 							break;
 
 						case "disable":
@@ -1459,6 +1458,7 @@ namespace Maartanic
 							{
 								MinimizeWindow();
 								Program.SettingGraphicsMode = Mode.DISABLED;
+								SendMessage(Level.INF, "Graphics disabled");
 							}
 							break;
 

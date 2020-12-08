@@ -115,7 +115,7 @@ namespace Maartanic
 		}
 
 		// Main(): Entry point
-		[STAThread]
+		//[STAThread]
 		public static void Main(string[] args)
 		{			
 			consoleProcess = Thread.CurrentThread; // Current thread
@@ -168,7 +168,7 @@ namespace Maartanic
 				{
 					do
 					{
-						returnVariable = EN.StartExecution(logLevel);
+						returnVariable = EN.StartExecution();
 					} while (SettingExtendedMode == Engine.Mode.DISABLED && returnVariable != "5");
 					EN.sr.Close();
 					EN.sr.Dispose();

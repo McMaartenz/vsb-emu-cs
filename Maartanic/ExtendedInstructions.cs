@@ -74,7 +74,7 @@ namespace Maartanic
 							{
 								if (!skipNext)
 								{
-									e.returnedValue = forLoopEngine.returnedValue = forLoopEngine.StartExecution(Program.logLevel);
+									e.returnedValue = forLoopEngine.returnedValue = forLoopEngine.StartExecution();
 								}
 								else
 								{
@@ -138,7 +138,7 @@ namespace Maartanic
 									if (forEngine.returnedValue == "4" && forEngine.returnedValue[1] == '&')
 									{
 										e.SendMessage(Engine.Level.INF, "Continue statement");
-										forEngine.returnedValue = forEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+										forEngine.returnedValue = forEngine.StartExecution(true, e.lineIndex);
 										continue;
 									}
 
@@ -146,7 +146,7 @@ namespace Maartanic
 									return forEngine.returnedValue;
 								}
 							}
-							forEngine.returnedValue = forEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+							forEngine.returnedValue = forEngine.StartExecution(true, e.lineIndex);
 						}
 						e.localMemory = forEngine.localMemory; // Copy back
 						if (forEngine.returnedValue.Contains('.'))
@@ -189,7 +189,7 @@ namespace Maartanic
 							{
 								if (!skipNext)
 								{
-									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution(Program.logLevel);
+									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution();
 								}
 								else
 								{
@@ -258,7 +258,7 @@ namespace Maartanic
 										else if (whileEngine.returnedValue.StartsWith("4&"))
 										{
 											e.SendMessage(Engine.Level.INF, "Continue statement");
-											whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+											whileEngine.returnedValue = whileEngine.StartExecution(true, e.lineIndex);
 											continue;
 										}
 
@@ -274,7 +274,7 @@ namespace Maartanic
 								{
 									i++;
 								}
-								whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+								whileEngine.returnedValue = whileEngine.StartExecution(true, e.lineIndex);
 							}
 						}
 						e.localMemory = whileEngine.localMemory; // Copy back
@@ -318,7 +318,7 @@ namespace Maartanic
 							{
 								if (!skipNext)
 								{
-									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution(Program.logLevel);
+									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution();
 								}
 								else
 								{
@@ -385,7 +385,7 @@ namespace Maartanic
 									if (whileEngine.returnedValue == "4" && whileEngine.returnedValue[1] == '&')
 									{
 										e.SendMessage(Engine.Level.INF, "Continue statement");
-										whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+										whileEngine.returnedValue = whileEngine.StartExecution(true, e.lineIndex);
 										continue;
 									}
 
@@ -399,7 +399,7 @@ namespace Maartanic
 								i++;
 							}
 
-							whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+							whileEngine.returnedValue = whileEngine.StartExecution(true, e.lineIndex);
 						}
 						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
 						e.localMemory = whileEngine.localMemory; // Copy back
