@@ -12,6 +12,7 @@ namespace Maartanic
 		//BUG VSB Compatibility layer for graphics using extended mode.
 		//IDEA probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
 		//TODO Add single value for WHILE, FOR, DOWHILE: Just entering TRUE or FALSE. + Support for method true/false instead of compare instruction.
+		//TODO Add try catch! And make errors stop the program IF inside extended mode.
 
 		internal const float VERSION = 1.1f;
 
