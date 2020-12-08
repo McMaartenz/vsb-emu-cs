@@ -70,7 +70,7 @@ namespace Maartanic
 				{ "user",       () => "*guest" },
 				{ "ver",        () => "1.3" }, // VSB version not Maartanic Engine version
 				{ "ask",        () => Console.ReadLine() },
-				{ "graphics",   () => (Program.SettingExtendedMode == Mode.ENABLED).ToString().ToLower() },
+				{ "graphics",   () => (Program.SettingGraphicsMode == Mode.ENABLED).ToString().ToLower() },
 				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
 				{ "tminute",    () => DateTime.UtcNow.Minute.ToString() },
 				{ "tsecond",    () => DateTime.UtcNow.Second.ToString() },
@@ -1351,23 +1351,36 @@ namespace Maartanic
 					switch (engineArgParts[1].ToLower())
 					{
 						case "vsb":
-							if (Program.SettingExtendedMode != Mode.DISABLED)
+							if (Program.SettingExtendedMode == Mode.ENABLED) // Disable
 							{
 								Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
 								Program.SettingExtendedMode = Mode.DISABLED;
-								SendMessage(Level.INF, "Using compat mode");
-								MinimizeWindow();
+								SendMessage(Level.INF, "Using compat/vsb mode");
 							}
 							Program.ShowWindow(Program.GetConsoleWindow(), 5);
 							break;
 
 						case "extended":
-							if (Program.SettingExtendedMode != Mode.ENABLED)
+							if (Program.SettingExtendedMode == Mode.DISABLED) // Enable
 							{
 								Program.extendedMode = new ExtendedInstructions();
 								Program.SettingExtendedMode = Mode.ENABLED;
 								SendMessage(Level.INF, "Using extended mode");
+							}
+							break;
 
+						default:
+							SendMessage(Level.ERR, "Unrecognized engine option mode.");
+							break;
+					}
+					break;
+
+				case "graphics":
+					switch (engineArgParts[1].ToLower())
+					{
+						case "enable":
+							if (Program.SettingGraphicsMode == Mode.DISABLED)
+							{
 								bool isAvailable = false;
 								byte times = 1;
 								while (!isAvailable)
@@ -1420,29 +1433,15 @@ namespace Maartanic
 										SendMessage(Level.INF, "Waiting for screen component response..");
 									}
 								}
-							}
-							break;
-
-						default:
-							SendMessage(Level.ERR, "Unrecognized engine option mode.");
-							break;
-					}
-					break;
-
-				case "graphics":
-					switch (engineArgParts[1].ToLower())
-					{
-						case "enable":
-							if (Program.SettingGraphicsMode == Mode.DISABLED)
-							{
-								// Enable
+								Program.SettingGraphicsMode = Mode.ENABLED;
 							}
 							break;
 
 						case "disable":
 							if (Program.SettingGraphicsMode == Mode.ENABLED)
 							{
-								// Disable
+								MinimizeWindow();
+								Program.SettingGraphicsMode = Mode.DISABLED;
 							}
 							break;
 
