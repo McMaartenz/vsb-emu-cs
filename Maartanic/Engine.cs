@@ -1265,17 +1265,12 @@ namespace Maartanic
 			// Maybe use RegEx but eh lazy. Escape quotation with a backslash. At least I understand it this way
 			// Iterates through it, splits spaces. Things in quotes (") are treated like one block even if there are spaces in between.
 			List<string> newCombinedList = new List<string>();
+			string[] RetResult = new string[10]; //INFO This is the max amount of arguments allowed before it overflows.
+			int RetResultPos = 0;
 			string newCombined = "";
 			bool isInQuotes = false;
 			for (int i = 0; i < combined.Length; i++)
 			{
-				if (combined[i] == '\\')
-				{
-					if (combined[i - 1] == '\\' && combined[i - 2] != '\\')
-					{
-						continue;
-					}
-				}
 				if (combined[i] == '"')
 				{
 					if (isInQuotes)
@@ -1283,7 +1278,7 @@ namespace Maartanic
 						if (combined[i - 1] != '\\')
 						{
 							isInQuotes = false;
-							newCombinedList.Add(newCombined);
+							RetResult[RetResultPos++] = newCombined;
 							newCombined = "";
 							continue;
 						}
@@ -1303,6 +1298,10 @@ namespace Maartanic
 						}
 					}
 				}
+				else if (combined[i] == '\\' && combined[i - 1] == '\\' && combined[i - 2] != '\\')
+				{
+					continue;
+				}
 				if (isInQuotes)
 				{
 					newCombined += combined[i];
@@ -1313,7 +1312,7 @@ namespace Maartanic
 					{
 						if (combined[i - 1] != '"')
 						{
-							newCombinedList.Add(newCombined);
+							RetResult[RetResultPos++] = newCombined;
 							newCombined = "";
 						}
 						continue;
@@ -1322,22 +1321,22 @@ namespace Maartanic
 				}
 				if (i == combined.Length - 1)
 				{
-					newCombinedList.Add(newCombined);
+					RetResult[RetResultPos++] = newCombined;
 					newCombined = "";
 				}
 			}
 
+			string[] finalOutput = new string[RetResultPos];
 			{ // Make scope
 				string tmp;
-				for (int i = 0; i < newCombinedList.Count; i++)
+				for (int i = 0; i < RetResultPos; i++)
 				{
-					tmp = newCombinedList[i];
-					LocalMemoryGet(ref tmp);
-					newCombinedList[i] = tmp;
+					tmp = RetResult[i];
+					LocalMemoryGet(ref tmp); //IDEA maybe make ref refer to the position in the array instead of setting a variable tmp
+					finalOutput[i] = tmp;
 				}
 			}
-
-			return newCombinedList.ToArray();
+			return finalOutput;
 		}
 
 		// ExtractEngineArgs(): Extracts [A B] like stuff and applies it to internal engine variables.
