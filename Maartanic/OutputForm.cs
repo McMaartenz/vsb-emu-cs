@@ -65,6 +65,17 @@ namespace Maartanic
 			}
 		}
 
+		internal static bool StartWithGraphics()
+		{
+			DialogResult result = MessageBox.Show(
+				"Starting in VSB/compatibility mode can be done with graphics enabled or disabled accordingly to what a script expects. Do you wish to start with graphics enabled?",
+				"Program startup",
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Question
+			);
+			return (result == DialogResult.Yes);
+		}
+
 		private void Minimize() // Excited moment: event works and can minimize a window again!
 		{
 			BeginInvoke(new Action(() =>// Invoke code onto the windowProcess thread

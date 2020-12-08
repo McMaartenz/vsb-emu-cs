@@ -1347,6 +1347,66 @@ namespace Maartanic
 			return finalOutput;
 		}
 
+		internal void EnableGraphics()
+		{
+			if (Program.SettingGraphicsMode == Mode.DISABLED)
+			{
+				bool isAvailable = false;
+				byte times = 1;
+				while (!isAvailable)
+				{
+					lock (Program.internalShared.SyncRoot)
+					{
+						isAvailable = Program.internalShared[3] == "TRUE";
+					}
+					if (!isAvailable)
+					{
+						times++;
+						if (times > 254)
+						{
+							break;
+						}
+						SendMessage(Level.INF, "Screen component is still loading.");
+						Thread.Sleep(4);
+					}
+					else
+					{
+						break;
+					}
+				}
+				if (!isAvailable)
+				{
+					SendMessage(Level.ERR, "Screen component took too long to load.");
+				}
+				else
+				{
+					lock (Program.internalShared.SyncRoot)
+					{
+						Program.internalShared[2] = "TRUE";
+					}
+					Program.windowProcess.Interrupt();
+					bool okToExit = false;
+					times = 1;
+					while (!okToExit)
+					{
+						lock (Program.internalShared.SyncRoot)
+						{
+							okToExit = !Parse<bool>(Program.internalShared[2]);
+						}
+						Thread.Sleep(4);
+						times++;
+						if (times > 254)
+						{
+							SendMessage(Level.ERR, "Screen component did not respond.");
+							break;
+						}
+						SendMessage(Level.INF, "Waiting for screen component response..");
+					}
+				}
+				Program.SettingGraphicsMode = Mode.ENABLED;
+			}
+		}
+
 		// ExtractEngineArgs(): Extracts [A B] like stuff and applies it to internal engine variables.
 		private void ExtractEngineArgs(ref string[] lineInfo)
 		{
@@ -1391,62 +1451,7 @@ namespace Maartanic
 					switch (engineArgParts[1].ToLower())
 					{
 						case "enable":
-							if (Program.SettingGraphicsMode == Mode.DISABLED)
-							{
-								bool isAvailable = false;
-								byte times = 1;
-								while (!isAvailable)
-								{
-									lock (Program.internalShared.SyncRoot)
-									{
-										isAvailable = Program.internalShared[3] == "TRUE";
-									}
-									if (!isAvailable)
-									{
-										times++;
-										if (times > 254)
-										{
-											break;
-										}
-										SendMessage(Level.INF, "Screen component is still loading.");
-										Thread.Sleep(4);
-									}
-									else
-									{
-										break;
-									}
-								}
-								if (!isAvailable)
-								{
-									SendMessage(Level.ERR, "Screen component took too long to load.");
-								}
-								else
-								{
-									lock (Program.internalShared.SyncRoot)
-									{
-										Program.internalShared[2] = "TRUE";
-									}
-									Program.windowProcess.Interrupt();
-									bool okToExit = false;
-									times = 1;
-									while (!okToExit)
-									{
-										lock (Program.internalShared.SyncRoot)
-										{
-											okToExit = !Parse<bool>(Program.internalShared[2]);
-										}
-										Thread.Sleep(4);
-										times++;
-										if (times > 254)
-										{
-											SendMessage(Level.ERR, "Screen component did not respond.");
-											break;
-										}
-										SendMessage(Level.INF, "Waiting for screen component response..");
-									}
-								}
-								Program.SettingGraphicsMode = Mode.ENABLED;
-							}
+							EnableGraphics();
 							break;
 
 						case "disable":
