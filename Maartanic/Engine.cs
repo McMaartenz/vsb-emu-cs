@@ -5,8 +5,7 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-//TODO check if readonly really is necessary
-//#pragma warning disable IDE0044
+//TODO make child variable with type Engine that contains the engine it is working in, to redirect the sendmessage to the child "process".
 
 namespace Maartanic
 {
@@ -71,7 +70,7 @@ namespace Maartanic
 				{ "user",       () => "*guest" },
 				{ "ver",        () => "1.3" }, // VSB version not Maartanic Engine version
 				{ "ask",        () => Console.ReadLine() },
-				{ "graphics",   () => (Program.applicationMode == Mode.EXTENDED).ToString().ToLower() },
+				{ "graphics",   () => "true" },//(Program.applicationMode == Mode.EXTENDED).ToString().ToLower() },
 				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
 				{ "tminute",    () => DateTime.UtcNow.Minute.ToString() },
 				{ "tsecond",    () => DateTime.UtcNow.Second.ToString() },
@@ -654,7 +653,7 @@ namespace Maartanic
 						{
 							return args[0];
 						}
-						return "0"; // Manual close
+						return "5"; // Manual close 5: return code
 
 					case "RPLC":
 						{
@@ -802,7 +801,7 @@ namespace Maartanic
 
 					case "GETM":
 						{
-							Program.memory.Get(Parse<int>(args[0]), out string output);
+							Program.memory.Get(Parse<int>(args[1]), out string output);
 							SetVariable(args[0], ref output);
 						}
 						break;

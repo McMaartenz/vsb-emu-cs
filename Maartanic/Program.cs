@@ -8,7 +8,7 @@ namespace Maartanic
 {
 	public class Program
 	{
-		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception.
+		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception. Or you as programmer should just know what you are doing.  Your fault if it crashes.
 		//BUG VSB Compatibility layer for graphics using extended mode.
 		//IDEA probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
 		//TODO Add single value for WHILE, FOR, DOWHILE: Just entering TRUE or FALSE. + Support for method true/false instead of compare instruction.
@@ -65,6 +65,7 @@ namespace Maartanic
 				"2" => "Process was manually halted. (code 2)",
 				"3" => "Process was closed due to a break statement (code 3)",
 				"4" => "Process was closed due to a continue statement (code 4)",
+				"5" => "Process succesfully closed. (RET) (code 5)",
 				_ => $"Process closed with value {value}.",
 			};
 			Console.Write('\n' + R);
@@ -156,9 +157,13 @@ namespace Maartanic
 			EN.FillPredefinedList();
 			if (EN.Executable())
 			{
+				string returnVariable = "";
 				try
 				{
-					string returnVariable = EN.StartExecution(logLevel);
+					do
+					{
+						returnVariable = EN.StartExecution(logLevel);
+					} while (applicationMode == Engine.Mode.VSB && returnVariable != "5");
 					EN.sr.Close();
 					EN.sr.Dispose();
 					Exit(returnVariable);
