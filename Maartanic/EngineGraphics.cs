@@ -6,9 +6,11 @@ namespace Maartanic
 	{
 		private readonly Pen internalPen;
 		private Brush internalBrush;
+		private Font font;
 		internal EngineGraphics()
 		{
 			internalPen = new Pen(Color.White, 1.0f);
+			font = new Font(FontFamily.GenericMonospace, 8.0F, FontStyle.Regular);
 		}
 
 		private void Initialize()
@@ -57,6 +59,15 @@ namespace Maartanic
 			internalBrush = new SolidBrush(internalPen.Color);
 			Initialize();
 			OutputForm.windowGraphics.FillRectangle(internalBrush, x, y, 1, 1);
+			DisposeGraphics();
+			internalBrush.Dispose();
+		}
+
+		internal void Write(float x, float y, string text)
+		{
+			internalBrush = new SolidBrush(internalPen.Color);
+			Initialize();
+			OutputForm.windowGraphics.DrawString(text, font, internalBrush, new PointF(x, y));
 			DisposeGraphics();
 			internalBrush.Dispose();
 		}

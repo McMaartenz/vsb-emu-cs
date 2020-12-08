@@ -75,7 +75,7 @@ namespace Maartanic
 			Environment.Exit(0);
 		}
 
-		internal static T Parse<T> (string input)
+		internal static T Parse<T> (string input, bool silence = false)
 		{
 			try
 			{
@@ -83,13 +83,16 @@ namespace Maartanic
 			}
 			catch (TargetInvocationException)
 			{
-				if (EN != null)
+				if (!silence)
 				{
-					EN.SendMessage(Engine.Level.ERR, $"Malformed {typeof(T).Name} '{input}' found.");
-				}
-				else
-				{
-					Console.Write($"\nINTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
+					if (EN != null)
+					{
+						EN.SendMessage(Engine.Level.ERR, $"Malformed {typeof(T).Name} '{input}' found.");
+					}
+					else
+					{
+						Console.Write($"\nINTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
+					}
 				}
 				return default;
 			}

@@ -10,7 +10,8 @@ namespace Maartanic
 			{
 				"SCREENLN",
 				"SCREENREC",
-				"SCREENFILL"
+				"SCREENFILL",
+				"SCREENOUT"
 			};
 
 		private static T Parse<T>(string input)
@@ -18,17 +19,30 @@ namespace Maartanic
 			return Program.Parse<T>(input);
 		}
 
+		private static void SwitchValues(ref string a, ref string b)
+		{
+			string tmp = a;
+			a = b;
+			b = tmp;
+		}
+
 		private static void VSBHandle(int s, string instr, ref string[] args)
 		{
 			if (VSBInstructions.Contains(instr))
-			if (s < 1)
 			{
-				temp = Program.graphics.GetColor();
-				Program.graphics.SetColor(Program.HexHTML(args[^1]));
-			}
-			else
-			{
-				Program.graphics.SetColor(temp);
+				if (instr == "SCREENOUT")
+				{
+					SwitchValues(ref args[^2], ref args[^1]);
+				}
+				if (s < 1)
+				{
+					temp = Program.graphics.GetColor();
+					Program.graphics.SetColor(Program.HexHTML(args[^1]));
+				}
+				else
+				{
+					Program.graphics.SetColor(temp);
+				}
 			}
 		}
 
@@ -36,6 +50,9 @@ namespace Maartanic
 		{
 			switch (lineInfo[0].ToUpper())
 			{
+				case "SCREENUPD": // Doesn't work
+					break;
+
 				case "SCREENLN": // VSB compat
 				case "PLINE": // PLINE [x] [y] [x 1] [y 1] r-r-r-r
 					VSBHandle(0, lineInfo[0].ToUpper(), ref args);
@@ -75,6 +92,13 @@ namespace Maartanic
 				case "PPX": // PPX [x] [y] r-r
 					VSBHandle(0, lineInfo[0].ToUpper(), ref args);
 					Program.graphics.Pixel(Parse<float>(args[0]), Parse<float>(args[1]));
+					VSBHandle(1, lineInfo[0].ToUpper(), ref args);
+					break;
+
+				case "SCREENOUT": // VSB compat
+				case "PWRITE": // PWRITE [x] [y] [text] r-r-r
+					VSBHandle(0, lineInfo[0].ToUpper(), ref args);
+					Program.graphics.Write(Parse<float>(args[0]), Parse<float>(args[1]), args[2]);
 					VSBHandle(1, lineInfo[0].ToUpper(), ref args);
 					break;
 

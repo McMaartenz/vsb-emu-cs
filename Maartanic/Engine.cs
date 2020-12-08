@@ -51,9 +51,9 @@ namespace Maartanic
 			DISABLED
 		}
 
-		private static T Parse<T>(string input)
+		private static T Parse<T>(string input, bool silence = false)
 		{
-			return Program.Parse<T>(input);
+			return Program.Parse<T>(input, silence);
 		}
 
 		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
@@ -88,6 +88,7 @@ namespace Maartanic
 		// Engine(): Class constructor, returns if given file does not exist.
 		internal Engine (string startPos)
 		{
+			redraw = true;
 			keyOutput = false;
 			executable = File.Exists(startPos);
 			if (!executable)
@@ -101,6 +102,7 @@ namespace Maartanic
 		// Engine() OVERLOADED: Specify your entry point
 		internal Engine(string startPos, string customEntryPoint)
 		{
+			redraw = true;
 			keyOutput = false;
 			entryPoint = customEntryPoint; // default is main
 			executable = File.Exists(startPos);
@@ -197,7 +199,6 @@ namespace Maartanic
 		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
 		internal string StartExecution(bool jump = false, int jumpLine = 0)
 		{
-			redraw = true;
 			lineIndex = 0;
 			sr = new StreamReader(scriptFile);
 			if (jump)
@@ -1058,10 +1059,10 @@ namespace Maartanic
 			bool r; // Output variable (result)
 			bool b1, b2;
 			// Numbers
-			b1 = args[1] == "true" || args[1] == "1";
-			b2 = args[2] == "true" || args[2] == "1";
-			double n1 = Parse<double>(args[1]);
-			double n2 = Parse<double>(args[2]);
+			b1 = args[1].ToUpper() == "TRUE" || args[1] == "1" || args[1] == "1.0";
+			b2 = args[2].ToUpper() == "TRUE" || args[2] == "1" || args[2] == "1.0";
+			double n1 = Parse<double>(args[1], true);
+			double n2 = Parse<double>(args[2], true);
 
 			switch (args[0].ToUpper())
 			{
