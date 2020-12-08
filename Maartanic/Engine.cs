@@ -1264,7 +1264,6 @@ namespace Maartanic
 
 			// Maybe use RegEx but eh lazy. Escape quotation with a backslash. At least I understand it this way
 			// Iterates through it, splits spaces. Things in quotes (") are treated like one block even if there are spaces in between.
-			List<string> newCombinedList = new List<string>();
 			string[] RetResult = new string[10]; //INFO This is the max amount of arguments allowed before it overflows.
 			int RetResultPos = 0;
 			string newCombined = "";
@@ -1328,12 +1327,10 @@ namespace Maartanic
 
 			string[] finalOutput = new string[RetResultPos];
 			{ // Make scope
-				string tmp;
 				for (int i = 0; i < RetResultPos; i++)
 				{
-					tmp = RetResult[i];
-					LocalMemoryGet(ref tmp); //IDEA maybe make ref refer to the position in the array instead of setting a variable tmp
-					finalOutput[i] = tmp;
+					LocalMemoryGet(ref RetResult[i]); //IDEA maybe make ref refer to the position in the array instead of setting a variable tmp
+					finalOutput[i] = RetResult[i];
 				}
 			}
 			return finalOutput;
