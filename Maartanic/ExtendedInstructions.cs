@@ -7,6 +7,8 @@ namespace Maartanic
 	internal class ExtendedInstructions
 	{
 
+		internal bool recognizedInstruction = false;
+
 		private readonly Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
 		{
 			{ "pask", () => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
@@ -528,10 +530,11 @@ namespace Maartanic
 					break;
 
 				default:
-					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (EXT.)");
-					break;
+					recognizedInstruction = false;
+					return null;
 
 			}
+			recognizedInstruction = true;
 			return null;
 		}
 	}
