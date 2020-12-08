@@ -48,8 +48,8 @@ namespace Maartanic
 		// Mode: Used in applicationMode to let the engine know to enable extended functions not (yet) included in the VSB Engine.
 		internal enum Mode
 		{
-			EXTENDED,
-			VSB
+			ENABLED,
+			DISABLED
 		}
 
 		private static T Parse<T>(string input)
@@ -70,7 +70,7 @@ namespace Maartanic
 				{ "user",       () => "*guest" },
 				{ "ver",        () => "1.3" }, // VSB version not Maartanic Engine version
 				{ "ask",        () => Console.ReadLine() },
-				{ "graphics",   () => (Program.applicationMode == Mode.EXTENDED).ToString().ToLower() },
+				{ "graphics",   () => (Program.SettingExtendedMode == Mode.ENABLED).ToString().ToLower() },
 				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
 				{ "tminute",    () => DateTime.UtcNow.Minute.ToString() },
 				{ "tsecond",    () => DateTime.UtcNow.Second.ToString() },
@@ -811,7 +811,7 @@ namespace Maartanic
 						break;
 
 					default:
-						if (Program.applicationMode == Mode.EXTENDED) // Enable extended instruction set
+						if (Program.SettingExtendedMode == Mode.ENABLED) // Enable extended instruction set
 						{
 							string output = Program.extendedMode.Instructions(this, ref lineInfo, ref args);
 							if (output != null)
@@ -902,7 +902,7 @@ namespace Maartanic
 		// SetMemoryAddr(): Sets a given memory address to the given value. 
 		private void SetMemoryAddr(int address, string value)
 		{
-			address = Program.applicationMode == Mode.VSB ? address - 1 : address;
+			address = Program.SettingExtendedMode == Mode.DISABLED ? address - 1 : address;
 			if (!Program.memory.Exists(address))
 			{
 				SendMessage(Level.ERR, $"Memory address {address} does not exist.");
@@ -1205,7 +1205,7 @@ namespace Maartanic
 					varName = "NULL";
 				}
 			}
-			else if (Program.applicationMode == Mode.EXTENDED)
+			else if (Program.SettingExtendedMode == Mode.ENABLED)
 			{
 				if (varName[0] == '#') // Get memory address e.g. where A is the memory address: #A
 				{
@@ -1345,87 +1345,116 @@ namespace Maartanic
 				engineArg += ' ' + part;
 			}
 			engineArgParts = engineArg[1..].Trim('[', ']').Split(' ');
-			if (engineArgParts[0].ToLower() == "mode")
+			switch (engineArgParts[0].ToLower())
 			{
-				switch (engineArgParts[1].ToLower())
-				{
-					case "vsb":
-						if (Program.applicationMode != Mode.VSB)
-						{
-							Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
-							Program.applicationMode = Mode.VSB;
-							SendMessage(Level.INF, "Using compat mode");
-							MinimizeWindow();
-						}
-						Program.ShowWindow(Program.GetConsoleWindow(), 5);
-						break;
-
-					case "extended":
-						if (Program.applicationMode != Mode.EXTENDED)
-						{
-							Program.extendedMode = new ExtendedInstructions();
-							Program.applicationMode = Mode.EXTENDED;
-							SendMessage(Level.INF, "Using extended mode");
-
-							bool isAvailable = false;
-							byte times = 1;
-							while (!isAvailable)
+				case "mode":
+					switch (engineArgParts[1].ToLower())
+					{
+						case "vsb":
+							if (Program.SettingExtendedMode != Mode.DISABLED)
 							{
-								lock (Program.internalShared.SyncRoot)
-								{
-									isAvailable = Program.internalShared[3] == "TRUE";
-								}
-								if (!isAvailable)
-								{
-									times++;
-									if (times > 254)
-									{
-										break;
-									}
-									SendMessage(Level.INF, "Screen component is still loading.");
-									Thread.Sleep(4);
-								}
-								else
-								{
-									break;
-								}
+								Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
+								Program.SettingExtendedMode = Mode.DISABLED;
+								SendMessage(Level.INF, "Using compat mode");
+								MinimizeWindow();
 							}
-							if (!isAvailable)
+							Program.ShowWindow(Program.GetConsoleWindow(), 5);
+							break;
+
+						case "extended":
+							if (Program.SettingExtendedMode != Mode.ENABLED)
 							{
-								SendMessage(Level.ERR, "Screen component took too long to load.");
-							}
-							else
-							{
-								lock (Program.internalShared.SyncRoot)
-								{
-									Program.internalShared[2] = "TRUE";
-								}
-								Program.windowProcess.Interrupt();
-								bool okToExit = false;
-								times = 1;
-								while (!okToExit)
+								Program.extendedMode = new ExtendedInstructions();
+								Program.SettingExtendedMode = Mode.ENABLED;
+								SendMessage(Level.INF, "Using extended mode");
+
+								bool isAvailable = false;
+								byte times = 1;
+								while (!isAvailable)
 								{
 									lock (Program.internalShared.SyncRoot)
 									{
-										okToExit = !Parse<bool>(Program.internalShared[2]);
+										isAvailable = Program.internalShared[3] == "TRUE";
 									}
-									Thread.Sleep(4);
-									times++;
-									if (times > 254)
+									if (!isAvailable)
 									{
-										SendMessage(Level.ERR, "Screen component did not respond.");
+										times++;
+										if (times > 254)
+										{
+											break;
+										}
+										SendMessage(Level.INF, "Screen component is still loading.");
+										Thread.Sleep(4);
+									}
+									else
+									{
 										break;
 									}
-									SendMessage(Level.INF, "Waiting for screen component response..");
+								}
+								if (!isAvailable)
+								{
+									SendMessage(Level.ERR, "Screen component took too long to load.");
+								}
+								else
+								{
+									lock (Program.internalShared.SyncRoot)
+									{
+										Program.internalShared[2] = "TRUE";
+									}
+									Program.windowProcess.Interrupt();
+									bool okToExit = false;
+									times = 1;
+									while (!okToExit)
+									{
+										lock (Program.internalShared.SyncRoot)
+										{
+											okToExit = !Parse<bool>(Program.internalShared[2]);
+										}
+										Thread.Sleep(4);
+										times++;
+										if (times > 254)
+										{
+											SendMessage(Level.ERR, "Screen component did not respond.");
+											break;
+										}
+										SendMessage(Level.INF, "Waiting for screen component response..");
+									}
 								}
 							}
-						}
-						break;
+							break;
 
-					default:
-						SendMessage(Level.ERR, "Unrecognized mode entered.");
-						break;
-				}
+						default:
+							SendMessage(Level.ERR, "Unrecognized engine option mode.");
+							break;
+					}
+					break;
+
+				case "graphics":
+					switch (engineArgParts[1].ToLower())
+					{
+						case "enable":
+							if (Program.SettingGraphicsMode == Mode.DISABLED)
+							{
+								// Enable
+							}
+							break;
+
+						case "disable":
+							if (Program.SettingGraphicsMode == Mode.ENABLED)
+							{
+								// Disable
+							}
+							break;
+
+						default:
+							SendMessage(Level.ERR, "Unrecognized graphics option mode.");
+							break;
+					}
+					break;
+				
+				default:
+					SendMessage(Level.ERR, "Unrecognized engine option.");
+					break;
 			}
 		}
 	}

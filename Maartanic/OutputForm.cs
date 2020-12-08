@@ -147,7 +147,7 @@ namespace Maartanic
 		internal int GetMouseX(Engine e) 
 		{
 			int ret = 0;
-			if (Program.applicationMode == Engine.Mode.EXTENDED)
+			if (Program.SettingExtendedMode == Engine.Mode.ENABLED)
 			{
 				Invoke(new Action(() =>
 				{
@@ -164,7 +164,7 @@ namespace Maartanic
 		internal int GetMouseY(Engine e)
 		{
 			int ret = 0;
-			if (Program.applicationMode == Engine.Mode.EXTENDED)
+			if (Program.SettingExtendedMode == Engine.Mode.ENABLED)
 			{
 				Invoke(new Action(() =>
 				{

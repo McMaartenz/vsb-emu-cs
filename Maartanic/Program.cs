@@ -30,7 +30,8 @@ namespace Maartanic
 		};
 
 		internal static ExtendedInstructions extendedMode;
-		internal static Engine.Mode applicationMode = Engine.Mode.VSB;
+		internal static Engine.Mode SettingExtendedMode = Engine.Mode.DISABLED;
+		internal static Engine.Mode SettingGraphicsMode = Engine.Mode.DISABLED;
 
 		internal static int CON_WIDTH = 120;
 		internal static int CON_HEIGHT = 30;
@@ -163,7 +164,7 @@ namespace Maartanic
 					do
 					{
 						returnVariable = EN.StartExecution(logLevel);
-					} while (applicationMode == Engine.Mode.VSB && returnVariable != "5");
+					} while (SettingExtendedMode == Engine.Mode.DISABLED && returnVariable != "5");
 					EN.sr.Close();
 					EN.sr.Dispose();
 					Exit(returnVariable);
