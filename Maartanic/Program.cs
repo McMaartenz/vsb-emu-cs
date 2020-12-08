@@ -102,6 +102,10 @@ namespace Maartanic
 
 		internal static Color HexHTML (string input)
 		{
+			if (input.StartsWith("0x"))
+			{
+				input = input[2..];
+			}
 			input = (input[0] == '#' ? input : '#' + input).Trim();
 			try
 			{
@@ -115,7 +119,6 @@ namespace Maartanic
 		}
 
 		// Main(): Entry point
-		//[STAThread]
 		public static void Main(string[] args)
 		{			
 			consoleProcess = Thread.CurrentThread; // Current thread

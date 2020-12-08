@@ -26,6 +26,11 @@ namespace Maartanic
 			internalPen.Color = color;
 		}
 
+		internal Color GetColor()
+		{
+			return internalPen.Color;
+		}
+
 		internal void Line(float x, float y, float x1, float y1)
 		{
 			Initialize();

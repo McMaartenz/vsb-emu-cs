@@ -28,7 +28,7 @@ namespace Maartanic
 		private bool compareOutput = false;
 		internal static bool keyOutput;
 		internal string returnedValue = "NULL";
-		internal bool redraw = true;
+		internal bool redraw;
 
 		//internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
 		private readonly DateTime startTime = DateTime.UtcNow;
@@ -197,6 +197,7 @@ namespace Maartanic
 		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
 		internal string StartExecution(bool jump = false, int jumpLine = 0)
 		{
+			redraw = true;
 			lineIndex = 0;
 			sr = new StreamReader(scriptFile);
 			if (jump)
