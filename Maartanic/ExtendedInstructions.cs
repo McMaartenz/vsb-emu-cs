@@ -9,7 +9,8 @@ namespace Maartanic
 
 		private readonly Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
 		{
-			{ "pask", () => OutputForm.app.AskInput() } // ask with gui interface, invoke on windowProcess thread
+			{ "pask", () => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
+			{ "maartanic", () => "true" } // whether or not this is the Maartanic Engine
 		};
 
 		internal ExtendedInstructions()
