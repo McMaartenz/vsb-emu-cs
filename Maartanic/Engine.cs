@@ -822,7 +822,19 @@ namespace Maartanic
 						}
 						else
 						{
-							SendMessage(Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (VSB)");
+							if (Program.SettingGraphicsMode == Mode.ENABLED)
+							{
+								string output = GraphicsInstructions.Instructions(this, ref lineInfo, ref args);
+								if (output != null)
+								{
+									sr.Dispose();
+									return output;
+								}
+							}
+							else
+							{
+								SendMessage(Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (VSB)");
+							}
 						}
 						break;
 				}
