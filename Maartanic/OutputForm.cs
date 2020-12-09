@@ -79,11 +79,16 @@ namespace Maartanic
 		internal static bool ErrorMessage(string message)
 		{
 			DialogResult result = MessageBox.Show(
-				message + " Do you wish to continue executing this code?",
+				message + " Do you wish to continue executing? Hit cancel to ignore further errors.",
 				"Application Error",
-				MessageBoxButtons.YesNo,
+				MessageBoxButtons.YesNoCancel,
 				MessageBoxIcon.Error
 			);
+			if (result == DialogResult.Cancel)
+			{
+				Program.stopAsking = true;
+				return true;
+			}
 			return result == DialogResult.Yes;
 		}
 

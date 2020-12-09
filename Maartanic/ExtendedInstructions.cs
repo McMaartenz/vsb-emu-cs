@@ -11,8 +11,8 @@ namespace Maartanic
 
 		private readonly Dictionary<string, Func<Engine, string>> toBeAdded = new Dictionary<string, Func<Engine, string>>()
 		{
-			{ "pask", (E) => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
-			{ "maartanic", (E) => "true" } // whether or not this is the Maartanic Engine
+			{ "pask", (e) => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
+			{ "maartanic", (e) => "true" } // whether or not this is the Maartanic Engine
 		};
 
 		internal ExtendedInstructions()
@@ -293,7 +293,7 @@ namespace Maartanic
 						{
 							if (!selfRegulatedBreak)
 							{
-								e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute.");
+								e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute with code " + e.childProcess.returnedValue + '.');
 							}
 							else
 							{

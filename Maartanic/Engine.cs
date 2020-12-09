@@ -158,9 +158,12 @@ namespace Maartanic
 							break;
 						case 2:
 							Console.Write($"\nMRT ERR line {lineIndex}: {message}");
-							if (!OutputForm.ErrorMessage(lineIndex + ": " + message))
+							if (!Program.stopAsking)
 							{
-								Program.Exit("-1");
+								if (!OutputForm.ErrorMessage($"Line {lineIndex}: " + message))
+								{
+									Program.Exit("-1");
+								}
 							}
 							break;
 					}

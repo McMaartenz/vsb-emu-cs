@@ -46,6 +46,9 @@ namespace Maartanic
 		internal static byte logLevel;
 		internal static Engine EN;
 
+		internal static bool stopAsking = false;
+
+
 		// P/Invoke
 		[DllImport("kernel32.dll")]
 		internal static extern IntPtr GetConsoleWindow();
