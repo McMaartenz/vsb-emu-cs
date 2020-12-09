@@ -1,7 +1,7 @@
 # Maartanic
 
 [VSB Engine alternative](https://scratch.mit.edu/studios/27769777/)
-<p>Is supposed to work with VSB Engine version 1.3. Does not support graphics <b>yet</b>.</p>
+<p>Is supposed to work with VSB Engine version 1.3.</p>
 <br>
 <a href="https://1drv.ms/w/s!AnfmoStjhZY_gYJHHfx08GvbdRHsAg?e=VxucUb">Official VSB Documentation</a>
 <p>
