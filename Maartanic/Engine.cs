@@ -61,27 +61,27 @@ namespace Maartanic
 		{
 			predefinedVariables = new Dictionary<string, Func<Engine, string>>()
 			{
-				{ "ww",         (testAb) => Console.WindowWidth.ToString() },
-				{ "wh",         (testAb) => Console.WindowHeight.ToString() },
-				{ "cmpr",       (testAb) => testAb.compareOutput.ToString() },
-				{ "projtime",   (testAb) => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
-				{ "projid",     (testAb) => "0" },
-				{ "user",       (testAb) => "*guest" },
-				{ "ver",        (testAb) => "1.3" }, // VSB version not Maartanic Engine version
-				{ "ask",        (testAb) => Console.ReadLine() },
-				{ "graphics",   (testAb) => (Program.SettingGraphicsMode == Mode.ENABLED).ToString().ToLower() },
-				{ "thour",      (testAb) => DateTime.UtcNow.Hour.ToString() },
-				{ "tminute",    (testAb) => DateTime.UtcNow.Minute.ToString() },
-				{ "tsecond",    (testAb) => DateTime.UtcNow.Second.ToString() },
-				{ "tyear",      (testAb) => DateTime.UtcNow.Year.ToString() },
-				{ "tmonth",     (testAb) => DateTime.UtcNow.Month.ToString() },
-				{ "tdate",      (testAb) => DateTime.UtcNow.Day.ToString() },
-				{ "tdow",       (testAb) => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
-				{ "key",        (testAb) => testAb.keyOutput.ToString() },
-				{ "ret",        (testAb) => testAb.returnedValue },
-				{ "mx",         (testAb) => OutputForm.app.GetMouseX().ToString() },
-				{ "my",         (testAb) => OutputForm.app.GetMouseY().ToString() },
-				{ "redraw",     (testAb) => redraw.ToString() }
+				{ "ww",         (e) => Console.WindowWidth.ToString() },
+				{ "wh",         (e) => Console.WindowHeight.ToString() },
+				{ "cmpr",       (e) => e.compareOutput.ToString() },
+				{ "projtime",   (e) => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
+				{ "projid",     (e) => "0" },
+				{ "user",       (e) => "*guest" },
+				{ "ver",        (e) => "1.3" }, // VSB version not Maartanic Engine version
+				{ "ask",        (e) => Console.ReadLine() },
+				{ "graphics",   (e) => (Program.SettingGraphicsMode == Mode.ENABLED).ToString().ToLower() },
+				{ "thour",      (e) => DateTime.UtcNow.Hour.ToString() },
+				{ "tminute",    (e) => DateTime.UtcNow.Minute.ToString() },
+				{ "tsecond",    (e) => DateTime.UtcNow.Second.ToString() },
+				{ "tyear",      (e) => DateTime.UtcNow.Year.ToString() },
+				{ "tmonth",     (e) => DateTime.UtcNow.Month.ToString() },
+				{ "tdate",      (e) => DateTime.UtcNow.Day.ToString() },
+				{ "tdow",       (e) => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
+				{ "key",        (e) => e.keyOutput.ToString() },
+				{ "ret",        (e) => e.returnedValue },
+				{ "mx",         (e) => OutputForm.app.GetMouseX().ToString() },
+				{ "my",         (e) => OutputForm.app.GetMouseY().ToString() },
+				{ "redraw",     (e) => redraw.ToString() }
 			};
 		}
 
