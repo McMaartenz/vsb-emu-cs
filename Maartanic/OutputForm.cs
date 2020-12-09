@@ -73,7 +73,18 @@ namespace Maartanic
 				MessageBoxButtons.YesNo,
 				MessageBoxIcon.Question
 			);
-			return (result == DialogResult.Yes);
+			return result == DialogResult.Yes;
+		}
+
+		internal static bool ErrorMessage(string message)
+		{
+			DialogResult result = MessageBox.Show(
+				message + " Do you wish to continue executing this code?",
+				"Application Error",
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Error
+			);
+			return result == DialogResult.Yes;
 		}
 
 		private void Minimize() // Excited moment: event works and can minimize a window again!
@@ -155,7 +166,7 @@ namespace Maartanic
 		}
 
 		// System.Drawing.Point
-		internal int GetMouseX(Engine e) 
+		internal int GetMouseX() 
 		{
 			int ret = 0;
 			if (Program.SettingExtendedMode == Engine.Mode.ENABLED)
@@ -167,12 +178,12 @@ namespace Maartanic
 			}
 			else
 			{
-				e.SendMessage(Engine.Level.ERR, "Attempted to access mouse X position outside of extended mode.");
+				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse X position outside of extended mode.");
 			}
 			return ret;
 		}
 
-		internal int GetMouseY(Engine e)
+		internal int GetMouseY()
 		{
 			int ret = 0;
 			if (Program.SettingExtendedMode == Engine.Mode.ENABLED)
@@ -184,7 +195,7 @@ namespace Maartanic
 			}
 			else
 			{
-				e.SendMessage(Engine.Level.ERR, "Attempted to access mouse Y position outside of extended mode.");
+				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse Y position outside of extended mode.");
 			}
 			return ret;
 		}

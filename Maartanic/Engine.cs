@@ -16,6 +16,7 @@ namespace Maartanic
 		internal void MinimizeWindow() => MinimizeNow(this, new EventArgs());
 
 		internal StreamReader sr;
+		internal Engine childProcess;
 
 		private readonly bool executable;
 		internal readonly string scriptFile;
@@ -26,14 +27,13 @@ namespace Maartanic
 		private string[] lineInfo;
 
 		private bool compareOutput = false;
-		internal static bool keyOutput;
+		internal bool keyOutput;
 		internal string returnedValue = "NULL";
 		internal bool redraw;
 
-		//internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
 		private readonly DateTime startTime = DateTime.UtcNow;
 
-		internal static Dictionary<string, Func<string>> predefinedVariables;
+		internal static Dictionary<string, Func<Engine, string>> predefinedVariables;
 		internal Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
 		// Level: Used in SendMessage method to indicate the message level as info, warning or error.
@@ -59,29 +59,29 @@ namespace Maartanic
 		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
 		internal void FillPredefinedList()
 		{
-			predefinedVariables = new Dictionary<string, Func<string>>()
+			predefinedVariables = new Dictionary<string, Func<Engine, string>>()
 			{
-				{ "ww",         () => Console.WindowWidth.ToString() },
-				{ "wh",         () => Console.WindowHeight.ToString() },
-				{ "cmpr",       () => compareOutput.ToString() },
-				{ "projtime",   () => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
-				{ "projid",     () => "0" },
-				{ "user",       () => "*guest" },
-				{ "ver",        () => "1.3" }, // VSB version not Maartanic Engine version
-				{ "ask",        () => Console.ReadLine() },
-				{ "graphics",   () => (Program.SettingGraphicsMode == Mode.ENABLED).ToString().ToLower() },
-				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
-				{ "tminute",    () => DateTime.UtcNow.Minute.ToString() },
-				{ "tsecond",    () => DateTime.UtcNow.Second.ToString() },
-				{ "tyear",      () => DateTime.UtcNow.Year.ToString() },
-				{ "tmonth",     () => DateTime.UtcNow.Month.ToString() },
-				{ "tdate",      () => DateTime.UtcNow.Day.ToString() },
-				{ "tdow",       () => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
-				{ "key",        () => keyOutput.ToString() },
-				{ "ret",        () => returnedValue },
-				{ "mx",         () => OutputForm.app.GetMouseX(this).ToString() },
-				{ "my",         () => OutputForm.app.GetMouseY(this).ToString() },
-				{ "redraw",     () => redraw.ToString() }
+				{ "ww",         (testAb) => Console.WindowWidth.ToString() },
+				{ "wh",         (testAb) => Console.WindowHeight.ToString() },
+				{ "cmpr",       (testAb) => testAb.compareOutput.ToString() },
+				{ "projtime",   (testAb) => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
+				{ "projid",     (testAb) => "0" },
+				{ "user",       (testAb) => "*guest" },
+				{ "ver",        (testAb) => "1.3" }, // VSB version not Maartanic Engine version
+				{ "ask",        (testAb) => Console.ReadLine() },
+				{ "graphics",   (testAb) => (Program.SettingGraphicsMode == Mode.ENABLED).ToString().ToLower() },
+				{ "thour",      (testAb) => DateTime.UtcNow.Hour.ToString() },
+				{ "tminute",    (testAb) => DateTime.UtcNow.Minute.ToString() },
+				{ "tsecond",    (testAb) => DateTime.UtcNow.Second.ToString() },
+				{ "tyear",      (testAb) => DateTime.UtcNow.Year.ToString() },
+				{ "tmonth",     (testAb) => DateTime.UtcNow.Month.ToString() },
+				{ "tdate",      (testAb) => DateTime.UtcNow.Day.ToString() },
+				{ "tdow",       (testAb) => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
+				{ "key",        (testAb) => testAb.keyOutput.ToString() },
+				{ "ret",        (testAb) => testAb.returnedValue },
+				{ "mx",         (testAb) => OutputForm.app.GetMouseX().ToString() },
+				{ "my",         (testAb) => OutputForm.app.GetMouseY().ToString() },
+				{ "redraw",     (testAb) => redraw.ToString() }
 			};
 		}
 
@@ -140,19 +140,30 @@ namespace Maartanic
 		// SendMessage(): Logs a message to the console with a level, including line of execution.
 		internal void SendMessage(Level a, string message)
 		{
-			if ((int)a >= Program.logLevel)
+			if (childProcess != null)
 			{
-				switch ((int)a)
+				childProcess.SendMessage(a, message);
+			}
+			else
+			{
+				if ((int)a >= Program.logLevel)
 				{
-					case 0:
-						Console.Write($"\nMRT INF line {lineIndex}: {message}");
-						break;
-					case 1:
-						Console.Write($"\nMRT WRN line {lineIndex}: {message}");
-						break;
-					case 2:
-						Console.Write($"\nMRT ERR line {lineIndex}: {message}");
-						break;
+					switch ((int)a)
+					{
+						case 0:
+							Console.Write($"\nMRT INF line {lineIndex}: {message}");
+							break;
+						case 1:
+							Console.Write($"\nMRT WRN line {lineIndex}: {message}");
+							break;
+						case 2:
+							Console.Write($"\nMRT ERR line {lineIndex}: {message}");
+							if (!OutputForm.ErrorMessage(lineIndex + ": " + message))
+							{
+								Program.Exit("-1");
+							}
+							break;
+					}
 				}
 			}
 		}
@@ -636,15 +647,16 @@ namespace Maartanic
 					case "DO":
 					case "CALL":
 						{
-							Engine E = new Engine(scriptFile, args[0]);
-							if (E.Executable())
+							childProcess = new Engine(scriptFile, args[0]);
+							if (childProcess.Executable())
 							{
-								returnedValue = E.StartExecution();
+								returnedValue = childProcess.StartExecution();
 							}
 							else
 							{
 								SendMessage(Level.ERR, "Program was not executable.");
 							}
+							childProcess = null;
 						}
 						break;
 
@@ -820,7 +832,7 @@ namespace Maartanic
 								return output;
 							}
 						}
-						if (Program.SettingGraphicsMode == Mode.ENABLED && !Program.extendedMode.recognizedInstruction)
+						if (Program.SettingGraphicsMode == Mode.ENABLED && (Program.SettingExtendedMode != Mode.ENABLED || !Program.extendedMode.recognizedInstruction))
 						{
 							string output = GraphicsInstructions.Instructions(this, ref lineInfo, ref args);
 							if (output != null)
@@ -829,7 +841,7 @@ namespace Maartanic
 								return output;
 							}
 						}
-						else if (!Program.extendedMode.recognizedInstruction)
+						else if (Program.SettingExtendedMode == Mode.ENABLED && !Program.extendedMode.recognizedInstruction)
 						{
 							SendMessage(Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (VSB)");
 						}
@@ -1186,6 +1198,13 @@ namespace Maartanic
 			}
 		}
 
+		internal Engine GetLatestChild()
+		{
+			if (childProcess != null)
+				return childProcess.GetLatestChild();
+			return this;
+		}
+
 		// LocalMemoryGet(): Converts a given variable to its contents. Leaves it alone if it doesn't have a recognized prefix.
 		internal void LocalMemoryGet(ref string varName)
 		{
@@ -1201,7 +1220,7 @@ namespace Maartanic
 				{
 					if (predefinedVariables.ContainsKey(varName[2..]))
 					{
-						varName = predefinedVariables[varName[2..]]();
+						varName = predefinedVariables[varName[2..]](GetLatestChild());
 					}
 				}
 				else if (localMemory.ContainsKey(varName[1..]))

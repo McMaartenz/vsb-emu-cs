@@ -6,7 +6,7 @@ namespace Maartanic
 	internal static class GraphicsInstructions
 	{
 		private static Color temp;
-		private static string[] VSBInstructions = new string[]
+		private static readonly string[] VSBInstructions = new string[]
 			{
 				"SCREENLN",
 				"SCREENREC",
