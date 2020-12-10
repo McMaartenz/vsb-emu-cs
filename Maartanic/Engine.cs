@@ -1127,8 +1127,7 @@ namespace Maartanic
 			// Numbers
 			b1 = args[1].ToUpper() == "TRUE" || args[1] == "1" || args[1] == "1.0";
 			b2 = args[2].ToUpper() == "TRUE" || args[2] == "1" || args[2] == "1.0";
-			double n1 = Parse<double>(args[1], true);
-			double n2 = Parse<double>(args[2], true);
+			double n1 = Parse<double>(args[1], true), n2 = Parse<double>(args[2], true);
 
 			switch (args[0].ToUpper())
 			{
