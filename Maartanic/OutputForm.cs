@@ -14,7 +14,15 @@ namespace Maartanic
 		// P/Invoke user32.dll to show window with uint 0x09
 		[DllImport("user32.dll")]
 		private static extern int ShowWindow(IntPtr hWnd, uint Msg);
+
 		private const uint SW_RESTORE = 0x09;
+
+		internal static IntPtr GetHandle(Form form)
+		{
+			Func<IntPtr> f = () => { return form.Handle; };
+			return (IntPtr) form.Invoke(f);
+		}
+
 		internal static void Restore(Form form)
 		{
 			form.SuspendLayout();

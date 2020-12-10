@@ -55,10 +55,18 @@ namespace Maartanic
 		internal static extern IntPtr GetConsoleWindow();
 
 		[DllImport("user32.dll")]
+		internal static extern IntPtr GetForegroundWindow();
+
+		[DllImport("user32.dll")]
 		internal static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
 		[DllImport("user32.dll")]
 		internal static extern int GetAsyncKeyState(int vKeys);
+
+		internal static bool IsFocused()
+		{
+			return GetForegroundWindow() == GetConsoleWindow() || GetForegroundWindow() == OutputForm.GetHandle(OutputForm.app);
+		}
 
 		// Exit(): Exit process
 		internal static void Exit(string value)
