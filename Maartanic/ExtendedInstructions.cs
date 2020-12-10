@@ -11,8 +11,9 @@ namespace Maartanic
 
 		private readonly Dictionary<string, Func<Engine, string>> toBeAdded = new Dictionary<string, Func<Engine, string>>()
 		{
-			{ "pask", (e) => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
-			{ "maartanic", (e) => "true" } // whether or not this is the Maartanic Engine
+			{ "pask",       (e) => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
+			{ "maartanic",  (e) => "true" }, // whether or not this is the Maartanic Engine
+			{ "istype", (e) => e.IsType.ToString() }
 		};
 
 		internal ExtendedInstructions()
@@ -544,6 +545,46 @@ namespace Maartanic
 					else
 					{
 						Program.ShowWindow(Program.GetConsoleWindow(), 5);
+					}
+					break;
+
+				case "ISTYPE": // ISTYPE [type] [input] r-r sets $_istype.
+					{
+						string type = args[0].ToLower(), input = args[1];
+						bool result = false;
+						switch (type)
+						{
+							case "int":
+							case "int32":
+								result = int.TryParse(input, out _);
+								break;
+
+							case "bool":
+								result = bool.TryParse(input, out _);
+								break;
+
+							case "double":
+								result = bool.TryParse(input, out _);
+								break;
+
+							case "char":
+								result = char.TryParse(input, out _);
+								break;
+
+							case "byte":
+								result = byte.TryParse(input, out _);
+								break;
+
+							case "float":
+								result = float.TryParse(input, out _);
+								break;
+
+							case "uint":
+							case "uint32":
+								result = uint.TryParse(input, out _);
+								break;
+						}
+						e.IsType = result;
 					}
 					break;
 

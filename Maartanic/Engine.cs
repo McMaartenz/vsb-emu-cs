@@ -25,8 +25,9 @@ namespace Maartanic
 		private string[] lineInfo;
 
 		private bool compareOutput = false;
+		internal bool _isType = false;
+		private bool _keyOutput = false;
 
-		internal bool _keyOutput = false;
 		internal bool KeyOutput
 		{
 			get
@@ -39,6 +40,19 @@ namespace Maartanic
 				GetLatestChild()._keyOutput = value;
 			}
 		}
+		internal bool IsType
+		{
+			get
+			{
+				return _isType;
+			}
+
+			set
+			{
+				GetLatestChild()._isType = value;
+			}
+		}
+
 		internal string returnedValue = "NULL";
 		internal bool redraw;
 
