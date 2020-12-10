@@ -5,8 +5,6 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-//TODO make child variable with type Engine that contains the engine it is working in, to redirect the sendmessage to the child "process".
-
 namespace Maartanic
 {
 	class Engine
@@ -140,7 +138,7 @@ namespace Maartanic
 		// SendMessage(): Logs a message to the console with a level, including line of execution.
 		internal void SendMessage(Level a, string message)
 		{
-			if (childProcess != null)
+			if (childProcess != null && childProcess.Executable())
 			{
 				childProcess.SendMessage(a, message);
 			}

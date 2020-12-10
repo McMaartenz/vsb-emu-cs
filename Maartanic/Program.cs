@@ -115,13 +115,17 @@ namespace Maartanic
 			}
 		}
 
-		internal static Color HexHTML (string input)
+		internal static Color HexHTML (string input) //TODO test color
 		{
+			input = input.Trim();
 			if (input.StartsWith("0x"))
 			{
 				input = input[2..];
 			}
-			input = (input[0] == '#' ? input : '#' + input).Trim();
+			if (!input.StartsWith('#'))
+			{
+				input = '#' + input;
+			}
 			try
 			{
 				return ColorTranslator.FromHtml(input);
