@@ -19,9 +19,10 @@ namespace Maartanic
 
 		internal void Update()
 		{
-			OutputForm.windowGraphics = OutputForm.app.CreateGraphics();
-			OutputForm.windowGraphics.DrawImage(localBitmap, 0, 0);
-			OutputForm.windowGraphics.Dispose();
+			using (OutputForm.windowGraphics = OutputForm.app.CreateGraphics())
+			{
+				OutputForm.windowGraphics.DrawImage(localBitmap, 0, 0);
+			}
 		}
 
 		internal void SetColor(Color color)
