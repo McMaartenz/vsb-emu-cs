@@ -19,8 +19,7 @@ namespace Maartanic
 
 		internal static IntPtr GetHandle(Form form)
 		{
-			Func<IntPtr> f = () => { return form.Handle; };
-			return (IntPtr) form.Invoke(f);
+			return (IntPtr) form.Invoke(new Func<IntPtr>(() => { return form.Handle; }));
 		}
 
 		internal static void Restore(Form form)
