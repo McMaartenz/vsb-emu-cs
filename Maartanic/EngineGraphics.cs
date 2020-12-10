@@ -50,6 +50,13 @@ namespace Maartanic
 			localGraphics.Clear(color);
 		}
 
+		internal void FilledRectangle(float x, float y, float w, float h)
+		{
+			//localGraphics.DrawRectangle(internalPen, x, y, w, h);
+			using Brush internalBrush = new SolidBrush(internalPen.Color);
+			localGraphics.FillRectangle(internalBrush, x, y, w, h);
+		}
+
 		internal void Pixel(float x, float y)
 		{
 			internalBrush = new SolidBrush(internalPen.Color);

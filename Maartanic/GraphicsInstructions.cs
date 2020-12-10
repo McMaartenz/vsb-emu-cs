@@ -104,6 +104,10 @@ namespace Maartanic
 					VSBHandle(1, lineInfo[0].ToUpper(), ref args);
 					break;
 
+				case "PFRECT": // PFRECT [x] [y] [w] [h] r-r-r-r
+					Program.graphics.FilledRectangle(Parse<float>(args[0]), Parse<float>(args[1]), Parse<float>(args[2]), Parse<float>(args[3]));
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (GPU.)");
 					break;
