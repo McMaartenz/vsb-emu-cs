@@ -1357,7 +1357,7 @@ namespace Maartanic
 			{ // Make scope
 				for (int i = 0; i < RetResultPos; i++)
 				{
-					LocalMemoryGet(ref RetResult[i]); //IDEA maybe make ref refer to the position in the array instead of setting a variable tmp
+					LocalMemoryGet(ref RetResult[i]);
 					finalOutput[i] = RetResult[i];
 				}
 			}
