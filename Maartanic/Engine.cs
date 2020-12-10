@@ -25,7 +25,25 @@ namespace Maartanic
 		private string[] lineInfo;
 
 		private bool compareOutput = false;
-		internal bool keyOutput;
+
+		internal bool keyOutputStor = false;
+		internal bool keyOutput
+		{
+			get
+			{
+				return keyOutputStor;
+			}
+
+			set
+			{
+				if (keyOutputStor == null)
+				{
+					keyOutputStor = false;
+					return;
+				}
+				GetLatestChild().keyOutputStor = value;
+			}
+		}
 		internal string returnedValue = "NULL";
 		internal bool redraw;
 
@@ -853,6 +871,49 @@ namespace Maartanic
 			return returnedValue;
 		}
 
+		internal int GetJumpNr(string endNaming, string startNaming)
+		{
+			int scope = 0;
+			bool success = false;
+			int whileLineIndex = 0;
+			string[] cLineInfo = null;
+			StreamReader endifsr = new StreamReader(scriptFile);
+			while ((line = endifsr.ReadLine()) != null)
+			{
+				whileLineIndex++;
+				if (LineCheck(ref cLineInfo, ref whileLineIndex, true))
+				{
+					continue;
+				}
+				if (whileLineIndex > lineIndex)
+				{
+					if (cLineInfo[0].ToUpper() == endNaming && scope == 0)
+					{
+						success = true;
+						break;
+					}
+					if (cLineInfo[0].ToUpper() == startNaming)
+					{
+						scope++;
+					}
+					if (cLineInfo[0].ToUpper() == endNaming)
+					{
+						scope--;
+					}
+				}
+
+			}
+			if (success)
+			{
+				return whileLineIndex;
+			}
+			else
+			{
+				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.");
+				return 0;
+			}
+		}
+
 		// StatementJumpOut(): Jumps out of the statement.
 		internal void StatementJumpOut(string endNaming, string startNaming)
 		{
@@ -864,7 +925,7 @@ namespace Maartanic
 			while ((line = endifsr.ReadLine()) != null)
 			{
 				whileLineIndex++;
-				if (LineCheck(ref cLineInfo, ref whileLineIndex))
+				if (LineCheck(ref cLineInfo, ref whileLineIndex, true))
 				{
 					continue;
 				}

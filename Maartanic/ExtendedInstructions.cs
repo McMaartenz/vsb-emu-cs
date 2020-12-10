@@ -65,34 +65,112 @@ namespace Maartanic
 							// FOR [amount]				r		(+ENDF)
 					if (args.Length > 1)
 					{
-						int amount = Parse<int>(args[1]);
-						bool selfRegulatedBreak = false;
-						bool skipNext = false;
-						for (int i = 0; i < amount; i++)
+						int amount = (int)Parse<float>(args[1]);
+						if (amount < 1)
 						{
-							e.childProcess = new Engine(e.scriptFile, args[0]);
-							if (e.childProcess.Executable())
+							e.SendMessage(Engine.Level.INF, "Invalid FOR");
+						}
+						else
+						{
+							bool selfRegulatedBreak = false;
+							bool skipNext = false;
+							for (int i = 0; i < amount; i++)
 							{
-								if (!skipNext)
+								e.childProcess = new Engine(e.scriptFile, args[0]);
+								if (e.childProcess.Executable())
 								{
-									e.returnedValue = e.childProcess.returnedValue = e.childProcess.StartExecution();
+									if (!skipNext)
+									{
+										e.returnedValue = e.childProcess.returnedValue = e.childProcess.StartExecution();
+									}
+									else
+									{
+										skipNext = false;
+									}
+									if (e.childProcess.returnedValue.StartsWith("3&"))
+									{
+										e.SendMessage(Engine.Level.INF, "Break statement");
+										selfRegulatedBreak = true;
+										break;
+									}
+									else if (e.childProcess.returnedValue.StartsWith("4&"))
+									{
+										e.SendMessage(Engine.Level.INF, "Continue statement");
+										skipNext = true;
+										continue;
+									}
 								}
 								else
 								{
-									skipNext = false;
+									if (!selfRegulatedBreak)
+									{
+										e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
+									}
+									else
+									{
+										e.SendMessage(Engine.Level.INF, "FOR self regulated loop break");
+										e.returnedValue = e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('&') + 1)..];
+									}
 								}
-								if (e.childProcess.returnedValue.StartsWith("3&"))
+								e.childProcess = null;
+							}
+						}
+					}
+					else
+					{
+						e.childProcess = new Engine(e.scriptFile)
+						{
+							localMemory = e.localMemory,            // Copy over local memory, and return
+							returnedValue = e.returnedValue
+						};
+						int amount = (int)Parse<float>(args[0]);
+						if (amount < 1)
+						{
+							e.SendMessage(Engine.Level.INF, "Invalid FOR loop");
+							e.StatementJumpOut("ENDF", "FOR");
+						}
+						else
+						{
+							bool selfRegulatedBreak = false;
+
+							for (int i = 0; i < amount; i++)
+							{
+								if (i != 0)
 								{
-									e.SendMessage(Engine.Level.INF, "Break statement");
-									selfRegulatedBreak = true;
-									break;
+									if (e.childProcess.returnedValue.Contains('.'))
+									{
+										e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
+									}
+									else
+									{
+										if (e.childProcess.returnedValue.StartsWith('3') && e.childProcess.returnedValue[1] == '&')
+										{
+											e.SendMessage(Engine.Level.INF, "Break statement");
+											selfRegulatedBreak = true;
+											break;
+										}
+
+										if (e.childProcess.returnedValue == "4" && e.childProcess.returnedValue[1] == '&')
+										{
+											e.SendMessage(Engine.Level.INF, "Continue statement");
+											e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
+											continue;
+										}
+
+										e.SendMessage(Engine.Level.INF, "Return statement");
+										string ret = e.childProcess.returnedValue;
+										e.childProcess = null;
+										return ret;
+									}
 								}
-								else if (e.childProcess.returnedValue.StartsWith("4&"))
-								{
-									e.SendMessage(Engine.Level.INF, "Continue statement");
-									skipNext = true;
-									continue;
-								}
+								e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
+							}
+							e.localMemory = e.childProcess.localMemory; // Copy back
+							if (e.childProcess.returnedValue.Contains('.'))
+							{
+								int jumpLine = Parse<int>(e.childProcess.returnedValue[..e.childProcess.returnedValue.IndexOf('.')]);
+								e.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
+								e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
 							}
 							else
 							{
@@ -109,70 +187,6 @@ namespace Maartanic
 							}
 							e.childProcess = null;
 						}
-					}
-					else
-					{
-						e.childProcess = new Engine(e.scriptFile)
-						{
-							localMemory = e.localMemory,            // Copy over local memory, and return
-							returnedValue = e.returnedValue
-						};
-						int amount = Parse<int>(args[0]);
-						bool selfRegulatedBreak = false;
-
-						for (int i = 0; i < amount; i++)
-						{
-							if (i != 0)
-							{
-								if (e.childProcess.returnedValue.Contains('.'))
-								{
-									e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
-								}
-								else
-								{
-									if (e.childProcess.returnedValue.StartsWith('3') && e.childProcess.returnedValue[1] == '&')
-									{
-										e.SendMessage(Engine.Level.INF, "Break statement");
-										selfRegulatedBreak = true;
-										break;
-									}
-
-									if (e.childProcess.returnedValue == "4" && e.childProcess.returnedValue[1] == '&')
-									{
-										e.SendMessage(Engine.Level.INF, "Continue statement");
-										e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
-										continue;
-									}
-
-									e.SendMessage(Engine.Level.INF, "Return statement");
-									string ret = e.childProcess.returnedValue;
-									e.childProcess = null;
-									return ret;
-								}
-							}
-							e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
-						}
-						e.localMemory = e.childProcess.localMemory; // Copy back
-						if (e.childProcess.returnedValue.Contains('.'))
-						{
-							int jumpLine = Parse<int>(e.childProcess.returnedValue[..e.childProcess.returnedValue.IndexOf('.')]);
-							e.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
-							e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
-						}
-						else
-						{
-							if (!selfRegulatedBreak)
-							{
-								e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
-							}
-							else
-							{
-								e.SendMessage(Engine.Level.INF, "FOR self regulated loop break");
-								e.returnedValue = e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('&') + 1)..];
-							}
-							e.StatementJumpOut("ENDF", "FOR");
-						}
-						e.childProcess = null;
 					}
 					break;
 
