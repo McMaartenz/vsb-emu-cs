@@ -26,22 +26,17 @@ namespace Maartanic
 
 		private bool compareOutput = false;
 
-		internal bool keyOutputStor = false;
-		internal bool keyOutput
+		internal bool _keyOutput = false;
+		internal bool KeyOutput
 		{
 			get
 			{
-				return keyOutputStor;
+				return _keyOutput;
 			}
 
 			set
 			{
-				if (keyOutputStor == null)
-				{
-					keyOutputStor = false;
-					return;
-				}
-				GetLatestChild().keyOutputStor = value;
+				GetLatestChild()._keyOutput = value;
 			}
 		}
 		internal string returnedValue = "NULL";
@@ -93,7 +88,7 @@ namespace Maartanic
 				{ "tmonth",     (e) => DateTime.UtcNow.Month.ToString() },
 				{ "tdate",      (e) => DateTime.UtcNow.Day.ToString() },
 				{ "tdow",       (e) => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
-				{ "key",        (e) => e.keyOutput.ToString() },
+				{ "key",        (e) => e.KeyOutput.ToString() },
 				{ "ret",        (e) => e.returnedValue },
 				{ "mx",         (e) => OutputForm.app.GetMouseX().ToString() },
 				{ "my",         (e) => OutputForm.app.GetMouseY().ToString() },
@@ -105,7 +100,7 @@ namespace Maartanic
 		internal Engine (string startPos)
 		{
 			redraw = true;
-			keyOutput = false;
+			KeyOutput = false;
 			executable = File.Exists(startPos);
 			if (!executable)
 			{
@@ -119,7 +114,7 @@ namespace Maartanic
 		internal Engine(string startPos, string customEntryPoint)
 		{
 			redraw = true;
-			keyOutput = false;
+			KeyOutput = false;
 			entryPoint = customEntryPoint; // default is main
 			executable = File.Exists(startPos);
 			if (!executable)
@@ -588,7 +583,7 @@ namespace Maartanic
 						break;
 
 					case "KEY":
-						keyOutput = (Program.GetAsyncKeyState((int)VK.ConvertKey(args[0][0])) != 0) && Program.IsFocused();
+						KeyOutput = (Program.GetAsyncKeyState((int)VK.ConvertKey(args[0][0])) != 0) && Program.IsFocused();
 						break;
 
 					case "HLT":

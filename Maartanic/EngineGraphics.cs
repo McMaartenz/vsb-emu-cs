@@ -6,9 +6,9 @@ namespace Maartanic
 	{
 		private readonly Pen internalPen;
 		private Brush internalBrush;
-		private Font font;
-		private Graphics localGraphics;
-		private Bitmap localBitmap = new Bitmap(Program.WIN_WIDTH, Program.WIN_HEIGHT);
+		private readonly Font font;
+		private readonly Graphics localGraphics;
+		private readonly Bitmap localBitmap = new Bitmap(Program.WIN_WIDTH, Program.WIN_HEIGHT);
 		internal EngineGraphics()
 		{
 			//localBitmap = new Bitmap(width: Program.WIN_WIDTH, height: Program.WIN_HEIGHT);

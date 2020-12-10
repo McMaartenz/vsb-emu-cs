@@ -129,48 +129,46 @@ namespace Maartanic
 			output = "error";
 			Invoke(new Action(() =>
 			{
-				using (Form inputWindow = new Form())
+				using Form inputWindow = new Form();
+
+				Label inputWindowLabel = new Label();
+				TextBox inputWindowTextBox = new TextBox();
+				Button inputWindowOK = new Button();
+				Button inputWindowCANCEL = new Button();
+
+				inputWindow.Text = "User input required";
+				inputWindowLabel.Text = "This program is asking for user input:";
+				inputWindowTextBox.PlaceholderText = "Enter text..";
+				inputWindowOK.Text = "OK";
+				inputWindowCANCEL.Text = "Cancel";
+				inputWindowOK.DialogResult = DialogResult.OK;
+				inputWindowCANCEL.DialogResult = DialogResult.Cancel;
+				inputWindowLabel.SetBounds(9, 10, 372, 13);
+				inputWindowTextBox.SetBounds(12, 36, 372, 20);
+				inputWindowOK.SetBounds(228, 72, 75, 23);
+				inputWindowCANCEL.SetBounds(309, 72, 75, 23);
+				inputWindowLabel.AutoSize = true;
+				inputWindowTextBox.Anchor |= AnchorStyles.Right;
+				inputWindowOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+				inputWindowCANCEL.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+				inputWindow.ClientSize = new Size(396, 107);
+				inputWindow.Controls.AddRange(new Control[] { inputWindowLabel, inputWindowTextBox, inputWindowOK, inputWindowCANCEL });
+				inputWindow.ClientSize = new Size(Math.Max(300, inputWindowLabel.Right + 10), inputWindow.ClientSize.Height);
+				inputWindow.FormBorderStyle = FormBorderStyle.FixedDialog;
+				inputWindow.StartPosition = FormStartPosition.CenterParent;
+				inputWindow.MinimizeBox = false;
+				inputWindow.MaximizeBox = false;
+				inputWindow.AcceptButton = inputWindowOK;
+				inputWindow.CancelButton = inputWindowCANCEL;
+
+				if (inputWindow.ShowDialog() == DialogResult.OK)
 				{
-					Label inputWindowLabel = new Label();
-					TextBox inputWindowTextBox = new TextBox();
-					Button inputWindowOK = new Button();
-					Button inputWindowCANCEL = new Button();
-
-					inputWindow.Text = "User input required";
-					inputWindowLabel.Text = "This program is asking for user input:";
-					inputWindowTextBox.PlaceholderText = "Enter text..";
-					inputWindowOK.Text = "OK";
-					inputWindowCANCEL.Text = "Cancel";
-					inputWindowOK.DialogResult = DialogResult.OK;
-					inputWindowCANCEL.DialogResult = DialogResult.Cancel;
-					inputWindowLabel.SetBounds(9, 10, 372, 13);
-					inputWindowTextBox.SetBounds(12, 36, 372, 20);
-					inputWindowOK.SetBounds(228, 72, 75, 23);
-					inputWindowCANCEL.SetBounds(309, 72, 75, 23);
-					inputWindowLabel.AutoSize = true;
-					inputWindowTextBox.Anchor |= AnchorStyles.Right;
-					inputWindowOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-					inputWindowCANCEL.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-					inputWindow.ClientSize = new Size(396, 107);
-					inputWindow.Controls.AddRange(new Control[] { inputWindowLabel, inputWindowTextBox, inputWindowOK, inputWindowCANCEL });
-					inputWindow.ClientSize = new Size(Math.Max(300, inputWindowLabel.Right + 10), inputWindow.ClientSize.Height);
-					inputWindow.FormBorderStyle = FormBorderStyle.FixedDialog;
-					inputWindow.StartPosition = FormStartPosition.CenterParent;
-					inputWindow.MinimizeBox = false;
-					inputWindow.MaximizeBox = false;
-					inputWindow.AcceptButton = inputWindowOK;
-					inputWindow.CancelButton = inputWindowCANCEL;
-
-					if (inputWindow.ShowDialog() == DialogResult.OK)
-					{
-						output = inputWindowTextBox.Text;
-					}
-					else
-					{
-						output = "ERROR";
-					}
+					output = inputWindowTextBox.Text;
 				}
-
+				else
+				{
+					output = "ERROR";
+				}
 			}));
 			return output;
 		}
