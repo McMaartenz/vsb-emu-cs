@@ -198,7 +198,8 @@ namespace Maartanic
 				}
 				catch (Exception ex)
 				{
-					Console.Write("\nINTERNAL MRT ERROR: " + ex.ToString());
+					Console.Write("\n\n\nINTERNAL MRT ERROR\n\n" + ex.ToString());
+					OutputForm.CriticalError(ex.Message + " More information can be found in the console.");
 				}
 			}
 			Exit("0");

@@ -99,6 +99,16 @@ namespace Maartanic
 			return result == DialogResult.Yes;
 		}
 
+		internal static void CriticalError(string message)
+		{
+			MessageBox.Show(
+				message,
+				"Internal MRT error",
+				MessageBoxButtons.OK,
+				MessageBoxIcon.Error
+			);
+		}
+
 		private void Minimize() // Excited moment: event works and can minimize a window again!
 		{
 			BeginInvoke(new Action(() =>// Invoke code onto the windowProcess thread
