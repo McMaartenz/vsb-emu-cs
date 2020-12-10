@@ -50,7 +50,8 @@ namespace Maartanic
 		{
 			switch (lineInfo[0].ToUpper())
 			{
-				case "SCREENUPD":
+				case "SCREENUPD": //TODO to support this, using double buffered graphics
+					Program.graphics.Update();
 					break;
 
 				case "SCREENLN": // VSB compat

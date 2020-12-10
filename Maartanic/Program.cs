@@ -15,6 +15,8 @@ namespace Maartanic
 		//TODO Add try catch! And make errors stop the program IF inside extended mode.
 
 		internal const float VERSION = 1.1f;
+		internal static int WIN_WIDTH = 480;
+		internal static int WIN_HEIGHT = 360;
 
 		internal static EngineStack stack = new EngineStack();
 		internal static EngineQueue queue = new EngineQueue();
@@ -37,8 +39,7 @@ namespace Maartanic
 		internal static int CON_WIDTH = 120;
 		internal static int CON_HEIGHT = 30;
 
-		internal static int WIN_WIDTH = 480;
-		internal static int WIN_HEIGHT = 360;
+		// Default 480x360
 
 		internal static Thread consoleProcess;
 		internal static Thread windowProcess;
