@@ -5,9 +5,6 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-//TODO check if readonly really is necessary
-#pragma warning disable IDE0044
-
 namespace Maartanic
 {
 	class Engine
@@ -17,10 +14,10 @@ namespace Maartanic
 		internal void MinimizeWindow() => MinimizeNow(this, new EventArgs());
 
 		internal StreamReader sr;
-		private int logLevel;
+		internal Engine childProcess;
 
-		private bool executable;
-		internal string scriptFile;
+		private readonly bool executable;
+		internal readonly string scriptFile;
 		internal string entryPoint = "main";
 
 		internal string line;
@@ -28,14 +25,40 @@ namespace Maartanic
 		private string[] lineInfo;
 
 		private bool compareOutput = false;
-		internal static bool keyOutput;
+		internal bool _isType = false;
+		private bool _keyOutput = false;
+
+		internal bool KeyOutput
+		{
+			get
+			{
+				return _keyOutput;
+			}
+
+			set
+			{
+				GetLatestChild()._keyOutput = value;
+			}
+		}
+		internal bool IsType
+		{
+			get
+			{
+				return _isType;
+			}
+
+			set
+			{
+				GetLatestChild()._isType = value;
+			}
+		}
+
 		internal string returnedValue = "NULL";
-		internal bool redraw = true;
+		internal bool redraw;
 
-		//internal Mode applicationMode = Mode.VSB; //TODO Make this static inside Program class to avoid having to toss it around when performing instructions
-		private DateTime startTime = DateTime.UtcNow;
+		private readonly DateTime startTime = DateTime.UtcNow;
 
-		internal static Dictionary<string, Func<string>> predefinedVariables;
+		internal static Dictionary<string, Func<Engine, string>> predefinedVariables;
 		internal Dictionary<string, string> localMemory = new Dictionary<string, string>();
 
 		// Level: Used in SendMessage method to indicate the message level as info, warning or error.
@@ -49,48 +72,51 @@ namespace Maartanic
 		// Mode: Used in applicationMode to let the engine know to enable extended functions not (yet) included in the VSB Engine.
 		internal enum Mode
 		{
-			EXTENDED,
-			VSB
+			ENABLED,
+			DISABLED
 		}
 
-		private static T Parse<T>(string input)
+		private static T Parse<T>(string input, bool silence = false)
 		{
-			return Program.Parse<T>(input);
+			return Program.Parse<T>(input, silence);
 		}
 
 		// FillPredefinedList(): Fills the predefinedVariables array with Delegates (Functions) to accommodate for the system in VSB
 		internal void FillPredefinedList()
 		{
-			predefinedVariables = new Dictionary<string, Func<string>>()
+			predefinedVariables = new Dictionary<string, Func<Engine, string>>()
 			{
-				{ "ww",         () => Console.WindowWidth.ToString() },
-				{ "wh",         () => Console.WindowHeight.ToString() },
-				{ "cmpr",       () => compareOutput.ToString() },
-				{ "projtime",   () => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
-				{ "projid",     () => "0" },
-				{ "user",       () => "*guest" },
-				{ "ver",        () => "1.3" }, // VSB version not Maartanic Engine version
-				{ "ask",        () => Console.ReadLine() },
-				{ "graphics",   () => (Program.applicationMode == Mode.EXTENDED).ToString().ToLower() },
-				{ "thour",      () => DateTime.UtcNow.Hour.ToString() },
-				{ "tminute",    () => DateTime.UtcNow.Minute.ToString() },
-				{ "tsecond",    () => DateTime.UtcNow.Second.ToString() },
-				{ "tyear",      () => DateTime.UtcNow.Year.ToString() },
-				{ "tmonth",     () => DateTime.UtcNow.Month.ToString() },
-				{ "tdate",      () => DateTime.UtcNow.Day.ToString() },
-				{ "tdow",       () => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
-				{ "key",        () => keyOutput.ToString() },
-				{ "ret",        () => returnedValue },
-				{ "mx",         () => "0" }, //INFO mouse x and y are not supported, YET! Implement with Form's cursor library?
-				{ "my",         () => "0" },
-				{ "redraw",     () => redraw.ToString() }
+				{ "ww",         (e) => Console.WindowWidth.ToString() },
+				{ "wh",         (e) => Console.WindowHeight.ToString() },
+				{ "cmpr",       (e) => e.compareOutput.ToString() },
+				{ "cmp",		(e) => e.compareOutput.ToString() },
+				{ "projtime",   (e) => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
+				{ "projid",     (e) => "0" },
+				{ "user",       (e) => "*guest" },
+				{ "ver",        (e) => "1.3" }, // VSB version not Maartanic Engine version
+				{ "ask",        (e) => Console.ReadLine() },
+				{ "graphics",   (e) => (Program.SettingGraphicsMode == Mode.ENABLED).ToString().ToLower() },
+				{ "thour",      (e) => DateTime.UtcNow.Hour.ToString() },
+				{ "tminute",    (e) => DateTime.UtcNow.Minute.ToString() },
+				{ "tsecond",    (e) => DateTime.UtcNow.Second.ToString() },
+				{ "tyear",      (e) => DateTime.UtcNow.Year.ToString() },
+				{ "tmonth",     (e) => DateTime.UtcNow.Month.ToString() },
+				{ "tdate",      (e) => DateTime.UtcNow.Day.ToString() },
+				{ "tdow",       (e) => ((int)DateTime.UtcNow.DayOfWeek).ToString() },
+				{ "key",        (e) => e.KeyOutput.ToString() },
+				{ "ret",        (e) => e.returnedValue },
+				{ "mx",         (e) => OutputForm.app.GetMouseX().ToString() },
+				{ "my",         (e) => OutputForm.app.GetMouseY().ToString() },
+				{ "md",			(e) => OutputForm.app.GetLMDown().ToString() },
+				{ "redraw",     (e) => redraw.ToString() }
 			};
 		}
 
 		// Engine(): Class constructor, returns if given file does not exist.
 		internal Engine (string startPos)
 		{
-			keyOutput = false;
+			redraw = true;
+			KeyOutput = false;
 			executable = File.Exists(startPos);
 			if (!executable)
 			{
@@ -103,7 +129,8 @@ namespace Maartanic
 		// Engine() OVERLOADED: Specify your entry point
 		internal Engine(string startPos, string customEntryPoint)
 		{
-			keyOutput = false;
+			redraw = true;
+			KeyOutput = false;
 			entryPoint = customEntryPoint; // default is main
 			executable = File.Exists(startPos);
 			if (!executable)
@@ -140,19 +167,33 @@ namespace Maartanic
 		// SendMessage(): Logs a message to the console with a level, including line of execution.
 		internal void SendMessage(Level a, string message)
 		{
-			if ((int)a >= logLevel)
+			if (childProcess != null && childProcess.Executable())
 			{
-				switch ((int)a)
+				childProcess.SendMessage(a, message);
+			}
+			else
+			{
+				if ((int)a >= Program.logLevel)
 				{
-					case 0:
-						Console.Write($"\nMRT INF line {lineIndex}: {message}");
-						break;
-					case 1:
-						Console.Write($"\nMRT WRN line {lineIndex}: {message}");
-						break;
-					case 2:
-						Console.Write($"\nMRT ERR line {lineIndex}: {message}");
-						break;
+					switch ((int)a)
+					{
+						case 0:
+							Console.Write($"\nMRT INF line {lineIndex}: {message}");
+							break;
+						case 1:
+							Console.Write($"\nMRT WRN line {lineIndex}: {message}");
+							break;
+						case 2:
+							Console.Write($"\nMRT ERR line {lineIndex}: {message}");
+							if (!Program.stopAsking)
+							{
+								if (!OutputForm.ErrorMessage($"Line {lineIndex}: " + message))
+								{
+									Program.Exit("-1");
+								}
+							}
+							break;
+					}
 				}
 			}
 		}
@@ -197,9 +238,8 @@ namespace Maartanic
 		}
 
 		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
-		internal string StartExecution(int logLevelIN, bool jump = false, int jumpLine = 0)
+		internal string StartExecution(bool jump = false, int jumpLine = 0)
 		{
-			logLevel = logLevelIN;
 			lineIndex = 0;
 			sr = new StreamReader(scriptFile);
 			if (jump)
@@ -395,14 +435,18 @@ namespace Maartanic
 						break;
 
 					case "DEL":
-						if (localMemory.ContainsKey(args[0]))
+						foreach (string variable in args)
 						{
-							localMemory.Remove(args[0]);
+							if (localMemory.ContainsKey(variable))
+							{
+								localMemory.Remove(variable);
+							}
+							else
+							{
+								SendMessage(Level.WRN, $"Tried removing a non-existing variable {variable}.");
+							}
 						}
-						else
-						{
-							SendMessage(Level.WRN, $"Tried removing a non-existing variable {args[0]}.");
-						}
+						
 						break;
 
 					case "ADD": // Pass arg[2] if it exists else ignore it
@@ -434,6 +478,7 @@ namespace Maartanic
 						break;
 
 					case "CMPR":
+					case "CMP": // CMP shorter
 						{
 							compareOutput = Compare(ref args);
 						}
@@ -559,14 +604,14 @@ namespace Maartanic
 						break;
 
 					case "KEY":
-						keyOutput = Program.GetAsyncKeyState((int)VK.ConvertKey(args[0][0])) != 0;
+						KeyOutput = (Program.GetAsyncKeyState(VK.ConvertKey(args[0])) != 0) && Program.IsFocused();
 						break;
 
 					case "HLT":
 						SendMessage(Level.INF, "HLT");
 						sr.Dispose();
 						Program.Exit("2");
-						break; //INFO Unreachable code but IDE complains for some reason
+						break;
 
 					case "SUBSTR":
 						{
@@ -637,15 +682,16 @@ namespace Maartanic
 					case "DO":
 					case "CALL":
 						{
-							Engine E = new Engine(scriptFile, args[0]);
-							if (E.Executable())
+							childProcess = new Engine(scriptFile, args[0]);
+							if (childProcess.Executable())
 							{
-								returnedValue = E.StartExecution(logLevel);
+								returnedValue = childProcess.StartExecution();
 							}
 							else
 							{
 								SendMessage(Level.ERR, "Program was not executable.");
 							}
+							childProcess = null;
 						}
 						break;
 
@@ -654,7 +700,7 @@ namespace Maartanic
 						{
 							return args[0];
 						}
-						return "0"; // Manual close
+						return "5"; // Manual close 5: return code
 
 					case "RPLC":
 						{
@@ -802,7 +848,7 @@ namespace Maartanic
 
 					case "GETM":
 						{
-							Program.memory.Get(Parse<int>(args[0]), out string output);
+							Program.memory.Get(Parse<int>(args[1]), out string output);
 							SetVariable(args[0], ref output);
 						}
 						break;
@@ -812,7 +858,7 @@ namespace Maartanic
 						break;
 
 					default:
-						if (Program.applicationMode == Mode.EXTENDED) // Enable extended instruction set
+						if (Program.SettingExtendedMode == Mode.ENABLED) // Enable extended instruction set
 						{
 							string output = Program.extendedMode.Instructions(this, ref lineInfo, ref args);
 							if (output != null)
@@ -821,7 +867,16 @@ namespace Maartanic
 								return output;
 							}
 						}
-						else
+						if (Program.SettingGraphicsMode == Mode.ENABLED && (Program.SettingExtendedMode != Mode.ENABLED || !Program.extendedMode.recognizedInstruction))
+						{
+							string output = GraphicsInstructions.Instructions(this, ref lineInfo, ref args);
+							if (output != null)
+							{
+								sr.Dispose();
+								return output;
+							}
+						}
+						else if (Program.SettingExtendedMode == Mode.ENABLED && !Program.extendedMode.recognizedInstruction)
 						{
 							SendMessage(Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (VSB)");
 						}
@@ -830,6 +885,49 @@ namespace Maartanic
 			}
 			sr.Dispose(); // Close StreamReader after execution
 			return returnedValue;
+		}
+
+		internal int GetJumpNr(string endNaming, string startNaming)
+		{
+			int scope = 0;
+			bool success = false;
+			int whileLineIndex = 0;
+			string[] cLineInfo = null;
+			StreamReader endifsr = new StreamReader(scriptFile);
+			while ((line = endifsr.ReadLine()) != null)
+			{
+				whileLineIndex++;
+				if (LineCheck(ref cLineInfo, ref whileLineIndex, true))
+				{
+					continue;
+				}
+				if (whileLineIndex > lineIndex)
+				{
+					if (cLineInfo[0].ToUpper() == endNaming && scope == 0)
+					{
+						success = true;
+						break;
+					}
+					if (cLineInfo[0].ToUpper() == startNaming)
+					{
+						scope++;
+					}
+					if (cLineInfo[0].ToUpper() == endNaming)
+					{
+						scope--;
+					}
+				}
+
+			}
+			if (success)
+			{
+				return whileLineIndex;
+			}
+			else
+			{
+				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.");
+				return 0;
+			}
 		}
 
 		// StatementJumpOut(): Jumps out of the statement.
@@ -843,7 +941,7 @@ namespace Maartanic
 			while ((line = endifsr.ReadLine()) != null)
 			{
 				whileLineIndex++;
-				if (LineCheck(ref cLineInfo, ref whileLineIndex))
+				if (LineCheck(ref cLineInfo, ref whileLineIndex, true))
 				{
 					continue;
 				}
@@ -903,7 +1001,7 @@ namespace Maartanic
 		// SetMemoryAddr(): Sets a given memory address to the given value. 
 		private void SetMemoryAddr(int address, string value)
 		{
-			address = Program.applicationMode == Mode.VSB ? address - 1 : address;
+			address = Program.SettingExtendedMode == Mode.DISABLED ? address - 1 : address;
 			if (!Program.memory.Exists(address))
 			{
 				SendMessage(Level.ERR, $"Memory address {address} does not exist.");
@@ -1048,10 +1146,9 @@ namespace Maartanic
 			bool r; // Output variable (result)
 			bool b1, b2;
 			// Numbers
-			b1 = args[1] == "true" || args[1] == "1";
-			b2 = args[2] == "true" || args[2] == "1";
-			double n1 = Parse<double>(args[1]);
-			double n2 = Parse<double>(args[2]);
+			b1 = args[1].ToUpper() == "TRUE" || args[1] == "1" || args[1] == "1.0";
+			b2 = args[2].ToUpper() == "TRUE" || args[2] == "1" || args[2] == "1.0";
+			double n1 = Parse<double>(args[1], true), n2 = Parse<double>(args[2], true);
 
 			switch (args[0].ToUpper())
 			{
@@ -1178,6 +1275,13 @@ namespace Maartanic
 			}
 		}
 
+		internal Engine GetLatestChild()
+		{
+			if (childProcess != null)
+				return childProcess.GetLatestChild();
+			return this;
+		}
+
 		// LocalMemoryGet(): Converts a given variable to its contents. Leaves it alone if it doesn't have a recognized prefix.
 		internal void LocalMemoryGet(ref string varName)
 		{
@@ -1193,7 +1297,7 @@ namespace Maartanic
 				{
 					if (predefinedVariables.ContainsKey(varName[2..]))
 					{
-						varName = predefinedVariables[varName[2..]]();
+						varName = predefinedVariables[varName[2..]](GetLatestChild());
 					}
 				}
 				else if (localMemory.ContainsKey(varName[1..]))
@@ -1206,7 +1310,7 @@ namespace Maartanic
 					varName = "NULL";
 				}
 			}
-			else if (Program.applicationMode == Mode.EXTENDED)
+			else if (Program.SettingExtendedMode == Mode.ENABLED)
 			{
 				if (varName[0] == '#') // Get memory address e.g. where A is the memory address: #A
 				{
@@ -1264,18 +1368,12 @@ namespace Maartanic
 
 			// Maybe use RegEx but eh lazy. Escape quotation with a backslash. At least I understand it this way
 			// Iterates through it, splits spaces. Things in quotes (") are treated like one block even if there are spaces in between.
-			List<string> newCombinedList = new List<string>();
+			string[] RetResult = new string[10]; //INFO This is the max amount of arguments allowed before it overflows.
+			int RetResultPos = 0;
 			string newCombined = "";
 			bool isInQuotes = false;
 			for (int i = 0; i < combined.Length; i++)
 			{
-				if (combined[i] == '\\')
-				{
-					if (combined[i - 1] == '\\' && combined[i - 2] != '\\')
-					{
-						continue;
-					}
-				}
 				if (combined[i] == '"')
 				{
 					if (isInQuotes)
@@ -1283,7 +1381,7 @@ namespace Maartanic
 						if (combined[i - 1] != '\\')
 						{
 							isInQuotes = false;
-							newCombinedList.Add(newCombined);
+							RetResult[RetResultPos++] = newCombined;
 							newCombined = "";
 							continue;
 						}
@@ -1303,6 +1401,10 @@ namespace Maartanic
 						}
 					}
 				}
+				else if (combined[i] == '\\' && combined[i - 1] == '\\' && combined[i - 2] != '\\')
+				{
+					continue;
+				}
 				if (isInQuotes)
 				{
 					newCombined += combined[i];
@@ -1313,7 +1415,7 @@ namespace Maartanic
 					{
 						if (combined[i - 1] != '"')
 						{
-							newCombinedList.Add(newCombined);
+							RetResult[RetResultPos++] = newCombined;
 							newCombined = "";
 						}
 						continue;
@@ -1322,22 +1424,80 @@ namespace Maartanic
 				}
 				if (i == combined.Length - 1)
 				{
-					newCombinedList.Add(newCombined);
+					RetResult[RetResultPos++] = newCombined;
 					newCombined = "";
 				}
 			}
 
+			string[] finalOutput = new string[RetResultPos];
 			{ // Make scope
-				string tmp;
-				for (int i = 0; i < newCombinedList.Count; i++)
+				for (int i = 0; i < RetResultPos; i++)
 				{
-					tmp = newCombinedList[i];
-					LocalMemoryGet(ref tmp);
-					newCombinedList[i] = tmp;
+					LocalMemoryGet(ref RetResult[i]);
+					finalOutput[i] = RetResult[i];
 				}
 			}
+			return finalOutput;
+		}
 
-			return newCombinedList.ToArray();
+		internal void EnableGraphics()
+		{
+			if (Program.SettingGraphicsMode == Mode.DISABLED)
+			{
+				bool isAvailable = false;
+				byte times = 1;
+				while (!isAvailable)
+				{
+					lock (Program.internalShared.SyncRoot)
+					{
+						isAvailable = Program.internalShared[3] == "TRUE";
+					}
+					if (!isAvailable)
+					{
+						times++;
+						if (times > 254)
+						{
+							break;
+						}
+						SendMessage(Level.INF, "Screen component is still loading.");
+						Thread.Sleep(4);
+					}
+					else
+					{
+						break;
+					}
+				}
+				if (!isAvailable)
+				{
+					SendMessage(Level.ERR, "Screen component took too long to load.");
+				}
+				else
+				{
+					lock (Program.internalShared.SyncRoot)
+					{
+						Program.internalShared[2] = "TRUE";
+					}
+					Program.windowProcess.Interrupt();
+					bool okToExit = false;
+					times = 1;
+					while (!okToExit)
+					{
+						lock (Program.internalShared.SyncRoot)
+						{
+							okToExit = !Parse<bool>(Program.internalShared[2]);
+						}
+						Thread.Sleep(4);
+						times++;
+						if (times > 254)
+						{
+							SendMessage(Level.ERR, "Screen component did not respond.");
+							break;
+						}
+						SendMessage(Level.INF, "Waiting for screen component response..");
+					}
+				}
+				Program.SettingGraphicsMode = Mode.ENABLED;
+			}
 		}
 
 		// ExtractEngineArgs(): Extracts [A B] like stuff and applies it to internal engine variables.
@@ -1350,87 +1510,62 @@ namespace Maartanic
 				engineArg += ' ' + part;
 			}
 			engineArgParts = engineArg[1..].Trim('[', ']').Split(' ');
-			if (engineArgParts[0].ToLower() == "mode")
+			switch (engineArgParts[0].ToLower())
 			{
-				switch (engineArgParts[1].ToLower())
-				{
-					case "vsb":
-						if (Program.applicationMode != Mode.VSB)
-						{
-							Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
-							Program.applicationMode = Mode.VSB;
-							SendMessage(Level.INF, "Using compat mode");
-							MinimizeWindow();
-						}
-						Program.ShowWindow(Program.GetConsoleWindow(), 5);
-						break;
-
-					case "extended":
-						if (Program.applicationMode != Mode.EXTENDED)
-						{
-							Program.extendedMode = new ExtendedInstructions();
-							Program.applicationMode = Mode.EXTENDED;
-							SendMessage(Level.INF, "Using extended mode");
-
-							bool isAvailable = false;
-							byte times = 1;
-							while (!isAvailable)
+				case "mode":
+					switch (engineArgParts[1].ToLower())
+					{
+						case "vsb":
+							if (Program.SettingExtendedMode == Mode.ENABLED) // Disable
 							{
-								lock (Program.internalShared.SyncRoot)
-								{
-									isAvailable = Program.internalShared[3] == "TRUE";
-								}
-								if (!isAvailable)
-								{
-									times++;
-									if (times > 254)
-									{
-										break;
-									}
-									SendMessage(Level.INF, "Screen component is still loading.");
-									Thread.Sleep(4);
-								}
-								else
-								{
-									break;
-								}
+								Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
+								Program.SettingExtendedMode = Mode.DISABLED;
+								SendMessage(Level.INF, "Using compat/vsb mode");
 							}
-							if (!isAvailable)
-							{
-								SendMessage(Level.ERR, "Screen component took too long to load.");
-							}
-							else
-							{
-								lock (Program.internalShared.SyncRoot)
-								{
-									Program.internalShared[2] = "TRUE";
-								}
-								Program.windowProcess.Interrupt();
-								bool okToExit = false;
-								times = 1;
-								while (!okToExit)
-								{
-									lock (Program.internalShared.SyncRoot)
-									{
-										okToExit = !Parse<bool>(Program.internalShared[2]);
-									}
-									Thread.Sleep(4);
-									times++;
-									if (times > 254)
-									{
-										SendMessage(Level.ERR, "Screen component did not respond.");
-										break;
-									}
-									SendMessage(Level.INF, "Waiting for screen component response..");
-								}
-							}
-						}
-						break;
+							Program.ShowWindow(Program.GetConsoleWindow(), 5);
+							break;
 
-					default:
-						SendMessage(Level.ERR, "Unrecognized mode entered.");
-						break;
-				}
+						case "extended":
+							if (Program.SettingExtendedMode == Mode.DISABLED) // Enable
+							{
+								Program.extendedMode = new ExtendedInstructions();
+								Program.SettingExtendedMode = Mode.ENABLED;
+								SendMessage(Level.INF, "Using extended mode");
+							}
+							break;
+
+						default:
+							SendMessage(Level.ERR, "Unrecognized engine option mode.");
+							break;
+					}
+					break;
+
+				case "graphics":
+					switch (engineArgParts[1].ToLower())
+					{
+						case "enable":
+							EnableGraphics();
+							SendMessage(Level.INF, "Graphics enabled");
+							break;
+
+						case "disable":
+							if (Program.SettingGraphicsMode == Mode.ENABLED)
+							{
+								MinimizeWindow();
+								Program.SettingGraphicsMode = Mode.DISABLED;
+								SendMessage(Level.INF, "Graphics disabled");
+							}
+							break;
+
+						default:
+							SendMessage(Level.ERR, "Unrecognized graphics option mode.");
+							break;
+					}
+					break;
+				
+				default:
+					SendMessage(Level.ERR, "Unrecognized engine option.");
+					break;
 			}
 		}
 	}

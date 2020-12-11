@@ -6,17 +6,20 @@ namespace Maartanic
 {
 	internal class ExtendedInstructions
 	{
-		internal static object keyDown;
 
-		private Dictionary<string, Func<string>> toBeAdded = new Dictionary<string, Func<string>>()
+		internal bool recognizedInstruction = false;
+
+		private readonly Dictionary<string, Func<Engine, string>> toBeAdded = new Dictionary<string, Func<Engine, string>>()
 		{
-			{ "pask", () => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
-			{ "pkey", () => {lock(keyDown) { return (string)keyDown; } } }
+			{ "pask",       (e) => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
+			{ "maartanic",  (e) => "true" }, // whether or not this is the Maartanic Engine
+			{ "istype",		(e) => e.IsType.ToString() }, // Return last istype instruction output
+			{ "pconf",      (e) => OutputForm.app.AskConfirmation().ToString() } // ask with gui interface, invoke on windowProcess thread
 		};
 
 		internal ExtendedInstructions()
 		{
-			foreach (KeyValuePair<string, Func<string>> x in toBeAdded) // extend predefined variables
+			foreach (KeyValuePair<string, Func<Engine, string>> x in toBeAdded) // extend predefined variables
 			{
 				Engine.predefinedVariables.Add(x.Key, x.Value);
 			}
@@ -24,7 +27,7 @@ namespace Maartanic
 
 		public void Dispose() // Garbage collect it when switching to compat (VSB)
 		{
-			foreach (KeyValuePair<string, Func<string>> x in toBeAdded)
+			foreach (KeyValuePair<string, Func<Engine, string>> x in toBeAdded)
 			{
 				Engine.predefinedVariables.Remove(x.Key);
 			}
@@ -64,35 +67,112 @@ namespace Maartanic
 							// FOR [amount]				r		(+ENDF)
 					if (args.Length > 1)
 					{
-						Engine forLoopEngine;
-						int amount = Parse<int>(args[1]);
-						bool selfRegulatedBreak = false;
-						bool skipNext = false;
-						for (int i = 0; i < amount; i++)
+						int amount = (int)Parse<float>(args[1]);
+						if (amount < 1)
 						{
-							forLoopEngine = new Engine(e.scriptFile, args[0]);
-							if (forLoopEngine.Executable())
+							e.SendMessage(Engine.Level.INF, "Invalid FOR");
+						}
+						else
+						{
+							bool selfRegulatedBreak = false;
+							bool skipNext = false;
+							for (int i = 0; i < amount; i++)
 							{
-								if (!skipNext)
+								e.childProcess = new Engine(e.scriptFile, args[0]);
+								if (e.childProcess.Executable())
 								{
-									e.returnedValue = forLoopEngine.returnedValue = forLoopEngine.StartExecution(Program.logLevel);
+									if (!skipNext)
+									{
+										e.returnedValue = e.childProcess.returnedValue = e.childProcess.StartExecution();
+									}
+									else
+									{
+										skipNext = false;
+									}
+									if (e.childProcess.returnedValue.StartsWith("3&"))
+									{
+										e.SendMessage(Engine.Level.INF, "Break statement");
+										selfRegulatedBreak = true;
+										break;
+									}
+									else if (e.childProcess.returnedValue.StartsWith("4&"))
+									{
+										e.SendMessage(Engine.Level.INF, "Continue statement");
+										skipNext = true;
+										continue;
+									}
 								}
 								else
 								{
-									skipNext = false;
+									if (!selfRegulatedBreak)
+									{
+										e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
+									}
+									else
+									{
+										e.SendMessage(Engine.Level.INF, "FOR self regulated loop break");
+										e.returnedValue = e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('&') + 1)..];
+									}
 								}
-								if (forLoopEngine.returnedValue.StartsWith("3&"))
+								e.childProcess = null;
+							}
+						}
+					}
+					else
+					{
+						e.childProcess = new Engine(e.scriptFile)
+						{
+							localMemory = e.localMemory,            // Copy over local memory, and return
+							returnedValue = e.returnedValue
+						};
+						int amount = (int)Parse<float>(args[0]);
+						if (amount < 1)
+						{
+							e.SendMessage(Engine.Level.INF, "Invalid FOR loop");
+							e.StatementJumpOut("ENDF", "FOR");
+						}
+						else
+						{
+							bool selfRegulatedBreak = false;
+
+							for (int i = 0; i < amount; i++)
+							{
+								if (i != 0)
 								{
-									e.SendMessage(Engine.Level.INF, "Break statement");
-									selfRegulatedBreak = true;
-									break;
+									if (e.childProcess.returnedValue.Contains('.'))
+									{
+										e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
+									}
+									else
+									{
+										if (e.childProcess.returnedValue.StartsWith('3') && e.childProcess.returnedValue[1] == '&')
+										{
+											e.SendMessage(Engine.Level.INF, "Break statement");
+											selfRegulatedBreak = true;
+											break;
+										}
+
+										if (e.childProcess.returnedValue == "4" && e.childProcess.returnedValue[1] == '&')
+										{
+											e.SendMessage(Engine.Level.INF, "Continue statement");
+											e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
+											continue;
+										}
+
+										e.SendMessage(Engine.Level.INF, "Return statement");
+										string ret = e.childProcess.returnedValue;
+										e.childProcess = null;
+										return ret;
+									}
 								}
-								else if (forLoopEngine.returnedValue.StartsWith("4&"))
-								{
-									e.SendMessage(Engine.Level.INF, "Continue statement");
-									skipNext = true;
-									continue;
-								}
+								e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
+							}
+							e.localMemory = e.childProcess.localMemory; // Copy back
+							if (e.childProcess.returnedValue.Contains('.'))
+							{
+								int jumpLine = Parse<int>(e.childProcess.returnedValue[..e.childProcess.returnedValue.IndexOf('.')]);
+								e.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
+								e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
 							}
 							else
 							{
@@ -103,71 +183,11 @@ namespace Maartanic
 								else
 								{
 									e.SendMessage(Engine.Level.INF, "FOR self regulated loop break");
-									e.returnedValue = forLoopEngine.returnedValue = forLoopEngine.returnedValue[(forLoopEngine.returnedValue.IndexOf('&') + 1)..];
+									e.returnedValue = e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('&') + 1)..];
 								}
 								e.StatementJumpOut("ENDF", "FOR");
 							}
-						}
-					}
-					else
-					{
-						Engine forEngine = new Engine(e.scriptFile)
-						{
-							localMemory = e.localMemory,            // Copy over local memory, and return
-							returnedValue = e.returnedValue
-						};
-						int amount = Parse<int>(args[0]);
-						bool selfRegulatedBreak = false;
-
-						for (int i = 0; i < amount; i++)
-						{
-							if (i != 0)
-							{
-								if (forEngine.returnedValue.Contains('.'))
-								{
-									forEngine.returnedValue = forEngine.returnedValue[(forEngine.returnedValue.IndexOf('.') + 1)..];
-								}
-								else
-								{
-									if (forEngine.returnedValue.StartsWith('3') && forEngine.returnedValue[1] == '&')
-									{
-										e.SendMessage(Engine.Level.INF, "Break statement");
-										selfRegulatedBreak = true;
-										break;
-									}
-
-									if (forEngine.returnedValue == "4" && forEngine.returnedValue[1] == '&')
-									{
-										e.SendMessage(Engine.Level.INF, "Continue statement");
-										forEngine.returnedValue = forEngine.StartExecution(Program.logLevel, true, e.lineIndex);
-										continue;
-									}
-
-									e.SendMessage(Engine.Level.INF, "Return statement");
-									return forEngine.returnedValue;
-								}
-							}
-							forEngine.returnedValue = forEngine.StartExecution(Program.logLevel, true, e.lineIndex);
-						}
-						e.localMemory = forEngine.localMemory; // Copy back
-						if (forEngine.returnedValue.Contains('.'))
-						{
-							int jumpLine = Parse<int>(forEngine.returnedValue[..forEngine.returnedValue.IndexOf('.')]);
-							e.returnedValue = forEngine.returnedValue[(forEngine.returnedValue.IndexOf('.') + 1)..];
-							e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
-						}
-						else
-						{
-							if (!selfRegulatedBreak)
-							{
-								e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
-							}
-							else
-							{
-								e.SendMessage(Engine.Level.INF, "FOR self regulated loop break");
-								e.returnedValue = forEngine.returnedValue = forEngine.returnedValue[(forEngine.returnedValue.IndexOf('&') + 1)..];
-							}
-							e.StatementJumpOut("ENDF", "FOR");
+							e.childProcess = null;
 						}
 					}
 					break;
@@ -176,8 +196,6 @@ namespace Maartanic
 								// WHILE [compare instr] [val 1] [val 2]			r-r-r		(+ENDW)
 					if (args.Length > 3)
 					{
-						Engine whileLoopEngine;
-
 						string[] compareIn = new string[3];
 						compareIn[0] = args[1];
 						bool selfRegulatedBreak = false;
@@ -185,24 +203,24 @@ namespace Maartanic
 
 						while (InternalCompare(ref compareIn, ref lineInfo, ref e))
 						{
-							whileLoopEngine = new Engine(e.scriptFile, args[0]);
-							if (whileLoopEngine.Executable())
+							e.childProcess = new Engine(e.scriptFile, args[0]);
+							if (e.childProcess.Executable())
 							{
 								if (!skipNext)
 								{
-									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution(Program.logLevel);
+									e.returnedValue = e.childProcess.returnedValue = e.childProcess.StartExecution();
 								}
 								else
 								{
 									skipNext = false;
 								}
-								if (whileLoopEngine.returnedValue.StartsWith("3&"))
+								if (e.childProcess.returnedValue.StartsWith("3&"))
 								{
 									e.SendMessage(Engine.Level.INF, "Break statement");
 									selfRegulatedBreak = true;
 									break;
 								}
-								else if (whileLoopEngine.returnedValue.StartsWith("4&"))
+								else if (e.childProcess.returnedValue.StartsWith("4&"))
 								{
 									e.SendMessage(Engine.Level.INF, "Continue statement");
 									skipNext = true;
@@ -218,17 +236,18 @@ namespace Maartanic
 								else
 								{
 									e.SendMessage(Engine.Level.INF, "WHILE self regulated loop break");
-									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.returnedValue[(whileLoopEngine.returnedValue.IndexOf('&') + 1)..];
+									e.returnedValue = e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('&') + 1)..];
 								}
 								e.StatementJumpOut("ENDW", "WHILE");
 							}
+							e.childProcess = null;
 						}
 						break;
 
 					}
 					else
 					{
-						Engine whileEngine = new Engine(e.scriptFile)
+						e.childProcess = new Engine(e.scriptFile)
 						{
 							localMemory = e.localMemory,            // Copy over local memory, and return
 							returnedValue = e.returnedValue
@@ -243,30 +262,31 @@ namespace Maartanic
 							{
 								if (i != 0)
 								{
-									if (whileEngine.returnedValue.Contains('.'))
+									if (e.childProcess.returnedValue.Contains('.'))
 									{
-										whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+										e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
 									}
 									else
 									{
-										if (whileEngine.returnedValue.StartsWith("3&"))
+										if (e.childProcess.returnedValue.StartsWith("3&"))
 										{
 											e.SendMessage(Engine.Level.INF, "Break statement");
 											selfRegulatedBreak = true;
 											break;
 										}
 
-										else if (whileEngine.returnedValue.StartsWith("4&"))
+										else if (e.childProcess.returnedValue.StartsWith("4&"))
 										{
 											e.SendMessage(Engine.Level.INF, "Continue statement");
-											whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+											e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
 											continue;
 										}
 
 										else
 										{
 											e.SendMessage(Engine.Level.INF, "Return statement");
-											string returned = whileEngine.returnedValue;
+											string returned = e.childProcess.returnedValue;
+											e.childProcess = null;
 											return returned;
 										}
 									}
@@ -275,29 +295,30 @@ namespace Maartanic
 								{
 									i++;
 								}
-								whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+								e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
 							}
 						}
-						e.localMemory = whileEngine.localMemory; // Copy back
-						if (whileEngine.returnedValue.Contains('.'))
+						e.localMemory = e.childProcess.localMemory; // Copy back
+						if (e.childProcess.returnedValue.Contains('.'))
 						{
-							int jumpLine = Parse<int>(whileEngine.returnedValue[..whileEngine.returnedValue.IndexOf('.')]);
-							e.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+							int jumpLine = Parse<int>(e.childProcess.returnedValue[..e.childProcess.returnedValue.IndexOf('.')]);
+							e.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
 							e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
 						}
 						else
 						{
 							if (!selfRegulatedBreak)
 							{
-								e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute.");
+								e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute with code " + e.childProcess.returnedValue + '.');
 							}
 							else
 							{
 								e.SendMessage(Engine.Level.INF, "WHILE self regulated loop break");
-								e.returnedValue = whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('&') + 1)..];
+								e.returnedValue = e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('&') + 1)..];
 							}
 							e.StatementJumpOut("ENDW", "WHILE");
 						}
+						e.childProcess = null;
 					}
 					break;
 
@@ -305,8 +326,6 @@ namespace Maartanic
 								// DOWHILE [compare instr] [val 1] [val 2]				r-r-r		(+ENDDW)
 					if (args.Length > 3)
 					{
-						Engine whileLoopEngine;
-
 						string[] compareIn = new string[3];
 						compareIn[0] = args[1];
 						bool selfRegulatedBreak = false;
@@ -314,24 +333,24 @@ namespace Maartanic
 
 						do
 						{
-							whileLoopEngine = new Engine(e.scriptFile, args[0]);
-							if (whileLoopEngine.Executable())
+							e.childProcess = new Engine(e.scriptFile, args[0]);
+							if (e.childProcess.Executable())
 							{
 								if (!skipNext)
 								{
-									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.StartExecution(Program.logLevel);
+									e.returnedValue = e.childProcess.returnedValue = e.childProcess.StartExecution();
 								}
 								else
 								{
 									skipNext = false;
 								}
-								if (whileLoopEngine.returnedValue.StartsWith("3&"))
+								if (e.childProcess.returnedValue.StartsWith("3&"))
 								{
 									e.SendMessage(Engine.Level.INF, "Break statement");
 									selfRegulatedBreak = true;
 									break;
 								}
-								else if (whileLoopEngine.returnedValue.StartsWith("4&"))
+								else if (e.childProcess.returnedValue.StartsWith("4&"))
 								{
 									e.SendMessage(Engine.Level.INF, "Continue statement");
 									continue;
@@ -346,16 +365,17 @@ namespace Maartanic
 								else
 								{
 									e.SendMessage(Engine.Level.INF, "WHILE self regulated loop break");
-									e.returnedValue = whileLoopEngine.returnedValue = whileLoopEngine.returnedValue[(whileLoopEngine.returnedValue.IndexOf('&') + 1)..];
+									e.returnedValue = e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('&') + 1)..];
 								}
 								e.StatementJumpOut("ENDDW", "DOWHILE");
 							}
 						}
 						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
+						e.childProcess = null;
 					}
 					else
 					{
-						Engine whileEngine = new Engine(e.scriptFile)
+						e.childProcess = new Engine(e.scriptFile)
 						{
 							localMemory = e.localMemory,            // Copy over local memory, and return
 							returnedValue = e.returnedValue
@@ -370,28 +390,28 @@ namespace Maartanic
 						{
 							if (i != 0)
 							{
-								if (whileEngine.returnedValue.Contains('.'))
+								if (e.childProcess.returnedValue.Contains('.'))
 								{
-									whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+									e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
 								}
 								else
 								{
-									if (whileEngine.returnedValue.StartsWith('3') && whileEngine.returnedValue[1] == '&')
+									if (e.childProcess.returnedValue.StartsWith('3') && e.childProcess.returnedValue[1] == '&')
 									{
 										e.SendMessage(Engine.Level.INF, "Break statement");
 										selfRegulatedBreak = true;
 										break;
 									}
 
-									if (whileEngine.returnedValue == "4" && whileEngine.returnedValue[1] == '&')
+									if (e.childProcess.returnedValue == "4" && e.childProcess.returnedValue[1] == '&')
 									{
 										e.SendMessage(Engine.Level.INF, "Continue statement");
-										whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+										e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
 										continue;
 									}
 
 									e.SendMessage(Engine.Level.INF, "Return statement");
-									string returned = whileEngine.returnedValue;
+									string returned = e.childProcess.returnedValue;
 									return returned;
 								}
 							}
@@ -400,14 +420,14 @@ namespace Maartanic
 								i++;
 							}
 
-							whileEngine.returnedValue = whileEngine.StartExecution(Program.logLevel, true, e.lineIndex);
+							e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
 						}
 						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
-						e.localMemory = whileEngine.localMemory; // Copy back
-						if (whileEngine.returnedValue.Contains('.'))
+						e.localMemory = e.childProcess.localMemory; // Copy back
+						if (e.childProcess.returnedValue.Contains('.'))
 						{
-							int jumpLine = Parse<int>(whileEngine.returnedValue[..whileEngine.returnedValue.IndexOf('.')]);
-							e.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('.') + 1)..];
+							int jumpLine = Parse<int>(e.childProcess.returnedValue[..e.childProcess.returnedValue.IndexOf('.')]);
+							e.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
 							e.JumpToLine(ref e.sr, ref e.line, ref e.lineIndex, ref jumpLine);
 						}
 						else
@@ -419,9 +439,10 @@ namespace Maartanic
 							else
 							{
 								e.SendMessage(Engine.Level.INF, "DOWHILE self regulated loop break");
-								e.returnedValue = whileEngine.returnedValue = whileEngine.returnedValue[(whileEngine.returnedValue.IndexOf('&') + 1)..];
+								e.returnedValue = e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('&') + 1)..];
 							}
 						}
+						e.childProcess = null;
 					}
 					break;
 
@@ -471,43 +492,6 @@ namespace Maartanic
 						output = output.ToLower();
 						e.SetVariable(args[0], ref output);
 					}
-					break;
-
-				case "SCREENLN": // VSB compat
-				case "PLINE": // PLINE [x] [y] [x 1] [y 1] r-r-r-r
-					Program.graphics.Line(Parse<float>(args[0]), Parse<float>(args[1]), Parse<float>(args[2]), Parse<float>(args[3]));
-					break;
-
-				case "PCOL": // PCOL [Color] r
-						Program.graphics.SetColor(Program.HexHTML(args[0]));
-					break;
-
-				case "SCREENREC": // VSB compat
-				case "PRECT": // PRECT [x] [y] [w] [h] r-r-r-r
-					{
-						float x = Parse<float>(args[0]);
-						float y = Parse<float>(args[1]);
-						float w = Parse<float>(args[2]);
-						float h = Parse<float>(args[3]);
-
-						if (lineInfo[0].ToUpper() == "SCREENREC")
-						{
-							w -= x;
-							h -= y;
-						}
-
-						Program.graphics.Rectangle(x, y, w, h);
-					}
-					break;
-
-				case "SCREENFILL": // VSB compat
-				case "PFILL": // PFILL [color] r
-					Program.graphics.Fill(Program.HexHTML(args[0]));
-					break;
-
-				case "SCREENPX": // VSB compat
-				case "PPX": // PPX [x] [y] r-r
-					Program.graphics.Pixel(Parse<float>(args[0]), Parse<float>(args[1]));
 					break;
 
 				case "BREAK":
@@ -565,11 +549,52 @@ namespace Maartanic
 					}
 					break;
 
-				default:
-					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (EXT.)");
+				case "ISTYPE": // ISTYPE [type] [input] r-r sets $_istype.
+					{
+						string type = args[0].ToLower(), input = args[1];
+						bool result = false;
+						switch (type)
+						{
+							case "int":
+							case "int32":
+								result = int.TryParse(input, out _);
+								break;
+
+							case "bool":
+								result = bool.TryParse(input, out _);
+								break;
+
+							case "double":
+								result = bool.TryParse(input, out _);
+								break;
+
+							case "char":
+								result = char.TryParse(input, out _);
+								break;
+
+							case "byte":
+								result = byte.TryParse(input, out _);
+								break;
+
+							case "float":
+								result = float.TryParse(input, out _);
+								break;
+
+							case "uint":
+							case "uint32":
+								result = uint.TryParse(input, out _);
+								break;
+						}
+						e.IsType = result;
+					}
 					break;
 
+				default:
+					recognizedInstruction = false;
+					return null;
+
 			}
+			recognizedInstruction = true;
 			return null;
 		}
 	}

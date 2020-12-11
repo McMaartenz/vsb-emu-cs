@@ -2,10 +2,18 @@
 
 internal static class VK
 {
-	internal static KEY ConvertKey(char k)
+	internal static int ConvertKey(string k)
 	{
-		Enum.TryParse(k.ToString().ToUpper(), out KEY key);
-		return key;
+		k = k.ToUpper();
+		if (int.TryParse(k, out int intKey))
+		{
+			return intKey;
+		}
+		else
+		{
+			Enum.TryParse(k, out KEY key);
+			return (int)key;
+		}
 	}
 
 	internal enum KEY : int

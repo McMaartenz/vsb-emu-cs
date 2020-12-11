@@ -8,12 +8,14 @@ namespace Maartanic
 {
 	public class Program
 	{
-		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception.
+		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception. Or you as programmer should just know what you are doing.  Your fault if it crashes.
 		//BUG VSB Compatibility layer for graphics using extended mode.
-		//IDEA probably should use events for cross thread communication, instead of checking if a value in a shared stuff is something.
 		//TODO Add single value for WHILE, FOR, DOWHILE: Just entering TRUE or FALSE. + Support for method true/false instead of compare instruction.
+		//TODO Errors shall exit out of application, or "raise an event".
 
-		internal const float VERSION = 1.0f;
+		internal const float VERSION = 1.1f;
+		internal static int WIN_WIDTH = 480; // EngineGraphics class require these, therefore they must be defined before graphics.
+		internal static int WIN_HEIGHT = 360;
 
 		internal static EngineStack stack = new EngineStack();
 		internal static EngineQueue queue = new EngineQueue();
@@ -30,10 +32,13 @@ namespace Maartanic
 		};
 
 		internal static ExtendedInstructions extendedMode;
-		internal static Engine.Mode applicationMode = Engine.Mode.VSB;
+		internal static Engine.Mode SettingExtendedMode = Engine.Mode.DISABLED;
+		internal static Engine.Mode SettingGraphicsMode = Engine.Mode.DISABLED;
 
-		internal static int WIN_WIDTH = 120;
-		internal static int WIN_HEIGHT = 30;
+		internal static int CON_WIDTH = 120;
+		internal static int CON_HEIGHT = 30;
+
+		// Default 480x360
 
 		internal static Thread consoleProcess;
 		internal static Thread windowProcess;
@@ -41,15 +46,26 @@ namespace Maartanic
 		internal static byte logLevel;
 		internal static Engine EN;
 
-		// P/Invoke
+		internal static bool stopAsking = false;
+
+
+		// PInvoke
 		[DllImport("kernel32.dll")]
 		internal static extern IntPtr GetConsoleWindow();
+
+		[DllImport("user32.dll")]
+		internal static extern IntPtr GetForegroundWindow();
 
 		[DllImport("user32.dll")]
 		internal static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
 		[DllImport("user32.dll")]
 		internal static extern int GetAsyncKeyState(int vKeys);
+
+		internal static bool IsFocused()
+		{
+			return GetForegroundWindow() == GetConsoleWindow() || GetForegroundWindow() == OutputForm.GetHandle(OutputForm.app);
+		}
 
 		// Exit(): Exit process
 		internal static void Exit(string value)
@@ -62,6 +78,7 @@ namespace Maartanic
 				"2" => "Process was manually halted. (code 2)",
 				"3" => "Process was closed due to a break statement (code 3)",
 				"4" => "Process was closed due to a continue statement (code 4)",
+				"5" => "Process succesfully closed. (RET) (code 5)",
 				_ => $"Process closed with value {value}.",
 			};
 			Console.Write('\n' + R);
@@ -69,7 +86,7 @@ namespace Maartanic
 			Environment.Exit(0);
 		}
 
-		internal static T Parse<T> (string input)
+		internal static T Parse<T> (string input, bool silence = false)
 		{
 			try
 			{
@@ -77,39 +94,49 @@ namespace Maartanic
 			}
 			catch (TargetInvocationException)
 			{
-				if (EN != null)
+				if (!silence)
 				{
-					EN.SendMessage(Engine.Level.ERR, $"Malformed {typeof(T).Name} '{input}' found.");
+					if (EN != null)
+					{
+						EN.SendMessage(Engine.Level.ERR, $"Malformed {typeof(T).Name} '{input}' found.");
+					}
+					else
+					{
+						Console.Write($"\nINTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
+					}
 				}
-				else
-				{
-					Console.Write($"\nINTERNAL MRT ERROR: Malformed {typeof(T).Name} '{input}' found.");
-				}
-				return default(T);
+				return default;
 			}
 			catch (Exception ex)
 			{
 				Console.Write($"\nINTERNAL MRT ERROR: " + ex);
-				return default(T);
+				return default;
 			}
 		}
 
-		internal static Color HexHTML (string input)
+		internal static Color HexHTML(string input) //TODO test color
 		{
-			input = (input[0] == '#' ? input : '#' + input).Trim();
+			input = input.Trim();
+			if (input.StartsWith("0x"))
+			{
+				input = input[2..];
+			}
+			if (!input.StartsWith('#'))
+			{
+				input = '#' + input;
+			}
 			try
 			{
 				return ColorTranslator.FromHtml(input);
 			}
 			catch (ArgumentException)
 			{
-				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '{input[1..]}' found.");
-				return default(Color);
+				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '0x{input[1..]}' found.");
+				return default;
 			}
 		}
 
 		// Main(): Entry point
-		[STAThread]
 		public static void Main(string[] args)
 		{			
 			consoleProcess = Thread.CurrentThread; // Current thread
@@ -120,24 +147,43 @@ namespace Maartanic
 			{
 				Name = "windowProcess"
 			};
+
+			if (!windowProcess.TrySetApartmentState(ApartmentState.STA))
+			{
+				Console.WriteLine("Could not switch window thread apartment state to STA.");
+				Exit("-1");
+			}
 			windowProcess.Start();
 
-			Console.SetBufferSize(WIN_WIDTH, WIN_HEIGHT); // Remove scrollbar
-			Console.SetWindowSize(WIN_WIDTH, WIN_HEIGHT);
+			Console.SetBufferSize(CON_WIDTH, CON_HEIGHT); // Remove scrollbar
+			Console.SetWindowSize(CON_WIDTH, CON_HEIGHT);
 
 			Console.Title = $"Maartanic Engine {VERSION}";
 
-			Console.WriteLine("Maartanic Engine {0} (partial-gui VSB Engine Emulator on C#)\n", VERSION);
+			Console.WriteLine("Maartanic Engine {0} (gui VSB Engine Emulator on C#)\n", VERSION);
 			if (args.Length == 0)
 			{
-				Console.WriteLine("Usage: mrt [..file]\n"
-								+ "Run autorun.mrt [y/N]");
-				char ans = Console.ReadLine()[0];
-				if (ans != 'y')
+				ThreadStart fileBrowserStarter = new ThreadStart(FileBrowser.Main);
+				Thread fileBrowserProcess = new Thread(fileBrowserStarter)
 				{
+					Name = "fileBrowserProcess",
+				};
+				if (!fileBrowserProcess.TrySetApartmentState(ApartmentState.STA))
+				{
+					Console.WriteLine("Could not switch file browser thread apartment state to STA.");
+					Exit("-1");
+				}
+				fileBrowserProcess.Start();
+				fileBrowserProcess.Join();
+				if (FileBrowser.returnedFile == null)
+				{
+					Console.WriteLine("Canceled.");
 					Exit("0");
 				}
-				args = new string[] { "autorun.mrt" };
+				else
+				{
+					args = new string[] { FileBrowser.returnedFile };
+				}
 			}
 
 			Console.WriteLine("Please enter the log level (0: info 1: warning 2: error");
@@ -151,18 +197,27 @@ namespace Maartanic
 			Console.Clear();
 			EN = new Engine(args[0]);
 			EN.FillPredefinedList();
+			if (OutputForm.StartWithGraphics())
+			{
+				EN.EnableGraphics();
+			}
 			if (EN.Executable())
 			{
+				string returnVariable = "";
 				try
 				{
-					string returnVariable = EN.StartExecution(logLevel);
+					do
+					{
+						returnVariable = EN.StartExecution();
+					} while (SettingExtendedMode == Engine.Mode.DISABLED && returnVariable != "5");
 					EN.sr.Close();
 					EN.sr.Dispose();
 					Exit(returnVariable);
 				}
 				catch (Exception ex)
 				{
-					Console.Write("\nINTERNAL MRT ERROR: " + ex.ToString());
+					Console.Write("\n\n\nINTERNAL MRT ERROR\n\n" + ex.ToString());
+					OutputForm.CriticalError(ex.Message + " More information can be found in the console.");
 				}
 			}
 			Exit("0");

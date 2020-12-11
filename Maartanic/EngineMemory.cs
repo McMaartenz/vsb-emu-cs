@@ -2,7 +2,7 @@
 
 internal class EngineMemory
 {
-	private List<string> x;
+	private readonly List<string> x;
 
 	// EngineMemory(): Class constructor, creates a memory space
 	internal EngineMemory()
