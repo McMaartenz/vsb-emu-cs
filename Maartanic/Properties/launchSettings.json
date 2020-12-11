@@ -1,7 +1,8 @@
 {
   "profiles": {
     "Maartanic": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "autorun.mrt"
     }
   }
 }
