@@ -106,6 +106,7 @@ namespace Maartanic
 				{ "ret",        (e) => e.returnedValue },
 				{ "mx",         (e) => OutputForm.app.GetMouseX().ToString() },
 				{ "my",         (e) => OutputForm.app.GetMouseY().ToString() },
+				{ "md",			(e) => OutputForm.app.GetLMDown().ToString() },
 				{ "redraw",     (e) => redraw.ToString() }
 			};
 		}

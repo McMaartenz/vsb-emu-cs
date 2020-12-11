@@ -13,7 +13,8 @@ namespace Maartanic
 		{
 			{ "pask",       (e) => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
 			{ "maartanic",  (e) => "true" }, // whether or not this is the Maartanic Engine
-			{ "istype", (e) => e.IsType.ToString() }
+			{ "istype",		(e) => e.IsType.ToString() }, // Return last istype instruction output
+			{ "pconf",      (e) => OutputForm.app.AskConfirmation().ToString() } // ask with gui interface, invoke on windowProcess thread
 		};
 
 		internal ExtendedInstructions()

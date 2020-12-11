@@ -147,6 +147,7 @@ namespace Maartanic
 			{
 				Name = "windowProcess"
 			};
+			windowProcess.ApartmentState = ApartmentState.STA;
 			windowProcess.Start();
 
 			Console.SetBufferSize(CON_WIDTH, CON_HEIGHT); // Remove scrollbar

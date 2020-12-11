@@ -124,6 +124,20 @@ namespace Maartanic
 
 		internal static string output;
 
+		internal bool AskConfirmation()
+		{
+			return (bool) Invoke(new Func<bool>(() =>
+			{
+				DialogResult res = MessageBox.Show(
+					"This program is asking for your confirmation.",
+					"User input required",
+					MessageBoxButtons.YesNo,
+					MessageBoxIcon.Question
+				);
+				return res == DialogResult.Yes;
+			}));
+		}
+
 		internal string AskInput()
 		{
 			output = "error";
@@ -190,7 +204,7 @@ namespace Maartanic
 		internal int GetMouseX() 
 		{
 			int ret = 0;
-			if (Program.SettingExtendedMode == Engine.Mode.ENABLED)
+			if (Program.SettingGraphicsMode == Engine.Mode.ENABLED)
 			{
 				Invoke(new Action(() =>
 				{
@@ -199,7 +213,7 @@ namespace Maartanic
 			}
 			else
 			{
-				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse X position outside of extended mode.");
+				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse X position outside of graphics mode.");
 			}
 			return ret;
 		}
@@ -207,20 +221,29 @@ namespace Maartanic
 		internal int GetMouseY()
 		{
 			int ret = 0;
-			if (Program.SettingExtendedMode == Engine.Mode.ENABLED)
+			if (Program.SettingGraphicsMode == Engine.Mode.ENABLED)
 			{
 				Invoke(new Action(() =>
 				{
+					Program.EN.SendMessage(Engine.Level.INF, Thread.CurrentThread.ApartmentState.ToString());
 					ret = MakeInRange(PointToClient(Cursor.Position).Y, 0, Program.WIN_HEIGHT);
 				}));
 			}
 			else
 			{
-				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse Y position outside of extended mode.");
+				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse Y position outside of graphics mode.");
 			}
 			return ret;
 		}
 
+		internal bool GetLMDown()
+		{
+			//BUG
+			return (bool)isMouseDown;
+		}
+
+
+		// Program.cs: windowProcess.apartmentState = ApartmentState.STA;
 		[STAThread]
 		internal static void Main()
 		{
@@ -255,8 +278,9 @@ namespace Maartanic
 			this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
 			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.OutputForm_FormClosing);
 			this.Shown += new System.EventHandler(this.Form1_Shown);
+			this.MouseDown += new System.Windows.Forms.MouseEventHandler(this._MouseDown);
+			this.MouseUp += new System.Windows.Forms.MouseEventHandler(this._MouseUp);
 			this.ResumeLayout(false);
-
 		}
 
 		private void OutputForm_FormClosing(object sender, FormClosedEventArgs e)
@@ -274,5 +298,22 @@ namespace Maartanic
 			StartTimeout(); // Start waiting for a signal
 		}
 
+		private object isMouseDown = false;
+
+		private void _MouseDown(object sender, MouseEventArgs e)
+		{
+			lock (isMouseDown)
+			{
+				isMouseDown = true;
+			}
+		}
+
+		private void _MouseUp(object sender, MouseEventArgs e)
+		{
+			lock (isMouseDown)
+			{
+				isMouseDown = false;
+			}
+		}
 	}
 }
