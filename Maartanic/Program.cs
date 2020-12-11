@@ -147,7 +147,12 @@ namespace Maartanic
 			{
 				Name = "windowProcess"
 			};
-			windowProcess.ApartmentState = ApartmentState.STA;
+
+			if (!windowProcess.TrySetApartmentState(ApartmentState.STA))
+			{
+				Console.WriteLine("Could not switch window thread apartment state to STA.");
+				Exit("-1");
+			}
 			windowProcess.Start();
 
 			Console.SetBufferSize(CON_WIDTH, CON_HEIGHT); // Remove scrollbar
@@ -155,17 +160,30 @@ namespace Maartanic
 
 			Console.Title = $"Maartanic Engine {VERSION}";
 
-			Console.WriteLine("Maartanic Engine {0} (partial-gui VSB Engine Emulator on C#)\n", VERSION);
+			Console.WriteLine("Maartanic Engine {0} (gui VSB Engine Emulator on C#)\n", VERSION);
 			if (args.Length == 0)
 			{
-				Console.WriteLine("Usage: mrt [..file]\n"
-								+ "Run autorun.mrt [y/N]");
-				char ans = Console.ReadLine()[0];
-				if (ans != 'y')
+				ThreadStart fileBrowserStarter = new ThreadStart(FileBrowser.Main);
+				Thread fileBrowserProcess = new Thread(fileBrowserStarter)
 				{
+					Name = "fileBrowserProcess",
+				};
+				if (!fileBrowserProcess.TrySetApartmentState(ApartmentState.STA))
+				{
+					Console.WriteLine("Could not switch file browser thread apartment state to STA.");
+					Exit("-1");
+				}
+				fileBrowserProcess.Start();
+				fileBrowserProcess.Join();
+				if (FileBrowser.returnedFile == null)
+				{
+					Console.WriteLine("Canceled.");
 					Exit("0");
 				}
-				args = new string[] { "autorun.mrt" };
+				else
+				{
+					args = new string[] { FileBrowser.returnedFile };
+				}
 			}
 
 			Console.WriteLine("Please enter the log level (0: info 1: warning 2: error");

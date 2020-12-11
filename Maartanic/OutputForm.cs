@@ -238,7 +238,6 @@ namespace Maartanic
 			return (bool)isMouseDown;
 		}
 
-
 		// Program.cs: windowProcess.apartmentState = ApartmentState.STA;
 		[STAThread]
 		internal static void Main()
@@ -274,9 +273,10 @@ namespace Maartanic
 			this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
 			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.OutputForm_FormClosing);
 			this.Shown += new System.EventHandler(this.Form1_Shown);
-			this.MouseDown += new System.Windows.Forms.MouseEventHandler(this._MouseDown);
-			this.MouseUp += new System.Windows.Forms.MouseEventHandler(this._MouseUp);
+			this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EvMouseDown);
+			this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.EvMouseUp);
 			this.ResumeLayout(false);
+
 		}
 
 		private void OutputForm_FormClosing(object sender, FormClosedEventArgs e)
@@ -296,7 +296,7 @@ namespace Maartanic
 
 		private object isMouseDown = false;
 
-		private void _MouseDown(object sender, MouseEventArgs e)
+		private void EvMouseDown(object sender, MouseEventArgs e)
 		{
 			lock (isMouseDown)
 			{
@@ -304,7 +304,7 @@ namespace Maartanic
 			}
 		}
 
-		private void _MouseUp(object sender, MouseEventArgs e)
+		private void EvMouseUp(object sender, MouseEventArgs e)
 		{
 			lock (isMouseDown)
 			{
