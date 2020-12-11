@@ -203,42 +203,38 @@ namespace Maartanic
 		// System.Drawing.Point
 		internal int GetMouseX() 
 		{
-			int ret = 0;
 			if (Program.SettingGraphicsMode == Engine.Mode.ENABLED)
 			{
-				Invoke(new Action(() =>
+				return (int)Invoke(new Func<int>(() =>
 				{
-					ret = MakeInRange(PointToClient(Cursor.Position).X, 0, Program.WIN_WIDTH);
+					return MakeInRange(PointToClient(Cursor.Position).X, 0, Program.WIN_WIDTH);
 				}));
 			}
 			else
 			{
 				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse X position outside of graphics mode.");
+				return 0;
 			}
-			return ret;
 		}
 
 		internal int GetMouseY()
 		{
-			int ret = 0;
 			if (Program.SettingGraphicsMode == Engine.Mode.ENABLED)
 			{
-				Invoke(new Action(() =>
+				return (int)Invoke(new Func<int>(() =>
 				{
-					Program.EN.SendMessage(Engine.Level.INF, Thread.CurrentThread.ApartmentState.ToString());
-					ret = MakeInRange(PointToClient(Cursor.Position).Y, 0, Program.WIN_HEIGHT);
+					return MakeInRange(PointToClient(Cursor.Position).Y, 0, Program.WIN_HEIGHT);
 				}));
 			}
 			else
 			{
 				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse Y position outside of graphics mode.");
+				return 0;
 			}
-			return ret;
 		}
 
 		internal bool GetLMDown()
 		{
-			//BUG
 			return (bool)isMouseDown;
 		}
 
