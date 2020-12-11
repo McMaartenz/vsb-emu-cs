@@ -89,6 +89,7 @@ namespace Maartanic
 				{ "ww",         (e) => Console.WindowWidth.ToString() },
 				{ "wh",         (e) => Console.WindowHeight.ToString() },
 				{ "cmpr",       (e) => e.compareOutput.ToString() },
+				{ "cmp",		(e) => e.compareOutput.ToString() },
 				{ "projtime",   (e) => (DateTime.UtcNow - startTime).TotalSeconds.ToString() },
 				{ "projid",     (e) => "0" },
 				{ "user",       (e) => "*guest" },
@@ -473,6 +474,7 @@ namespace Maartanic
 						break;
 
 					case "CMPR":
+					case "CMP": // CMP shorter
 						{
 							compareOutput = Compare(ref args);
 						}
