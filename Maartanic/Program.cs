@@ -125,7 +125,6 @@ namespace Maartanic
 			{
 				input = '#' + input;
 			}
-			Console.Write("\nInput: " + input);
 			try
 			{
 				return ColorTranslator.FromHtml(input);

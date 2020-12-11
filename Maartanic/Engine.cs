@@ -435,14 +435,18 @@ namespace Maartanic
 						break;
 
 					case "DEL":
-						if (localMemory.ContainsKey(args[0]))
+						foreach (string variable in args)
 						{
-							localMemory.Remove(args[0]);
+							if (localMemory.ContainsKey(variable))
+							{
+								localMemory.Remove(variable);
+							}
+							else
+							{
+								SendMessage(Level.WRN, $"Tried removing a non-existing variable {variable}.");
+							}
 						}
-						else
-						{
-							SendMessage(Level.WRN, $"Tried removing a non-existing variable {args[0]}.");
-						}
+						
 						break;
 
 					case "ADD": // Pass arg[2] if it exists else ignore it
