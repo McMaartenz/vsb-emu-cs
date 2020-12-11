@@ -49,7 +49,7 @@ namespace Maartanic
 		internal static bool stopAsking = false;
 
 
-		// P/Invoke
+		// PInvoke
 		[DllImport("kernel32.dll")]
 		internal static extern IntPtr GetConsoleWindow();
 
@@ -114,7 +114,7 @@ namespace Maartanic
 			}
 		}
 
-		internal static Color HexHTML (string input) //TODO test color
+		internal static Color HexHTML(string input) //TODO test color
 		{
 			input = input.Trim();
 			if (input.StartsWith("0x"))
@@ -125,13 +125,14 @@ namespace Maartanic
 			{
 				input = '#' + input;
 			}
+			Console.Write("\nInput: " + input);
 			try
 			{
 				return ColorTranslator.FromHtml(input);
 			}
 			catch (ArgumentException)
 			{
-				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '{input[1..]}' found.");
+				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '0x{input[1..]}' found.");
 				return default;
 			}
 		}
