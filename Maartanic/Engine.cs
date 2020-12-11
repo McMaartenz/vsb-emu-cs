@@ -604,7 +604,7 @@ namespace Maartanic
 						break;
 
 					case "KEY":
-						KeyOutput = (Program.GetAsyncKeyState((int)VK.ConvertKey(args[0])) != 0) && Program.IsFocused();
+						KeyOutput = (Program.GetAsyncKeyState(VK.ConvertKey(args[0])) != 0) && Program.IsFocused();
 						break;
 
 					case "HLT":
