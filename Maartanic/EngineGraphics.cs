@@ -63,6 +63,17 @@ namespace Maartanic
 			localGraphics.FillRectangle(internalBrush, x, y, w, h);
 		}
 
+		internal void Ellipse(float x, float y, float w, float h)
+		{
+			localGraphics.DrawEllipse(internalPen, x, y, w, h);
+		}
+
+		internal void FilledEllipse(float x, float y, float w, float h)
+		{
+			using Brush internalBrush = new SolidBrush(internalPen.Color);
+			localGraphics.FillEllipse(internalBrush, x, y, w, h);
+		}
+
 		internal void Pixel(float x, float y)
 		{
 			internalBrush = new SolidBrush(internalPen.Color);
