@@ -57,7 +57,7 @@ namespace Maartanic
 		internal string returnedValue = "NULL";
 		internal bool redraw;
 
-		private readonly DateTime startTime = DateTime.UtcNow;
+		internal readonly DateTime startTime = DateTime.UtcNow;
 
 		internal static Dictionary<string, Func<Engine, string>> predefinedVariables;
 		internal Dictionary<string, string> localMemory = new Dictionary<string, string>();
