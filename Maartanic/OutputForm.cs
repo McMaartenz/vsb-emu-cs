@@ -245,7 +245,12 @@ namespace Maartanic
 
 		internal bool GetLMDown()
 		{
-			return (bool)isMouseDown;
+			bool md;
+			lock(isMouseDown)
+			{
+				md = (bool)isMouseDown;
+			}
+			return md;
 		}
 
 		// Program.cs: windowProcess.apartmentState = ApartmentState.STA;

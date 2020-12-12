@@ -60,6 +60,22 @@ namespace Maartanic
 		[DllImport("user32.dll")]
 		internal static extern int GetAsyncKeyState(int vKeys);
 
+		[DllImport("user32.dll")]
+		internal static extern bool OpenClipboard(IntPtr hWndNewOwner);
+
+		[DllImport("user32.dll")]
+		internal static extern bool CloseClipboard();
+
+		[DllImport("user32.dll")]
+		internal static extern bool SetClipboardData(uint uFormat, IntPtr data);
+
+		internal static void SetClipboard(string text)
+		{
+			OpenClipboard(IntPtr.Zero);
+			SetClipboardData(13, Marshal.StringToHGlobalUni(text));
+			CloseClipboard();
+		}
+
 		internal static bool IsFocused()
 		{
 			return GetForegroundWindow() == GetConsoleWindow() || GetForegroundWindow() == OutputForm.GetHandle(OutputForm.app);

@@ -14,8 +14,8 @@ namespace Maartanic
 		{
 			{ "pask",       (e) => OutputForm.app.AskInput() }, // ask with gui interface, invoke on windowProcess thread
 			{ "maartanic",  (e) => "true" }, // whether or not this is the Maartanic Engine
-			{ "istype",		(e) => e.IsType.ToString() }, // Return last istype instruction output
-			{ "pconf",      (e) => OutputForm.app.AskConfirmation().ToString() } // ask with gui interface, invoke on windowProcess thread
+			{ "istype",     (e) => e.IsType.ToString() }, // Return last istype instruction output
+			{ "pconf",      (e) => OutputForm.app.AskConfirmation().ToString() }, // ask with gui interface, invoke on windowProcess thread
 		};
 
 		internal ExtendedInstructions()
@@ -644,6 +644,17 @@ namespace Maartanic
 						}
 						e.SendMessage(Engine.Level.WRN, "Real mode is " + (enable ? "enabled" : "disabled") + '.');
 						e.hasInternalAccess = enable;
+					}
+					break;
+
+				case "CLP": // CLP [text]
+					if (e.hasInternalAccess)
+					{
+						Program.SetClipboard(args[0]);
+					}
+					else
+					{
+						e.SendMessage(Engine.Level.ERR, "Cannot set clipboard outside of real mode.");
 					}
 					break;
 
