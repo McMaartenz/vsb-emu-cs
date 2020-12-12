@@ -700,6 +700,20 @@ namespace Maartanic
 					}
 					break;
 
+				case "ININS": // ININS [variable] [coordinate x] [coordinate y] [rec x] [rec y] [width] [height]
+					{
+						float x = Parse<float>(args[1]), y = Parse<float>(args[2]), rx = Parse<float>(args[3]), ry = Parse<float>(args[4]), rw = Parse<float>(args[5]), rh = Parse<float>(args[6]);
+						string res = (x < rx && x > rx + rw && y < ry && y > ry + rh).ToString();
+					}
+					break;
+
+				case "ININSI": // ININSI [variable] [coordinate x] [coordinate y] [rec x] [rec y] [width] [height]
+					{
+						float x = Parse<float>(args[1]), y = Parse<float>(args[2]), rx = Parse<float>(args[3]), ry = Parse<float>(args[4]), rw = Parse<float>(args[5]), rh = Parse<float>(args[6]);
+						string res = (x <= rx && x >= rx + rw && y <= ry && y >= ry + rh).ToString();
+					}
+					break;
+
 				default:
 					recognizedInstruction = false;
 					return null;
