@@ -94,6 +94,14 @@ namespace Maartanic
 			}));
 		}
 
+		internal Rectangle GetScreenResolution()
+		{
+			return (Rectangle)Invoke(new Func<Rectangle>(() =>
+			{
+				return SystemInformation.VirtualScreen;
+			}));
+		}
+
 		internal static bool ErrorMessage(string message)
 		{
 			DialogResult result = MessageBox.Show(

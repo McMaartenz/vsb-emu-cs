@@ -19,7 +19,9 @@ namespace Maartanic
 			{ "focus",      (e) => Program.IsFocused().ToString() }, // If console/display is focused.
 			{ "time",		(e) => (DateTime.UtcNow - e.startTime).TotalSeconds.ToString() }, // $_projtime but shorter
 			{ "pw",         (e) => Program.SettingGraphicsMode == Engine.Mode.ENABLED ? Program.WIN_WIDTH.ToString() : Program.CON_WIDTH.ToString() }, // Display window width
-			{ "ph",         (e) => Program.SettingGraphicsMode == Engine.Mode.ENABLED ? Program.WIN_HEIGHT.ToString() : Program.CON_HEIGHT.ToString() } // Display window height
+			{ "ph",         (e) => Program.SettingGraphicsMode == Engine.Mode.ENABLED ? Program.WIN_HEIGHT.ToString() : Program.CON_HEIGHT.ToString() }, // Display window height
+			{ "scrw",       (e) => OutputForm.app.GetScreenResolution().Width.ToString() }, // Get screen resolution width
+			{ "scrh",       (e) => OutputForm.app.GetScreenResolution().Height.ToString() } // Get screen resolution height
 		};
 
 		internal ExtendedInstructions()
