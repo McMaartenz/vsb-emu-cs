@@ -144,6 +144,10 @@ namespace Maartanic
 					Program.graphics.Beziers(GatherPoints(ref args));
 					break;
 
+				case "PPY": // PPY [x] [y] ...
+					Program.graphics.Polygon(GatherPoints(ref args));
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (GPU.)");
 					break;

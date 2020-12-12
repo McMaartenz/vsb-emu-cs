@@ -107,6 +107,11 @@ namespace Maartanic
 			localGraphics.DrawBeziers(internalPen, points);
 		}
 
+		internal void Polygon(PointF[] points)
+		{
+			localGraphics.DrawPolygon(internalPen, points);
+		}
+
 		internal void Write(float x, float y, string text)
 		{
 			using Brush internalBrush = new SolidBrush(internalPen.Color);
