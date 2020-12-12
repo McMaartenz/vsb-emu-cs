@@ -57,7 +57,17 @@ namespace Maartanic
 		{
 			if (testCase.HasValue)
 			{
-				return (bool)testCase;
+				// Update values
+				string[] args;
+				if (e.childProcess != null)
+				{
+					args = e.childProcess.ExtractArgs(ref lineInfo);
+				}
+				else
+				{
+					args = new string[] { testCase.ToString() };
+				}
+				return Parse<bool>(args[0]);
 			}
 			return InternalCompare(ref compareIn, ref lineInfo, ref e);
 		}
@@ -73,7 +83,7 @@ namespace Maartanic
 					return e.lineIndex.ToString() + "." + e.returnedValue; // Return address to jump to later and the original return value separated by a dot.
 
 				case "FOR": // FOR [script] [amount]	r-r
-							// FOR [amount]				r		(+ENDF)
+							// FOR [amount]				r
 					if (args.Length > 1)
 					{
 						int amount = (int)Parse<float>(args[1]);
@@ -203,8 +213,8 @@ namespace Maartanic
 
 				case "WHILE":   // WHILE [script] [compare instr] [val 1] [val 2]	r-r-r-r
 								// WHILE [compare instr] [val 1] [val 2]			r-r-r		
-								// WHILE [script] [case]							r-r         TODO
-								// WHILE [case]										r			TODO
+								// WHILE [script] [case]							r-r
+								// WHILE [case]										r
 					if (args.Length == 2 || args.Length == 4)
 					{
 						string[] compareIn = new string[3];
@@ -343,7 +353,9 @@ namespace Maartanic
 					break;
 
 				case "DOWHILE": // DOWHILE [script] [compare instr] [val 1] [val 2]		r-r-r-r
-								// DOWHILE [compare instr] [val 1] [val 2]				r-r-r		(+ENDDW)
+								// DOWHILE [compare instr] [val 1] [val 2]				r-r-r
+								// DOWHILE [script] [case]								r-r			TODO
+								// DOWHILE [case]										r			TODO
 					if (args.Length > 3)
 					{
 						string[] compareIn = new string[3];
