@@ -9,10 +9,7 @@ namespace Maartanic
 	public class Program
 	{
 		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception. Or you as programmer should just know what you are doing.  Your fault if it crashes.
-		//BUG VSB Compatibility layer for graphics using extended mode.
 		//TODO An error should raise an event. This is why we need a try catch block.
-
-		//IDEA A USING instruction similar to C#, to automatically delete a variable after the loop closes.
 
 		internal const float VERSION = 1.1f;
 		internal static int WIN_WIDTH = 480; // EngineGraphics class require these, therefore they must be defined before graphics.
