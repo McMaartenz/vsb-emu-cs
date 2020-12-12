@@ -783,6 +783,7 @@ namespace Maartanic
 					case "TODEG":
 					case "FLR":
 					case "CEIL":
+					case "SQRT":
 						MathFunction(lineInfo[0].ToUpper(), args[0], args.Length > 1 ? args[1] : null);
 						break;
 
@@ -1035,74 +1036,78 @@ namespace Maartanic
 		// MathFunction(): Method merges multiple cases in the big switch of StartExecution().
 		private void MathFunction(string function, string destination, string number)
 		{
-			double dnumA;
+			double dnum;
 			if (number == null)
 			{
 				string tmp = '$' + destination;
 				LocalMemoryGet(ref tmp);
-				dnumA = Parse<double>(tmp);
+				dnum = Parse<double>(tmp);
 			}
 			else
 			{
-				dnumA = Parse<double>(number);
+				dnum = Parse<double>(number);
 			}
 			double result;
 			switch (function)
 			{
 				case "COS": // To radians, use it, and back to degrees.
-					result = Math.Cos(ToRadians(dnumA));
+					result = Math.Cos(ToRadians(dnum));
 					break;
 
 				case "SIN":
-					result = Math.Sin(ToRadians(dnumA));
+					result = Math.Sin(ToRadians(dnum));
 					break;
 
 				case "TAN":
-					result = Math.Tan(ToRadians(dnumA));
+					result = Math.Tan(ToRadians(dnum));
 					break;
 
 				case "ACOS":
-					result = Math.Acos(ToRadians(dnumA));
+					result = Math.Acos(ToRadians(dnum));
 					break;
 
 				case "ASIN":
-					result = Math.Asin(ToRadians(dnumA));
+					result = Math.Asin(ToRadians(dnum));
 					break;
 
 				case "ATAN":
-					result = Math.Atan(ToRadians(dnumA));
+					result = Math.Atan(ToRadians(dnum));
 					break;
 
 				case "LOG": // Log w/ base 10
-					result = Math.Log10(dnumA);
+					result = Math.Log10(dnum);
 					break;
 
 				case "MATH_LN": // Natural logarithm (e as base)
-					result = Math.Log(dnumA);
+					result = Math.Log(dnum);
 					break;
 
 				case "EPOW":
-					result = Math.Exp(dnumA);
+					result = Math.Exp(dnum);
 					break;
 
 				case "TENPOW":
-					result = Math.Pow(10, dnumA);
+					result = Math.Pow(10, dnum);
 					break;
 
 				case "TORAD":
-					result = ToRadians(dnumA);
+					result = ToRadians(dnum);
 					break;
 
 				case "TODEG":
-					result = ToDegrees(dnumA);
+					result = ToDegrees(dnum);
 					break;
 
 				case "FLR":
-					result = Math.Floor(dnumA);
+					result = Math.Floor(dnum);
 					break;
 
 				case "CEIL":
-					result = Math.Ceiling(dnumA);
+					result = Math.Ceiling(dnum);
+					break;
+
+				case "SQRT":
+					result = Math.Sqrt(dnum);
 					break;
 
 				default:
