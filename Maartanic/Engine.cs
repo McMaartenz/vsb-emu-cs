@@ -610,7 +610,7 @@ namespace Maartanic
 						break;
 
 					case "KEY":
-						KeyOutput = (Program.GetAsyncKeyState(VK.ConvertKey(args[0])) != 0) && Program.IsFocused();
+						KeyOutput = (Program.GetAsyncKeyState(VK.ConvertKey(args[0])) != 0) && (hasInternalAccess || Program.IsFocused());
 						break;
 
 					case "HLT":
@@ -1582,7 +1582,7 @@ namespace Maartanic
 							break;
 					}
 					break;
-				
+
 				default:
 					SendMessage(Level.ERR, "Unrecognized engine option.");
 					break;
