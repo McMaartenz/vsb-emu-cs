@@ -390,8 +390,6 @@ namespace Maartanic
 							}
 							CreateVariable(varName, data);
 						}
-
-						//CreateVariable(args[0], args.Length > 1 ? args[1] : null);
 						break;
 
 					case "IF":
