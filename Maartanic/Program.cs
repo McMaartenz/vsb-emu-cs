@@ -94,6 +94,10 @@ namespace Maartanic
 			}
 			catch (TargetInvocationException)
 			{
+				if (typeof(T) == typeof(bool))
+				{
+					return (T)Convert.ChangeType(input == "1", typeof(T));
+				}
 				if (!silence)
 				{
 					if (EN != null)

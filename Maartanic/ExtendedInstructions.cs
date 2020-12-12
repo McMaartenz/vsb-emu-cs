@@ -246,7 +246,7 @@ namespace Maartanic
 							{
 								if (!selfRegulatedBreak)
 								{
-									e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute.");
+									e.SendMessage(Engine.Level.WRN, "WHILE statement failed to execute.");
 								}
 								else
 								{
@@ -271,47 +271,52 @@ namespace Maartanic
 						string[] compareIn = new string[3];
 						compareIn[0] = args[0];
 						bool selfRegulatedBreak = false;
+						int i = 0;
+
+						bool? _case = null;
+						if (args.Length == 1)
 						{
-							int i = 0;
-							while (InternalCompare(ref compareIn, ref lineInfo, ref e))
+							_case = Parse<bool>(args[0]);
+						}
+
+						while (TestCase(ref compareIn, ref lineInfo, ref e, _case))
+						{
+							if (i != 0)
 							{
-								if (i != 0)
+								if (e.childProcess.returnedValue.Contains('.'))
 								{
-									if (e.childProcess.returnedValue.Contains('.'))
-									{
-										e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
-									}
-									else
-									{
-										if (e.childProcess.returnedValue.StartsWith("3&"))
-										{
-											e.SendMessage(Engine.Level.INF, "Break statement");
-											selfRegulatedBreak = true;
-											break;
-										}
-
-										else if (e.childProcess.returnedValue.StartsWith("4&"))
-										{
-											e.SendMessage(Engine.Level.INF, "Continue statement");
-											e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
-											continue;
-										}
-
-										else
-										{
-											e.SendMessage(Engine.Level.INF, "Return statement");
-											string returned = e.childProcess.returnedValue;
-											e.childProcess = null;
-											return returned;
-										}
-									}
+									e.childProcess.returnedValue = e.childProcess.returnedValue[(e.childProcess.returnedValue.IndexOf('.') + 1)..];
 								}
 								else
 								{
-									i++;
+									if (e.childProcess.returnedValue.StartsWith("3&"))
+									{
+										e.SendMessage(Engine.Level.INF, "Break statement");
+										selfRegulatedBreak = true;
+										break;
+									}
+
+									else if (e.childProcess.returnedValue.StartsWith("4&"))
+									{
+										e.SendMessage(Engine.Level.INF, "Continue statement");
+										e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
+										continue;
+									}
+
+									else
+									{
+										e.SendMessage(Engine.Level.INF, "Return statement");
+										string returned = e.childProcess.returnedValue;
+										e.childProcess = null;
+										return returned;
+									}
 								}
-								e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
 							}
+							else
+							{
+								i++;
+							}
+							e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
 						}
 						e.localMemory = e.childProcess.localMemory; // Copy back
 						if (e.childProcess.returnedValue.Contains('.'))
@@ -324,7 +329,7 @@ namespace Maartanic
 						{
 							if (!selfRegulatedBreak)
 							{
-								e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute with code " + e.childProcess.returnedValue + '.');
+								e.SendMessage(Engine.Level.WRN, "WHILE statement failed to execute.");
 							}
 							else
 							{
