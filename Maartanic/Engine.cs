@@ -355,8 +355,43 @@ namespace Maartanic
 						}
 						break;
 
-					case "NEW":
-						CreateVariable(args[0], args.Length > 1 ? args[1] : null);
+					case "NEW": // Splitter is comma
+						{
+							string[] cArgs = ExtractArgs(ref lineInfo, true);
+							string varName = "", data = "NUll";
+							int j = 0;
+							for (int i = 0; i < args.Length; i++)
+							{
+								if (cArgs[i] == ",")
+								{
+									if (j == 1)
+									{
+										data = "0";
+									}
+									j = -1;
+									CreateVariable(varName, data);
+								}
+								else
+								{
+									if (j == 0)
+									{
+										varName = args[i];
+									}
+									else if (j == 1)
+									{
+										data = args[i];
+									}
+								}
+								j++;
+							}
+							if (j == 1)
+							{
+								data = "0";
+							}
+							CreateVariable(varName, data);
+						}
+
+						//CreateVariable(args[0], args.Length > 1 ? args[1] : null);
 						break;
 
 					case "IF":
@@ -1365,7 +1400,7 @@ namespace Maartanic
 		}
 
 		// ExtractArgs(): Simply extracts the arguments from array lineInfo, treating quote blocks as one.
-		internal string[] ExtractArgs(ref string[] lineInfo)
+		internal string[] ExtractArgs(ref string[] lineInfo, bool raw = false)
 		{
 			string combined = "";
 			for (int i = 1; i < lineInfo.Length; i++)
@@ -1380,8 +1415,8 @@ namespace Maartanic
 
 			// Maybe use RegEx but eh lazy. Escape quotation with a backslash. At least I understand it this way
 			// Iterates through it, splits spaces. Things in quotes (") are treated like one block even if there are spaces in between.
-			string[] RetResult = new string[10]; //INFO This is the max amount of arguments allowed before it overflows...
-			bool[] RetResultString = new bool[10];
+			string[] RetResult = new string[25]; //INFO This is the max amount of arguments allowed before it overflows...
+			bool[] RetResultString = new bool[25];
 			int RetResultPos = 0;
 			string newCombined = "";
 			bool isInQuotes = false;
@@ -1449,7 +1484,7 @@ namespace Maartanic
 			{ // Make scope
 				for (int i = 0; i < RetResultPos; i++)
 				{
-					if (RetResultString[i])
+					if (RetResultString[i] || raw)
 					{
 						finalOutput[i] = RetResult[i];
 						continue;
