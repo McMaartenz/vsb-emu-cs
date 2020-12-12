@@ -238,6 +238,18 @@ namespace Maartanic
 			return false;
 		}
 
+		internal void RemoveVariable(string variable)
+		{
+			if (localMemory.ContainsKey(variable))
+			{
+				localMemory.Remove(variable);
+			}
+			else
+			{
+				SendMessage(Level.WRN, $"Tried removing a non-existing variable {variable}.");
+			}
+		}
+
 		internal void CreateVariable(string name, string data = "0")
 		{
 			if (predefinedVariables.ContainsKey(name[1..]))
@@ -256,12 +268,13 @@ namespace Maartanic
 			}
 		}
 
-		internal void CreateVariables(ref string[] lineInfo)
+		internal string[] CreateVariables(ref string[] lineInfo)
 		{
 			string[] args = ExtractArgs(ref lineInfo);
 			string[] cArgs = ExtractArgs(ref lineInfo, true);
 			string varName = "", data = "NUll";
 			int j = 0;
+			List<string> generatedItems = new List<string>();
 			for (int i = 0; i < args.Length; i++)
 			{
 				if (cArgs[i] == "|")
@@ -271,6 +284,7 @@ namespace Maartanic
 						data = "0";
 					}
 					j = -1;
+					generatedItems.Add(varName);
 					CreateVariable(varName, data);
 				}
 				else
@@ -290,7 +304,9 @@ namespace Maartanic
 			{
 				data = "0";
 			}
+			generatedItems.Add(varName);
 			CreateVariable(varName, data);
+			return generatedItems.ToArray(); // List of generated items (which may be discarded if not for use) for USING.
 		}
 
 		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
@@ -482,14 +498,7 @@ namespace Maartanic
 					case "DEL":
 						foreach (string variable in args)
 						{
-							if (localMemory.ContainsKey(variable))
-							{
-								localMemory.Remove(variable);
-							}
-							else
-							{
-								SendMessage(Level.WRN, $"Tried removing a non-existing variable {variable}.");
-							}
+							RemoveVariable(variable);
 						}
 						
 						break;
@@ -1419,8 +1428,8 @@ namespace Maartanic
 
 			// Maybe use RegEx but eh lazy. Escape quotation with a backslash. At least I understand it this way
 			// Iterates through it, splits spaces. Things in quotes (") are treated like one block even if there are spaces in between.
-			string[] RetResult = new string[25]; //INFO This is the max amount of arguments allowed before it overflows...
-			bool[] RetResultString = new bool[25];
+			string[] RetResult = new string[100]; //INFO This is the max amount of arguments allowed before it overflows...
+			bool[] RetResultString = new bool[100];
 			int RetResultPos = 0;
 			string newCombined = "";
 			bool isInQuotes = false;

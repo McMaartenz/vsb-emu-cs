@@ -6,8 +6,8 @@ namespace Maartanic
 {
 	internal class ExtendedInstructions
 	{
-
-		internal string usingStatementVar = "NULL";
+		internal Stack<string> usingStatementVariables = new Stack<string>();
+		internal Stack<int> usingStatementAmountGenerated = new Stack<int>();
 		internal bool recognizedInstruction = false;
 
 		private readonly Dictionary<string, Func<Engine, string>> toBeAdded = new Dictionary<string, Func<Engine, string>>()
@@ -669,19 +669,20 @@ namespace Maartanic
 
 				case "USING": // USING [new variable name] [data] // End with ENDU, and the variable will be "disposed".
 							  //TODO enable multiple var creation, for NEW as well. Enable support for it in ENDU.
-					e.CreateVariable(args[0], args.Length > 1 ? args[1] : null);
-					usingStatementVar = args[0];
+					string[] generated = e.CreateVariables(ref lineInfo);
+					foreach (string s in generated)
+					{
+						usingStatementVariables.Push(s);
+					}
+					usingStatementAmountGenerated.Push(generated.Length);
 					break;
 
 				case "ENDU":
-					if (e.localMemory.ContainsKey(usingStatementVar))
+					for (int i = 0; i < usingStatementAmountGenerated.Peek(); i++)
 					{
-						e.localMemory.Remove(usingStatementVar);
+						e.RemoveVariable(usingStatementVariables.Pop());
 					}
-					else
-					{
-						e.SendMessage(Engine.Level.WRN, $"Tried removing a non-existing variable {usingStatementVar}.");
-					}
+					usingStatementAmountGenerated.Pop();
 					break;
 
 				case "IINS": // IINS [variable] [coordinate x] [coordinate y] [rec x] [rec y] [width] [height]
