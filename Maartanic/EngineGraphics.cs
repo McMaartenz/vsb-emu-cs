@@ -81,6 +81,16 @@ namespace Maartanic
 			internalBrush.Dispose();
 		}
 
+		internal void Curve(PointF[] points)
+		{
+			localGraphics.DrawCurve(internalPen, points);
+		}
+
+		internal void ClosedCurve(PointF[] points)
+		{
+			localGraphics.DrawClosedCurve(internalPen, points);
+		}
+
 		internal void Write(float x, float y, string text)
 		{
 			internalBrush = new SolidBrush(internalPen.Color);

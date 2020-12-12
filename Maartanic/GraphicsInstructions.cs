@@ -124,11 +124,32 @@ namespace Maartanic
 					Program.graphics.FilledEllipse(Parse<float>(args[0]), Parse<float>(args[1]), Parse<float>(args[2]), Parse<float>(args[3]));
 					break;
 
+				case "PCRV": // PCRV [x] [y] ...
+					Program.graphics.Curve(GatherPoints(ref args));
+					break;
+
+				case "PCCRV": // PCCRV [x] [y] ...
+					Program.graphics.ClosedCurve(GatherPoints(ref args));
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (GPU.)");
 					break;
 			}
 			return null;
+		}
+
+		private static PointF[] GatherPoints(ref string[] q)
+		{
+			PointF[] points = new PointF[q.Length / 2];
+			for (int i = 0; i < q.Length; i++)
+			{
+				if (i % 2 == 0)
+				{
+					points[i / 2] = new PointF(Parse<float>(q[i]), Parse<float>(q[i + 1]));
+				}
+			}
+			return points;
 		}
 	}
 }
