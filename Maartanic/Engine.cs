@@ -1521,6 +1521,11 @@ namespace Maartanic
 							{
 								Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
 								Program.SettingExtendedMode = Mode.DISABLED;
+								if (hasInternalAccess)
+								{
+									hasInternalAccess = false; // Disable real mode
+									SendMessage(Level.INF, "Real mode disabled.");
+								}	
 								SendMessage(Level.INF, "Using compat/vsb mode");
 							}
 							Program.ShowWindow(Program.GetConsoleWindow(), 5);

@@ -584,7 +584,7 @@ namespace Maartanic
 					break;
 
 				case "CONMODE": // CONMODE [hide|show] r
-					if (args[0].ToUpper() == "HIDE") // 0: SW_HIDE 5: SW_SHOW
+					if (args[0].ToUpper() == "HIDE" && e.hasInternalAccess) // 0: SW_HIDE 5: SW_SHOW // REQUIRES REAL MODE
 					{
 						Program.ShowWindow(Program.GetConsoleWindow(), 0);
 					}
@@ -634,7 +634,7 @@ namespace Maartanic
 					}
 					break;
 
-				case "REALMODE": // INVAR [enable|disable]
+				case "REALMODE": // REALMODE [case]
 					{
 						bool enable = Parse<bool>(args[0]);
 						if (enable)
