@@ -10,7 +10,6 @@ namespace Maartanic
 	{
 		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception. Or you as programmer should just know what you are doing.  Your fault if it crashes.
 		//BUG VSB Compatibility layer for graphics using extended mode.
-		//TODO Add single value for WHILE, FOR, DOWHILE: Just entering TRUE or FALSE. + Support for method true/false instead of compare instruction.
 		//TODO Errors shall exit out of application, or "raise an event".
 
 		internal const float VERSION = 1.1f;
