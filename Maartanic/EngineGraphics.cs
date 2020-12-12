@@ -5,7 +5,6 @@ namespace Maartanic
 	internal class EngineGraphics
 	{
 		private readonly Pen internalPen;
-		private Brush internalBrush;
 		private readonly Font font;
 		private Graphics localGraphics;
 		private Bitmap localBitmap = new Bitmap(Program.WIN_WIDTH, Program.WIN_HEIGHT);
