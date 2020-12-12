@@ -7,6 +7,7 @@ namespace Maartanic
 	internal class ExtendedInstructions
 	{
 
+		internal string usingStatementVar = "NULL";
 		internal bool recognizedInstruction = false;
 
 		private readonly Dictionary<string, Func<Engine, string>> toBeAdded = new Dictionary<string, Func<Engine, string>>()
@@ -643,6 +644,23 @@ namespace Maartanic
 						}
 						e.SendMessage(Engine.Level.WRN, "Real mode is " + (enable ? "enabled" : "disabled") + '.');
 						e.hasInternalAccess = enable;
+					}
+					break;
+
+				case "USING": // USING [new variable name] [data] // End with ENDU, and the variable will be "disposed".
+							  //TODO enable multiple var creation, for NEW as well. Enable support for it in ENDU.
+					e.CreateVariable(args[0], args.Length > 1 ? args[1] : null);
+					usingStatementVar = args[0];
+					break;
+
+				case "ENDU":
+					if (e.localMemory.ContainsKey(usingStatementVar))
+					{
+						e.localMemory.Remove(usingStatementVar);
+					}
+					else
+					{
+						e.SendMessage(Engine.Level.WRN, $"Tried removing a non-existing variable {usingStatementVar}.");
 					}
 					break;
 

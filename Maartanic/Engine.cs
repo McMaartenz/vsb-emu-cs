@@ -238,6 +238,24 @@ namespace Maartanic
 			return false;
 		}
 
+		internal void CreateVariable(string name, string data = "0")
+		{
+			if (predefinedVariables.ContainsKey(name[1..]))
+			{
+				SendMessage(Level.ERR, $"Variable {name[0]} is a predefined variable and cannot be declared.");
+				return;
+			}
+			if (localMemory.ContainsKey(name))
+			{
+				SendMessage(Level.WRN, $"Variable {name} already exists.");
+				localMemory[name] = data;
+			}
+			else
+			{
+				localMemory.Add(name, data);
+			}
+		}
+
 		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
 		internal string StartExecution(bool jump = false, int jumpLine = 0)
 		{
@@ -338,20 +356,7 @@ namespace Maartanic
 						break;
 
 					case "NEW":
-						if (predefinedVariables.ContainsKey(args[0][1..]))
-						{
-							SendMessage(Level.ERR, $"Variable {args[0]} is a predefined variable and cannot be declared.");
-							break;
-						}
-						if (localMemory.ContainsKey(args[0]))
-						{
-							SendMessage(Level.WRN, $"Variable {args[0]} already exists.");
-							localMemory[args[0]] = args.Length > 1 ? args[1] : "0";
-						}
-						else
-						{
-							localMemory.Add(args[0], args.Length > 1 ? args[1] : "0");
-						}
+						CreateVariable(args[0], args.Length > 1 ? args[1] : null);
 						break;
 
 					case "IF":
