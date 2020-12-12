@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Maartanic
 {
@@ -718,7 +719,6 @@ namespace Maartanic
 
 				case "RECTCH": //RECTCH [variable] [x1] [y1] [w1] [h1] [x2] [y2] [w2] [h2]
 					{
-
 						float x = Parse<float>(args[1]); // Rectangle 1
 						float y = Parse<float>(args[2]);
 						float w = Parse<float>(args[3]);
@@ -732,23 +732,10 @@ namespace Maartanic
 						bool res = false;
 						string res_str;
 
-						if (x < x1 + w1 && x > x1 && y < y1 + h1 && y > y1)
+						if (x < x1 + w1 && x + w > x1 && y < y1 + h1 && y + h > y1)
 						{
 							res = true;
 						}
-						if (x + w < x1 + w1 && x + w > x1 && y < y1 + h1 && y > y1)
-						{
-							res = true;
-						}
-						if (x < x1 + w1 && x > x1 && y + h < y1 + h1 && y + h > y1)
-						{
-							res = true;
-						}
-						if (x + w < x1 + w1 && x + w > x1 && y + h< y1 + h1 && y + h> y1)
-						{
-							res = true;
-						}
-
 						res_str = res.ToString();
 						e.SetVariable(args[0], ref res_str);
 					}
