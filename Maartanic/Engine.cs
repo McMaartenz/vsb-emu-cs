@@ -1375,6 +1375,7 @@ namespace Maartanic
 			// Maybe use RegEx but eh lazy. Escape quotation with a backslash. At least I understand it this way
 			// Iterates through it, splits spaces. Things in quotes (") are treated like one block even if there are spaces in between.
 			string[] RetResult = new string[10]; //INFO This is the max amount of arguments allowed before it overflows...
+			bool[] RetResultString = new bool[10];
 			int RetResultPos = 0;
 			string newCombined = "";
 			bool isInQuotes = false;
@@ -1386,6 +1387,7 @@ namespace Maartanic
 					{
 						if (combined[i - 1] != '\\')
 						{
+							RetResultString[RetResultPos] = true;
 							isInQuotes = false;
 							RetResult[RetResultPos++] = newCombined;
 							newCombined = "";
@@ -1421,6 +1423,7 @@ namespace Maartanic
 					{
 						if (combined[i - 1] != '"')
 						{
+							RetResultString[RetResultPos] = false;
 							RetResult[RetResultPos++] = newCombined;
 							newCombined = "";
 						}
@@ -1430,6 +1433,7 @@ namespace Maartanic
 				}
 				if (i == combined.Length - 1)
 				{
+					RetResultString[RetResultPos] = false;
 					RetResult[RetResultPos++] = newCombined;
 					newCombined = "";
 				}
@@ -1439,6 +1443,11 @@ namespace Maartanic
 			{ // Make scope
 				for (int i = 0; i < RetResultPos; i++)
 				{
+					if (RetResultString[i])
+					{
+						finalOutput[i] = RetResult[i];
+						continue;
+					}
 					LocalMemoryGet(ref RetResult[i]);
 					finalOutput[i] = RetResult[i];
 				}
