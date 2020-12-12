@@ -132,6 +132,14 @@ namespace Maartanic
 					Program.graphics.ClosedCurve(GatherPoints(ref args));
 					break;
 
+				case "PFCRV": // PFCRV [x] [y] ...
+					Program.graphics.FilledClosedCurve(GatherPoints(ref args));
+					break;
+
+				case "PBZR": // PBZR [x] [y] [x 2] [y 2] [x 3] [y 3] [x 4] [y 4]
+					Program.graphics.Bezier(GatherPoints(ref args, 4));
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (GPU.)");
 					break;
@@ -139,10 +147,10 @@ namespace Maartanic
 			return null;
 		}
 
-		private static PointF[] GatherPoints(ref string[] q)
+		private static PointF[] GatherPoints(ref string[] q, int limit = 0)
 		{
 			PointF[] points = new PointF[q.Length / 2];
-			for (int i = 0; i < q.Length; i++)
+			for (int i = 0; i < (limit == 0 ? q.Length : limit * 2); i++)
 			{
 				if (i % 2 == 0)
 				{
