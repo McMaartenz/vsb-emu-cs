@@ -7,8 +7,8 @@ namespace Maartanic
 		private readonly Pen internalPen;
 		private Brush internalBrush;
 		private readonly Font font;
-		private readonly Graphics localGraphics;
-		private readonly Bitmap localBitmap = new Bitmap(Program.WIN_WIDTH, Program.WIN_HEIGHT);
+		private Graphics localGraphics;
+		private Bitmap localBitmap = new Bitmap(Program.WIN_WIDTH, Program.WIN_HEIGHT);
 		
 		internal EngineGraphics()
 		{
@@ -26,6 +26,11 @@ namespace Maartanic
 			}
 		}
 
+		internal void UpdateInternals(int w, int h)
+		{
+			localBitmap = new Bitmap(w, h);
+			localGraphics = Graphics.FromImage(localBitmap);
+		}
 		internal void SetColor(Color color)
 		{
 			internalPen.Color = color;

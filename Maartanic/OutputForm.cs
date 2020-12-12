@@ -83,6 +83,17 @@ namespace Maartanic
 			return result == DialogResult.Yes;
 		}
 
+		internal void UpdateSize(int w, int h)
+		{
+			Invoke(new Action(() =>
+			{
+				SetClientSizeCore(w, h);
+				Size size = ClientSize;
+				Program.WIN_WIDTH = size.Width;
+				Program.WIN_HEIGHT = size.Height;
+			}));
+		}
+
 		internal static bool ErrorMessage(string message)
 		{
 			DialogResult result = MessageBox.Show(

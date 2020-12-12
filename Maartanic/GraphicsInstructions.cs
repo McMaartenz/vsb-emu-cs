@@ -108,6 +108,14 @@ namespace Maartanic
 					Program.graphics.FilledRectangle(Parse<float>(args[0]), Parse<float>(args[1]), Parse<float>(args[2]), Parse<float>(args[3]));
 					break;
 
+				case "RES": // RES [w] [h] r-r
+					{
+						int w = Parse<int>(args[0]), h = Parse<int>(args[1]);
+						OutputForm.app.UpdateSize(w, h);
+						Program.graphics.UpdateInternals(w, h);
+					}
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (GPU.)");
 					break;
