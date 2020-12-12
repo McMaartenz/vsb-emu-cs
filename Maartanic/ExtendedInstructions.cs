@@ -675,6 +675,14 @@ namespace Maartanic
 					}
 					break;
 
+				case "IINS": // IINS [variable] [coordinate x] [coordinate y] [rec x] [rec y] [width] [height]
+					{
+						float x = Parse<float>(args[1]), y = Parse<float>(args[2]), rx = Parse<float>(args[3]), ry = Parse<float>(args[4]), rw = Parse<float>(args[5]), rh = Parse<float>(args[6]);
+						string res = (x > rx && x < rx + rw && y > ry && y < ry + rh).ToString();
+						e.SetVariable(args[0], ref res);
+					}
+					break;
+
 				default:
 					recognizedInstruction = false;
 					return null;
