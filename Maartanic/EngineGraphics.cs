@@ -102,6 +102,11 @@ namespace Maartanic
 			localGraphics.DrawBezier(internalPen, points[0], points[1], points[2], points[3]);
 		}
 
+		internal void Beziers(PointF[] points)
+		{
+			localGraphics.DrawBeziers(internalPen, points);
+		}
+
 		internal void Write(float x, float y, string text)
 		{
 			using Brush internalBrush = new SolidBrush(internalPen.Color);

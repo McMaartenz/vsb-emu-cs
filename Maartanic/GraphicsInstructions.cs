@@ -140,6 +140,10 @@ namespace Maartanic
 					Program.graphics.Bezier(GatherPoints(ref args, 4));
 					break;
 
+				case "PBZRS": // PBZRS [x] [y] [x 2] [y 2] [x 3] [y 3] [x 4] [y 4] ...
+					Program.graphics.Beziers(GatherPoints(ref args));
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (GPU.)");
 					break;

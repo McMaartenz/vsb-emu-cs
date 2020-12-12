@@ -1418,66 +1418,72 @@ namespace Maartanic
 			int RetResultPos = 0;
 			string newCombined = "";
 			bool isInQuotes = false;
-			for (int i = 0; i < combined.Length; i++)
+			try
 			{
-				if (combined[i] == '"')
+				for (int i = 0; i < combined.Length; i++)
 				{
-					if (isInQuotes)
+					if (combined[i] == '"')
 					{
-						if (combined[i - 1] != '\\')
+						if (isInQuotes)
 						{
-							RetResultString[RetResultPos] = true;
-							isInQuotes = false;
-							RetResult[RetResultPos++] = newCombined;
-							newCombined = "";
-							continue;
+							if (combined[i - 1] != '\\')
+							{
+								RetResultString[RetResultPos] = true;
+								isInQuotes = false;
+								RetResult[RetResultPos++] = newCombined;
+								newCombined = "";
+								continue;
+							}
+							else
+							{
+								newCombined = newCombined[..(newCombined.Length - 1)] + '"'; // Exclude the last/escape character AND include quote
+								continue;
+							}
 						}
 						else
 						{
-							newCombined = newCombined[..(newCombined.Length - 1)] + '"'; // Exclude the last/escape character AND include quote
-							continue;
+							if (i == 0 || combined[i - 1] == ' ')
+							{
+								isInQuotes = true;
+								newCombined = "";
+								continue;
+							}
 						}
+					}
+					else if (combined[i] == '\\' && combined[i - 1] == '\\' && combined[i - 2] != '\\')
+					{
+						continue;
+					}
+					if (isInQuotes)
+					{
+						newCombined += combined[i];
 					}
 					else
 					{
-						if (i == 0 || combined[i - 1] == ' ')
+						if (combined[i] == ' ')
 						{
-							isInQuotes = true;
-							newCombined = "";
+							if (combined[i - 1] != '"')
+							{
+								RetResultString[RetResultPos] = false;
+								RetResult[RetResultPos++] = newCombined;
+								newCombined = "";
+							}
 							continue;
 						}
+						newCombined += combined[i];
 					}
-				}
-				else if (combined[i] == '\\' && combined[i - 1] == '\\' && combined[i - 2] != '\\')
-				{
-					continue;
-				}
-				if (isInQuotes)
-				{
-					newCombined += combined[i];
-				}
-				else
-				{
-					if (combined[i] == ' ')
+					if (i == combined.Length - 1)
 					{
-						if (combined[i - 1] != '"')
-						{
-							RetResultString[RetResultPos] = false;
-							RetResult[RetResultPos++] = newCombined;
-							newCombined = "";
-						}
-						continue;
+						RetResultString[RetResultPos] = false;
+						RetResult[RetResultPos++] = newCombined;
+						newCombined = "";
 					}
-					newCombined += combined[i];
-				}
-				if (i == combined.Length - 1)
-				{
-					RetResultString[RetResultPos] = false;
-					RetResult[RetResultPos++] = newCombined;
-					newCombined = "";
 				}
 			}
-
+			catch (IndexOutOfRangeException)
+			{
+				SendMessage(Level.ERR, "Reached max amount of arguments per instruction.");
+			}
 			string[] finalOutput = new string[RetResultPos];
 			{ // Make scope
 				for (int i = 0; i < RetResultPos; i++)
