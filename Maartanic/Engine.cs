@@ -1481,6 +1481,7 @@ namespace Maartanic
 					Program.windowProcess.Interrupt();
 					bool okToExit = false;
 					times = 1;
+					SendMessage(Level.INF, "Waiting for screen component response..");
 					while (!okToExit)
 					{
 						lock (Program.internalShared.SyncRoot)
@@ -1494,7 +1495,6 @@ namespace Maartanic
 							SendMessage(Level.ERR, "Screen component did not respond.");
 							break;
 						}
-						SendMessage(Level.INF, "Waiting for screen component response..");
 					}
 				}
 				Program.SettingGraphicsMode = Mode.ENABLED;
