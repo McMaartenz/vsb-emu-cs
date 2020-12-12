@@ -28,7 +28,7 @@ namespace Maartanic
 			"NULL",		// Reason isRunning is set to false
 			"FALSE",	// If window is ready to show
 			"FALSE",	// If window process is ready to be interrupted
-			"FALSE"			// If EN is initialized properly
+			"FALSE"		// If EN is initialized properly
 		};
 
 		internal static ExtendedInstructions extendedMode;
@@ -114,7 +114,7 @@ namespace Maartanic
 			}
 		}
 
-		internal static Color HexHTML(string input) //TODO test color
+		internal static Color HexHTML(string input)
 		{
 			input = input.Trim();
 			if (input.StartsWith("0x"))

@@ -53,6 +53,15 @@ namespace Maartanic
 			return e.Compare(ref compareIn);
 		}
 
+		bool TestCase(ref string[] compareIn, ref string[] lineInfo, ref Engine e, bool? testCase = null)
+		{
+			if (testCase.HasValue)
+			{
+				return (bool)testCase;
+			}
+			return InternalCompare(ref compareIn, ref lineInfo, ref e);
+		}
+
 		internal string Instructions(Engine e, ref string[] lineInfo, ref string[] args)
 		{
 			switch (lineInfo[0].ToUpper())
@@ -193,15 +202,21 @@ namespace Maartanic
 					break;
 
 				case "WHILE":   // WHILE [script] [compare instr] [val 1] [val 2]	r-r-r-r
-								// WHILE [compare instr] [val 1] [val 2]			r-r-r		(+ENDW)
-					if (args.Length > 3)
+								// WHILE [compare instr] [val 1] [val 2]			r-r-r		
+								// WHILE [script] [case]							r-r         TODO
+								// WHILE [case]										r			TODO
+					if (args.Length == 2 || args.Length == 4)
 					{
 						string[] compareIn = new string[3];
 						compareIn[0] = args[1];
 						bool selfRegulatedBreak = false;
 						bool skipNext = false;
-
-						while (InternalCompare(ref compareIn, ref lineInfo, ref e))
+						bool? _case = null;
+						if (args.Length == 2)
+						{
+							_case = Parse<bool>(args[1]);
+						}
+						while (TestCase(ref compareIn, ref lineInfo, ref e, _case))
 						{
 							e.childProcess = new Engine(e.scriptFile, args[0]);
 							if (e.childProcess.Executable())
