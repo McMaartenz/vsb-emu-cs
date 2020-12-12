@@ -67,7 +67,7 @@ namespace Maartanic
 				{
 					args = new string[] { testCase.ToString() };
 				}
-				return Parse<bool>(args[0]);
+				return Parse<bool>(args[1]);
 			}
 			return InternalCompare(ref compareIn, ref lineInfo, ref e);
 		}
@@ -356,12 +356,18 @@ namespace Maartanic
 								// DOWHILE [compare instr] [val 1] [val 2]				r-r-r
 								// DOWHILE [script] [case]								r-r			TODO
 								// DOWHILE [case]										r			TODO
-					if (args.Length > 3)
+					if (args.Length == 4 || args.Length == 2)
 					{
 						string[] compareIn = new string[3];
 						compareIn[0] = args[1];
 						bool selfRegulatedBreak = false;
 						bool skipNext = false;
+
+						bool? _case = null;
+						if (args.Length == 2)
+						{
+							_case = Parse<bool>(args[1]);
+						}
 
 						do
 						{
@@ -402,7 +408,8 @@ namespace Maartanic
 								e.StatementJumpOut("ENDDW", "DOWHILE");
 							}
 						}
-						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
+						while (TestCase(ref compareIn, ref lineInfo, ref e, _case));
+						//while (InternalCompare(ref compareIn, ref lineInfo, ref e));
 						e.childProcess = null;
 					}
 					else
@@ -416,8 +423,14 @@ namespace Maartanic
 						string[] compareIn = new string[3];
 						compareIn[0] = args[0];
 						bool selfRegulatedBreak = false;
-
 						int i = 0;
+
+						bool? _case = null;
+						if (args.Length == 1)
+						{
+							_case = Parse<bool>(args[0]);
+						}
+
 						do
 						{
 							if (i != 0)
@@ -454,7 +467,7 @@ namespace Maartanic
 
 							e.childProcess.returnedValue = e.childProcess.StartExecution(true, e.lineIndex);
 						}
-						while (InternalCompare(ref compareIn, ref lineInfo, ref e));
+						while (TestCase(ref compareIn, ref lineInfo, ref e, _case));
 						e.localMemory = e.childProcess.localMemory; // Copy back
 						if (e.childProcess.returnedValue.Contains('.'))
 						{
