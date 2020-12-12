@@ -586,10 +586,12 @@ namespace Maartanic
 
 					case "MIN":
 						PerformOp("min", args[0], args[1], args.Length > 2 ? args[2] : null);
+
 						break;
 					case "MAX":
 						PerformOp("max", args[0], args[1], args.Length > 2 ? args[2] : null);
 						break;
+
 					case "CON":
 						{
 							string a, b, output;
