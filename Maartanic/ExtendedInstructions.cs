@@ -145,6 +145,7 @@ namespace Maartanic
 							localMemory = e.localMemory,            // Copy over local memory, and return
 							returnedValue = e.returnedValue
 						};
+						e.childProcess.hasInternalAccess = e.hasInternalAccess;
 						int amount = (int)Parse<float>(args[0]);
 						if (amount < 1)
 						{
@@ -278,6 +279,7 @@ namespace Maartanic
 							localMemory = e.localMemory,            // Copy over local memory, and return
 							returnedValue = e.returnedValue
 						};
+						e.childProcess.hasInternalAccess = e.hasInternalAccess;
 
 						string[] compareIn = new string[3];
 						compareIn[0] = args[0];
@@ -420,6 +422,7 @@ namespace Maartanic
 							localMemory = e.localMemory,            // Copy over local memory, and return
 							returnedValue = e.returnedValue
 						};
+						e.childProcess.hasInternalAccess = e.hasInternalAccess;
 
 						string[] compareIn = new string[3];
 						compareIn[0] = args[0];
