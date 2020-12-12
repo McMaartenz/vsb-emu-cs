@@ -495,7 +495,6 @@ namespace Maartanic
 							string varName, num1IN, sizeIN;
 							if (args.Length > 2)
 							{
-								varName = args[0];
 								num1IN = args[1];
 								sizeIN = args[2];
 							}
