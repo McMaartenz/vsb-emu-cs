@@ -67,7 +67,7 @@ namespace Maartanic
 				{
 					args = new string[] { testCase.ToString() };
 				}
-				return Parse<bool>(args[1]);
+				return Parse<bool>(args.Length > 1 ? args[1] : args[0]);
 			}
 			return InternalCompare(ref compareIn, ref lineInfo, ref e);
 		}
@@ -631,6 +631,18 @@ namespace Maartanic
 								break;
 						}
 						e.IsType = result;
+					}
+					break;
+
+				case "REALMODE": // INVAR [enable|disable]
+					{
+						bool enable = Parse<bool>(args[0]);
+						if (enable)
+						{
+							enable = Program.RequestPermission(e);
+						}
+						e.SendMessage(Engine.Level.WRN, "Real mode is " + (enable ? "enabled" : "disabled") + '.');
+						e.hasInternalAccess = enable;
 					}
 					break;
 

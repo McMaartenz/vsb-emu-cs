@@ -138,6 +138,16 @@ namespace Maartanic
 			}));
 		}
 
+		internal bool RequestBox(string script)
+		{
+			return	MessageBox.Show(
+						$"Script {script} wants to access real mode. This is dangerous without knowledge of what it performs.\n\nGrant access?",
+						"Real mode access request",
+						MessageBoxButtons.YesNo,
+						MessageBoxIcon.Warning
+					) == DialogResult.Yes;
+		}
+
 		internal string AskInput()
 		{
 			output = "error";

@@ -10,7 +10,9 @@ namespace Maartanic
 	{
 		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception. Or you as programmer should just know what you are doing.  Your fault if it crashes.
 		//BUG VSB Compatibility layer for graphics using extended mode.
-		//TODO Errors shall exit out of application, or "raise an event".
+		//TODO An error should raise an event. This is why we need a try catch block.
+
+		//IDEA A USING instruction similar to C#, to automatically delete a variable after the loop closes.
 
 		internal const float VERSION = 1.1f;
 		internal static int WIN_WIDTH = 480; // EngineGraphics class require these, therefore they must be defined before graphics.
@@ -83,6 +85,24 @@ namespace Maartanic
 			Console.Write('\n' + R);
 			Console.ReadLine();
 			Environment.Exit(0);
+		}
+
+		internal static bool RequestPermission(Engine e)
+		{
+			if (e.hasInternalAccess)
+			{
+				return true;
+			}
+			if (OutputForm.app.RequestBox(e.entryPoint + " inside " + e.scriptFile))
+			{
+				e.hasInternalAccess = true;
+				return true;
+			}
+			else
+			{
+				EN.SendMessage(Engine.Level.ERR, "Access denied from user.");
+				return false;
+			}
 		}
 
 		internal static T Parse<T> (string input, bool silence = false)

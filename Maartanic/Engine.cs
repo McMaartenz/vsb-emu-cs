@@ -22,6 +22,7 @@ namespace Maartanic
 
 		internal string line;
 		internal int lineIndex;
+		internal bool hasInternalAccess = false;
 		private string[] lineInfo;
 
 		private bool compareOutput = false;
