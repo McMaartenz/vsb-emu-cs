@@ -719,25 +719,17 @@ namespace Maartanic
 
 				case "RECTCH": //RECTCH [variable] [x1] [y1] [w1] [h1] [x2] [y2] [w2] [h2]
 					{
-						float x = Parse<float>(args[1]); // Rectangle 1
-						float y = Parse<float>(args[2]);
-						float w = Parse<float>(args[3]);
-						float h = Parse<float>(args[4]);
+						float x = Parse<float>(args[1]), y = Parse<float>(args[2]), w = Parse<float>(args[3]), h = Parse<float>(args[4]), x1 = Parse<float>(args[5]), y1 = Parse<float>(args[6]), w1 = Parse<float>(args[7]), h1 = Parse<float>(args[8]);
+						string res = (x < x1 + w1 && x + w > x1 && y < y1 + h1 && y + h > y1).ToString();
+						e.SetVariable(args[0], ref res);
+					}
+					break;
 
-						float x1 = Parse<float>(args[5]); // Rectangle 2
-						float y1 = Parse<float>(args[6]);
-						float w1 = Parse<float>(args[7]);
-						float h1 = Parse<float>(args[8]);
-
-						bool res = false;
-						string res_str;
-
-						if (x < x1 + w1 && x + w > x1 && y < y1 + h1 && y + h > y1)
-						{
-							res = true;
-						}
-						res_str = res.ToString();
-						e.SetVariable(args[0], ref res_str);
+				case "DIST": // DIST [variable] [x] [y] [x1] [y1]
+					{
+						float x = Parse<float>(args[1]), y = Parse<float>(args[2]), x2 = Parse<float>(args[3]), y2 = Parse<float>(args[4]);
+						string dist = Math.Sqrt(Math.Pow(x2 - x, 2) + Math.Pow(y2 - y, 2)).ToString();
+						e.SetVariable(args[0], ref dist);
 					}
 					break;
 
