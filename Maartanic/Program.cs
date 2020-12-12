@@ -12,7 +12,7 @@ namespace Maartanic
 		//TODO An error should raise an event. This is why we need a try catch block.
 		//BUG nested USING statements do not work.
 
-		internal const float VERSION = 1.1f;
+		internal const float VERSION = 1.2f;
 		internal static int WIN_WIDTH = 480; // EngineGraphics class require these, therefore they must be defined before graphics.
 		internal static int WIN_HEIGHT = 360;
 

@@ -256,6 +256,43 @@ namespace Maartanic
 			}
 		}
 
+		internal void CreateVariables(ref string[] lineInfo)
+		{
+			string[] args = ExtractArgs(ref lineInfo);
+			string[] cArgs = ExtractArgs(ref lineInfo, true);
+			string varName = "", data = "NUll";
+			int j = 0;
+			for (int i = 0; i < args.Length; i++)
+			{
+				if (cArgs[i] == "|")
+				{
+					if (j == 1)
+					{
+						data = "0";
+					}
+					j = -1;
+					CreateVariable(varName, data);
+				}
+				else
+				{
+					if (j == 0)
+					{
+						varName = args[i];
+					}
+					else if (j == 1)
+					{
+						data = args[i];
+					}
+				}
+				j++;
+			}
+			if (j == 1)
+			{
+				data = "0";
+			}
+			CreateVariable(varName, data);
+		}
+
 		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
 		internal string StartExecution(bool jump = false, int jumpLine = 0)
 		{
@@ -357,38 +394,7 @@ namespace Maartanic
 
 					case "NEW": // Splitter is comma
 						{
-							string[] cArgs = ExtractArgs(ref lineInfo, true);
-							string varName = "", data = "NUll";
-							int j = 0;
-							for (int i = 0; i < args.Length; i++)
-							{
-								if (cArgs[i] == "|")
-								{
-									if (j == 1)
-									{
-										data = "0";
-									}
-									j = -1;
-									CreateVariable(varName, data);
-								}
-								else
-								{
-									if (j == 0)
-									{
-										varName = args[i];
-									}
-									else if (j == 1)
-									{
-										data = args[i];
-									}
-								}
-								j++;
-							}
-							if (j == 1)
-							{
-								data = "0";
-							}
-							CreateVariable(varName, data);
+							CreateVariables(ref lineInfo);
 						}
 						break;
 
