@@ -10,6 +10,7 @@ namespace Maartanic
 	{
 		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception. Or you as programmer should just know what you are doing.  Your fault if it crashes.
 		//TODO An error should raise an event. This is why we need a try catch block.
+		//BUG nested USING statements do not work.
 
 		internal const float VERSION = 1.1f;
 		internal static int WIN_WIDTH = 480; // EngineGraphics class require these, therefore they must be defined before graphics.

@@ -725,11 +725,25 @@ namespace Maartanic
 					}
 					break;
 
-				case "DIST": // DIST [variable] [x] [y] [x1] [y1]
+				case "DIST": // DIST [variable] [x] [y] [x2] [y2]
 					{
 						float x = Parse<float>(args[1]), y = Parse<float>(args[2]), x2 = Parse<float>(args[3]), y2 = Parse<float>(args[4]);
 						string dist = Math.Sqrt(Math.Pow(x2 - x, 2) + Math.Pow(y2 - y, 2)).ToString();
 						e.SetVariable(args[0], ref dist);
+					}
+					break;
+
+				case "MIDPNT": // MIDPNT [variable 1] [variable 2] [x] [y] [x2] [y2]
+					{
+						float x = Parse<float>(args[2]),
+							  y = Parse<float>(args[3]),
+							 x2 = Parse<float>(args[4]),
+							 y2 = Parse<float>(args[5]);
+
+						string pntX = ((x + x2) / 2).ToString(),
+							   pntY = ((y + y2) / 2).ToString();
+						e.SetVariable(args[0], ref pntX);
+						e.SetVariable(args[1], ref pntY);
 					}
 					break;
 
