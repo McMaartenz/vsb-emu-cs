@@ -76,7 +76,7 @@ namespace Maartanic
 
 		internal void Pixel(float x, float y)
 		{
-			internalBrush = new SolidBrush(internalPen.Color);
+			using Brush internalBrush = new SolidBrush(internalPen.Color);
 			localGraphics.FillRectangle(internalBrush, x, y, 1, 1);
 			internalBrush.Dispose();
 		}
@@ -91,9 +91,15 @@ namespace Maartanic
 			localGraphics.DrawClosedCurve(internalPen, points);
 		}
 
+		internal void FilledClosedCurve(PointF[] points)
+		{
+			using Brush internalBrush = new SolidBrush(internalPen.Color);
+			localGraphics.FillClosedCurve(internalBrush, points);
+		}
+
 		internal void Write(float x, float y, string text)
 		{
-			internalBrush = new SolidBrush(internalPen.Color);
+			using Brush internalBrush = new SolidBrush(internalPen.Color);
 			localGraphics.DrawString(text, font, internalBrush, new PointF(x, y));
 			internalBrush.Dispose();
 		}
