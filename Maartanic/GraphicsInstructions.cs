@@ -144,8 +144,12 @@ namespace Maartanic
 					Program.graphics.Beziers(GatherPoints(ref args));
 					break;
 
-				case "PPY": // PPY [x] [y] ...
+				case "PPY": // PPY [x] [y] [x 2] [y 2] [x 3] [y 3] ...
 					Program.graphics.Polygon(GatherPoints(ref args));
+					break;
+
+				case "PFPY": // PFPY [x] [y] [x 2] [y 2] [x 3] [y 3] ...
+					Program.graphics.FilledPolygon(GatherPoints(ref args));
 					break;
 
 				default:

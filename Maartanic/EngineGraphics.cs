@@ -112,6 +112,12 @@ namespace Maartanic
 			localGraphics.DrawPolygon(internalPen, points);
 		}
 
+		internal void FilledPolygon(PointF[] points)
+		{
+			using Brush internalBrush = new SolidBrush(internalPen.Color);
+			localGraphics.FillPolygon(internalBrush, points);
+		}
+
 		internal void Write(float x, float y, string text)
 		{
 			using Brush internalBrush = new SolidBrush(internalPen.Color);
