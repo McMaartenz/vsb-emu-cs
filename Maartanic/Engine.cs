@@ -362,7 +362,7 @@ namespace Maartanic
 							int j = 0;
 							for (int i = 0; i < args.Length; i++)
 							{
-								if (cArgs[i] == ",")
+								if (cArgs[i] == "|")
 								{
 									if (j == 1)
 									{
@@ -1486,7 +1486,12 @@ namespace Maartanic
 				{
 					if (RetResultString[i] || raw)
 					{
-						finalOutput[i] = RetResult[i];
+						if (RetResultString[i] && raw)
+							finalOutput[i] = '"' + RetResult[i] + '"';
+						else
+						{
+							finalOutput[i] = RetResult[i];
+						}
 						continue;
 					}
 					LocalMemoryGet(ref RetResult[i]);
