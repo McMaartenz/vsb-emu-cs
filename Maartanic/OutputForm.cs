@@ -83,10 +83,29 @@ namespace Maartanic
 			return result == DialogResult.Yes;
 		}
 
+		internal void UpdateSize(int w, int h)
+		{
+			Invoke(new Action(() =>
+			{
+				SetClientSizeCore(w, h);
+				Size size = ClientSize;
+				Program.WIN_WIDTH = size.Width;
+				Program.WIN_HEIGHT = size.Height;
+			}));
+		}
+
+		internal Rectangle GetScreenResolution()
+		{
+			return (Rectangle)Invoke(new Func<Rectangle>(() =>
+			{
+				return SystemInformation.VirtualScreen;
+			}));
+		}
+
 		internal static bool ErrorMessage(string message)
 		{
 			DialogResult result = MessageBox.Show(
-				message + " Do you wish to continue executing? Hit cancel to ignore further errors.",
+				message + "\nDo you wish to continue executing? Hit cancel to ignore further errors.",
 				"Application Error",
 				MessageBoxButtons.YesNoCancel,
 				MessageBoxIcon.Error
@@ -136,6 +155,16 @@ namespace Maartanic
 				);
 				return res == DialogResult.Yes;
 			}));
+		}
+
+		internal bool RequestBox(string script)
+		{
+			return	MessageBox.Show(
+						$"Script {script} wants to access real mode. This is dangerous without knowledge of what it performs.\n\nGrant access?",
+						"Real mode access request",
+						MessageBoxButtons.YesNo,
+						MessageBoxIcon.Warning
+					) == DialogResult.Yes;
 		}
 
 		internal string AskInput()
@@ -212,7 +241,7 @@ namespace Maartanic
 			}
 			else
 			{
-				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse X position outside of graphics mode.");
+				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse X position outside of graphics mode.", 16);
 				return 0;
 			}
 		}
@@ -228,14 +257,19 @@ namespace Maartanic
 			}
 			else
 			{
-				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse Y position outside of graphics mode.");
+				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse Y position outside of graphics mode.", 16);
 				return 0;
 			}
 		}
 
 		internal bool GetLMDown()
 		{
-			return (bool)isMouseDown;
+			bool md;
+			lock(isMouseDown)
+			{
+				md = (bool)isMouseDown;
+			}
+			return md;
 		}
 
 		// Program.cs: windowProcess.apartmentState = ApartmentState.STA;

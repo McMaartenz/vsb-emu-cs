@@ -19,9 +19,11 @@ namespace Maartanic
 		private readonly bool executable;
 		internal readonly string scriptFile;
 		internal string entryPoint = "main";
+		internal string[] arguments;
 
 		internal string line;
 		internal int lineIndex;
+		internal bool hasInternalAccess = false;
 		private string[] lineInfo;
 
 		private bool compareOutput = false;
@@ -56,7 +58,7 @@ namespace Maartanic
 		internal string returnedValue = "NULL";
 		internal bool redraw;
 
-		private readonly DateTime startTime = DateTime.UtcNow;
+		internal readonly DateTime startTime = DateTime.UtcNow;
 
 		internal static Dictionary<string, Func<Engine, string>> predefinedVariables;
 		internal Dictionary<string, string> localMemory = new Dictionary<string, string>();
@@ -113,17 +115,16 @@ namespace Maartanic
 		}
 
 		// Engine(): Class constructor, returns if given file does not exist.
-		internal Engine (string startPos)
+		internal Engine (string file)
 		{
 			redraw = true;
 			KeyOutput = false;
-			executable = File.Exists(startPos);
+			executable = File.Exists(file);
 			if (!executable)
 			{
-				Console.WriteLine($"The file {startPos} does not exist.");
 				return;
 			}
-			scriptFile = startPos;
+			scriptFile = file;
 		}
 
 		// Engine() OVERLOADED: Specify your entry point
@@ -135,7 +136,6 @@ namespace Maartanic
 			executable = File.Exists(startPos);
 			if (!executable)
 			{
-				Console.WriteLine($"The file {startPos} does not exist.");
 				return;
 			}
 			FillPredefinedList();
@@ -165,11 +165,11 @@ namespace Maartanic
 		}
 
 		// SendMessage(): Logs a message to the console with a level, including line of execution.
-		internal void SendMessage(Level a, string message)
+		internal void SendMessage(Level a, string message, uint code = 0)
 		{
 			if (childProcess != null && childProcess.Executable())
 			{
-				childProcess.SendMessage(a, message);
+				childProcess.SendMessage(a, message, code);
 			}
 			else
 			{
@@ -178,18 +178,21 @@ namespace Maartanic
 					switch ((int)a)
 					{
 						case 0:
-							Console.Write($"\nMRT INF line {lineIndex}: {message}");
+							Console.Write($"\nINF l{lineIndex}: {message}");
 							break;
 						case 1:
-							Console.Write($"\nMRT WRN line {lineIndex}: {message}");
+							Console.Write($"\nWRN l{lineIndex}: {message}");
 							break;
 						case 2:
-							Console.Write($"\nMRT ERR line {lineIndex}: {message}");
-							if (!Program.stopAsking)
+							if (Program.SettingExtendedMode != Mode.ENABLED || !Program.extendedMode.CatchEvent(this, code))
 							{
-								if (!OutputForm.ErrorMessage($"Line {lineIndex}: " + message))
+								Console.Write($"\nUncaught exception 0x{code:D2} at l{lineIndex}: {message}");
+								if (!Program.stopAsking)
 								{
-									Program.Exit("-1");
+									if (!OutputForm.ErrorMessage($"Line {lineIndex}: " + message))
+									{
+										Program.Exit("-1");
+									}
 								}
 							}
 							break;
@@ -203,7 +206,7 @@ namespace Maartanic
 		{
 			if (line == null)
 			{
-				SendMessage(Level.ERR, "Unexpected NULL");
+				SendMessage(Level.ERR, "Unexpected NULL", 1);
 				line = "";
 			}
 			lineInfo = line.Trim().Split(' ');
@@ -237,6 +240,97 @@ namespace Maartanic
 			return false;
 		}
 
+		internal void RemoveVariable(string variable)
+		{
+			if (localMemory.ContainsKey(variable))
+			{
+				localMemory.Remove(variable);
+			}
+			else
+			{
+				SendMessage(Level.WRN, $"Tried removing a non-existing variable {variable}.");
+			}
+		}
+
+		internal void CreateVariable(string name, string data = "0")
+		{
+			if (predefinedVariables.ContainsKey(name[1..]))
+			{
+				SendMessage(Level.ERR, $"Variable {name[0]} is a predefined variable and cannot be declared.", 2);
+				return;
+			}
+			if (localMemory.ContainsKey(name))
+			{
+				SendMessage(Level.WRN, $"Variable {name} already exists.");
+				localMemory[name] = data;
+			}
+			else
+			{
+				localMemory.Add(name, data);
+			}
+		}
+
+		internal string[] CreateVariables(ref string[] lineInfo)
+		{
+			string[] args = ExtractArgs(ref lineInfo);
+			string[] cArgs = ExtractArgs(ref lineInfo, true);
+			string varName = "", data = "NUll";
+			int j = 0;
+			List<string> generatedItems = new List<string>();
+			for (int i = 0; i < args.Length; i++)
+			{
+				if (cArgs[i] == "|")
+				{
+					if (j == 1)
+					{
+						data = "0";
+					}
+					j = -1;
+					generatedItems.Add(varName);
+					CreateVariable(varName, data);
+				}
+				else
+				{
+					if (j == 0)
+					{
+						varName = args[i];
+					}
+					else if (j == 1)
+					{
+						data = args[i];
+					}
+				}
+				j++;
+			}
+			if (j == 1)
+			{
+				data = "0";
+			}
+			generatedItems.Add(varName);
+			CreateVariable(varName, data);
+			return generatedItems.ToArray(); // List of generated items (which may be discarded if not for use) for USING.
+		}
+
+		internal void CallFunction(string file, string entryPoint, string[] excessArg, int toIgnore)
+		{
+			childProcess = new Engine(file, entryPoint);
+			if (childProcess.Executable())
+			{
+				string[] programArgs = new string[excessArg[toIgnore..].Length];
+				for (int i = toIgnore; i < excessArg.Length; i++)
+				{
+					programArgs[i - toIgnore] = excessArg[i];
+				}
+				childProcess.arguments = programArgs;
+				returnedValue = childProcess.StartExecution();
+			}
+			else
+			{
+				SendMessage(Level.ERR, "The file does not exist.", 8);
+			}
+			childProcess = null;
+		}
+
 		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
 		internal string StartExecution(bool jump = false, int jumpLine = 0)
 		{
@@ -257,10 +351,9 @@ namespace Maartanic
 				{
 					if (Program.internalShared[0] == "FALSE")
 					{
-						SendMessage(Level.ERR, $"Internal process has to close due to {Program.internalShared[1]}.");
+						SendMessage(Level.ERR, $"Internal window process has to close due to {Program.internalShared[1]}.", 3);
 						OutputForm.app.Dispose();
-						sr.Dispose();
-						Program.Exit("1");
+						Program.SettingGraphicsMode = Mode.DISABLED;
 					}
 				}
 
@@ -272,7 +365,8 @@ namespace Maartanic
 				}
 
 				string[] args = ExtractArgs(ref lineInfo);
-				switch (lineInfo[0].ToUpper())
+				string instructionName = lineInfo[0].ToUpper();
+				switch (instructionName)
 				{
 					case "": // Empty
 						break;
@@ -302,6 +396,7 @@ namespace Maartanic
 						}
 						break;
 
+					case "EDEF": // Shorter
 					case "ENDDEF": // Possible end-of-function
 						if (lineInfo[1] == entryPoint)
 						{
@@ -309,7 +404,7 @@ namespace Maartanic
 						}
 						else
 						{
-							SendMessage(Level.ERR, "Unexpected end of definition, expect unwanted side effects.");
+							SendMessage(Level.ERR, "Unexpected end of definition, expect unwanted side effects.", 4);
 						}
 						break;
 
@@ -336,20 +431,9 @@ namespace Maartanic
 						}
 						break;
 
-					case "NEW":
-						if (predefinedVariables.ContainsKey(args[0][1..]))
+					case "NEW": // Splitter is comma
 						{
-							SendMessage(Level.ERR, $"Variable {args[0]} is a predefined variable and cannot be declared.");
-							break;
-						}
-						if (localMemory.ContainsKey(args[0]))
-						{
-							SendMessage(Level.WRN, $"Variable {args[0]} already exists.");
-							localMemory[args[0]] = args.Length > 1 ? args[1] : "0";
-						}
-						else
-						{
-							localMemory.Add(args[0], args.Length > 1 ? args[1] : "0");
+							CreateVariables(ref lineInfo);
 						}
 						break;
 
@@ -410,7 +494,7 @@ namespace Maartanic
 								}
 								else
 								{
-									SendMessage(Level.ERR, "Could not find a spot to jump to.");
+									SendMessage(Level.ERR, "Could not find a spot to jump to.", 5);
 								}
 							}
 						}
@@ -430,21 +514,14 @@ namespace Maartanic
 						}
 						else
 						{
-							SendMessage(Level.ERR, $"The variable {args[0]} does not exist.");
+							SendMessage(Level.ERR, $"The variable {args[0]} does not exist.", 6);
 						}
 						break;
 
 					case "DEL":
 						foreach (string variable in args)
 						{
-							if (localMemory.ContainsKey(variable))
-							{
-								localMemory.Remove(variable);
-							}
-							else
-							{
-								SendMessage(Level.WRN, $"Tried removing a non-existing variable {variable}.");
-							}
+							RemoveVariable(variable);
 						}
 						
 						break;
@@ -489,7 +566,6 @@ namespace Maartanic
 							string varName, num1IN, sizeIN;
 							if (args.Length > 2)
 							{
-								varName = args[0];
 								num1IN = args[1];
 								sizeIN = args[2];
 							}
@@ -580,10 +656,12 @@ namespace Maartanic
 
 					case "MIN":
 						PerformOp("min", args[0], args[1], args.Length > 2 ? args[2] : null);
+
 						break;
 					case "MAX":
 						PerformOp("max", args[0], args[1], args.Length > 2 ? args[2] : null);
 						break;
+
 					case "CON":
 						{
 							string a, b, output;
@@ -604,7 +682,7 @@ namespace Maartanic
 						break;
 
 					case "KEY":
-						KeyOutput = (Program.GetAsyncKeyState(VK.ConvertKey(args[0])) != 0) && Program.IsFocused();
+						KeyOutput = (Program.GetAsyncKeyState(VK.ConvertKey(args[0])) != 0) && (hasInternalAccess || Program.IsFocused());
 						break;
 
 					case "HLT":
@@ -652,7 +730,7 @@ namespace Maartanic
 							}
 							if (index < 0 || index >= input.Length)
 							{
-								SendMessage(Level.ERR, $"Index {index} is out of bounds.");
+								SendMessage(Level.ERR, $"Index {index} is out of bounds.", 7);
 							}
 							else
 							{
@@ -682,16 +760,7 @@ namespace Maartanic
 					case "DO":
 					case "CALL":
 						{
-							childProcess = new Engine(scriptFile, args[0]);
-							if (childProcess.Executable())
-							{
-								returnedValue = childProcess.StartExecution();
-							}
-							else
-							{
-								SendMessage(Level.ERR, "Program was not executable.");
-							}
-							childProcess = null;
+							CallFunction(scriptFile, args[0], args, 1);
 						}
 						break;
 
@@ -775,7 +844,8 @@ namespace Maartanic
 					case "TODEG":
 					case "FLR":
 					case "CEIL":
-						MathFunction(lineInfo[0].ToUpper(), args[0], args.Length > 1 ? args[1] : null);
+					case "SQRT":
+						MathFunction(instructionName, args[0], args.Length > 1 ? args[1] : null);
 						break;
 
 					case "PUSH":
@@ -792,7 +862,7 @@ namespace Maartanic
 							else
 							{
 								output = "NULL";
-								SendMessage(Level.ERR, "Stack was empty and could not be popped from.");
+								SendMessage(Level.ERR, "Stack was empty and could not be popped from.", 9);
 							}
 							SetVariable(args[0], ref output);
 						}
@@ -812,7 +882,7 @@ namespace Maartanic
 							else
 							{
 								output = "NULL";
-								SendMessage(Level.ERR, "Queue was empty and could not be dequeued from.");
+								SendMessage(Level.ERR, "Queue was empty and could not be dequeued from.", 9);
 							}
 							SetVariable(args[0], ref output);
 						}
@@ -830,7 +900,7 @@ namespace Maartanic
 						{
 							if (!Program.memory.Exists(0))
 							{
-								SendMessage(Level.WRN, "Tried freeing memory that doesn't exist.");
+								SendMessage(Level.WRN, "Tried freeing memory that doesn't exist.", 6);
 								continue;
 							}
 							else
@@ -878,7 +948,7 @@ namespace Maartanic
 						}
 						else if (Program.SettingExtendedMode == Mode.ENABLED && !Program.extendedMode.recognizedInstruction)
 						{
-							SendMessage(Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (VSB)");
+							SendMessage(Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (VSB)", 10);
 						}
 						break;
 				}
@@ -925,7 +995,7 @@ namespace Maartanic
 			}
 			else
 			{
-				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.");
+				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.", 5);
 				return 0;
 			}
 		}
@@ -977,7 +1047,7 @@ namespace Maartanic
 			}
 			else
 			{
-				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.");
+				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.", 5);
 			}
 		}
 
@@ -994,7 +1064,7 @@ namespace Maartanic
 			}
 			else
 			{
-				SendMessage(Level.ERR, $"Unable to jump to line {jumpLine}");
+				SendMessage(Level.ERR, $"Unable to jump to line {jumpLine}", 5);
 			}
 		}
 
@@ -1004,7 +1074,7 @@ namespace Maartanic
 			address = Program.SettingExtendedMode == Mode.DISABLED ? address - 1 : address;
 			if (!Program.memory.Exists(address))
 			{
-				SendMessage(Level.ERR, $"Memory address {address} does not exist.");
+				SendMessage(Level.ERR, $"Memory address {address} does not exist.", 6);
 			}
 			else
 			{
@@ -1027,79 +1097,83 @@ namespace Maartanic
 		// MathFunction(): Method merges multiple cases in the big switch of StartExecution().
 		private void MathFunction(string function, string destination, string number)
 		{
-			double dnumA;
+			double dnum;
 			if (number == null)
 			{
 				string tmp = '$' + destination;
 				LocalMemoryGet(ref tmp);
-				dnumA = Parse<double>(tmp);
+				dnum = Parse<double>(tmp);
 			}
 			else
 			{
-				dnumA = Parse<double>(number);
+				dnum = Parse<double>(number);
 			}
 			double result;
 			switch (function)
 			{
 				case "COS": // To radians, use it, and back to degrees.
-					result = Math.Cos(ToRadians(dnumA));
+					result = Math.Cos(ToRadians(dnum));
 					break;
 
 				case "SIN":
-					result = Math.Sin(ToRadians(dnumA));
+					result = Math.Sin(ToRadians(dnum));
 					break;
 
 				case "TAN":
-					result = Math.Tan(ToRadians(dnumA));
+					result = Math.Tan(ToRadians(dnum));
 					break;
 
 				case "ACOS":
-					result = Math.Acos(ToRadians(dnumA));
+					result = Math.Acos(ToRadians(dnum));
 					break;
 
 				case "ASIN":
-					result = Math.Asin(ToRadians(dnumA));
+					result = Math.Asin(ToRadians(dnum));
 					break;
 
 				case "ATAN":
-					result = Math.Atan(ToRadians(dnumA));
+					result = Math.Atan(ToRadians(dnum));
 					break;
 
 				case "LOG": // Log w/ base 10
-					result = Math.Log10(dnumA);
+					result = Math.Log10(dnum);
 					break;
 
 				case "MATH_LN": // Natural logarithm (e as base)
-					result = Math.Log(dnumA);
+					result = Math.Log(dnum);
 					break;
 
 				case "EPOW":
-					result = Math.Exp(dnumA);
+					result = Math.Exp(dnum);
 					break;
 
 				case "TENPOW":
-					result = Math.Pow(10, dnumA);
+					result = Math.Pow(10, dnum);
 					break;
 
 				case "TORAD":
-					result = ToRadians(dnumA);
+					result = ToRadians(dnum);
 					break;
 
 				case "TODEG":
-					result = ToDegrees(dnumA);
+					result = ToDegrees(dnum);
 					break;
 
 				case "FLR":
-					result = Math.Floor(dnumA);
+					result = Math.Floor(dnum);
 					break;
 
 				case "CEIL":
-					result = Math.Ceiling(dnumA);
+					result = Math.Ceiling(dnum);
+					break;
+
+				case "SQRT":
+					result = Math.Sqrt(dnum);
 					break;
 
 				default:
 					result = 0.0d;
-					SendMessage(Level.ERR, $"Unrecognized function {function}.");
+					SendMessage(Level.ERR, $"Unrecognized function {function}.", 10);
 					break;
 			}
 			string resultS = result.ToString();
@@ -1134,7 +1208,7 @@ namespace Maartanic
 					break;
 
 				default:
-					SendMessage(Level.ERR, $"Unrecognized operation {operation}.");
+					SendMessage(Level.ERR, $"Unrecognized operation {operation}.", 10);
 					break;
 			}
 			SetVariable(varName, ref result);
@@ -1220,7 +1294,7 @@ namespace Maartanic
 
 				default:
 					r = false;
-					SendMessage(Level.ERR, $"Unrecognized CMPR option {args[0].ToUpper()}.");
+					SendMessage(Level.ERR, $"Unrecognized CMPR option {args[0].ToUpper()}.", 10);
 					break;
 
 			}
@@ -1257,7 +1331,7 @@ namespace Maartanic
 				case '%':
 					return num1 % num2;
 				default:
-					SendMessage(Level.ERR, $"Invalid operator {op} used");
+					SendMessage(Level.ERR, $"Unrecognized operator {op} used", 10);
 					return 0.0d;
 			}
 		}
@@ -1271,7 +1345,7 @@ namespace Maartanic
 			}
 			else
 			{
-				SendMessage(Level.ERR, $"The variable {varName} does not exist.");
+				SendMessage(Level.ERR, $"The variable {varName} does not exist.", 6);
 			}
 		}
 
@@ -1288,7 +1362,7 @@ namespace Maartanic
 			if (varName.Length == 0)
 			{
 				varName = "NULL";
-				SendMessage(Level.ERR, "Malformed variable");
+				SendMessage(Level.ERR, "Malformed variable", 11);
 				return;
 			}
 			if (varName[0] == '$')
@@ -1306,54 +1380,81 @@ namespace Maartanic
 				}
 				else
 				{
-					SendMessage(Level.ERR, $"The variable {varName[1..]} does not exist.");
+					SendMessage(Level.ERR, $"The variable {varName[1..]} does not exist.", 6);
 					varName = "NULL";
 				}
 			}
 			else if (Program.SettingExtendedMode == Mode.ENABLED)
 			{
-				if (varName[0] == '#') // Get memory address e.g. where A is the memory address: #A
+				switch(varName[0])
 				{
-					int address = Parse<int>(varName[1..]);
-					if (Program.memory.Exists(address))
-					{
-						Program.memory.Get(address, out varName);
-					}
-					else
-					{
-						SendMessage(Level.ERR, $"Tried accessing unallocated memory space {address}.");
-						varName = "NULL";
-					}
-				}
-				else if (varName[0] == '%') // Get char at index A of string B: %A,B
-				{
-					if (varName.Contains('.'))
-					{
-						string variable = varName[(varName.IndexOf('.') + 1)..];
-						string index = varName[..varName.IndexOf('.')][1..];
-						LocalMemoryGet(ref variable);
-						LocalMemoryGet(ref index);
-						varName = variable[Parse<int>(index)].ToString();
-					}
-					else
-					{
-						SendMessage(Level.ERR, $"Corrupted variable name syntax {varName} for index.");
-						varName = "NULL";
-					}
-				}
-				else if (varName[0] == '!') // Inverse statement e.g. where A is true, it will become false: !A
-				{
-					string variable = varName[1..];
-					LocalMemoryGet(ref variable);
-					variable = variable.ToLower();
-					bool statement = variable == "true" || variable == "1";
-					varName = (!statement).ToString().ToLower();
+
+					case '#': // Get memory address e.g. where A is the memory address: #A
+						{
+							int address = Parse<int>(varName[1..]);
+							if (Program.memory.Exists(address))
+							{
+								Program.memory.Get(address, out varName);
+							}
+							else
+							{
+								SendMessage(Level.ERR, $"Tried accessing unallocated memory space {address}.", 6);
+								varName = "NULL";
+							}
+						}
+						break;
+
+					case '%': // Get char at index A of string B: %A,B
+						if (varName.Contains('.'))
+						{
+							string variable = varName[(varName.IndexOf('.') + 1)..];
+							string index = varName[..varName.IndexOf('.')][1..];
+							LocalMemoryGet(ref variable);
+							LocalMemoryGet(ref index);
+							varName = variable[Parse<int>(index)].ToString();
+						}
+						else
+						{
+							SendMessage(Level.ERR, $"Corrupted variable name syntax {varName} for index.", 11);
+							varName = "NULL";
+						}
+						break;
+
+					case '!': // Inverse statement e.g. where A is true, it will become false: !A
+						{
+							string variable = varName[1..];
+							LocalMemoryGet(ref variable);
+							variable = variable.ToLower();
+							bool statement = variable == "true" || variable == "1";
+							varName = (!statement).ToString().ToLower();
+						}
+						break;
+
+					case '@':
+						{
+							int address = Parse<int>(varName[1..]);
+							if (arguments != null)
+							{
+								if (address < arguments.Length)
+								{
+									varName = arguments[address];
+								}
+								else
+								{
+									varName = "NULL";
+									SendMessage(Level.ERR, $"Argument @{address} does not exist.", 6);
+								}
+							}
+						}
+						break;
+					default:
+						break;
 				}
 			}
 		}
 
 		// ExtractArgs(): Simply extracts the arguments from array lineInfo, treating quote blocks as one.
-		internal string[] ExtractArgs(ref string[] lineInfo)
+		internal string[] ExtractArgs(ref string[] lineInfo, bool raw = false)
 		{
 			string combined = "";
 			for (int i = 1; i < lineInfo.Length; i++)
@@ -1368,71 +1469,91 @@ namespace Maartanic
 
 			// Maybe use RegEx but eh lazy. Escape quotation with a backslash. At least I understand it this way
 			// Iterates through it, splits spaces. Things in quotes (") are treated like one block even if there are spaces in between.
-			string[] RetResult = new string[10]; //INFO This is the max amount of arguments allowed before it overflows.
+			string[] RetResult = new string[100]; //INFO This is the max amount of arguments allowed before it overflows...
+			bool[] RetResultString = new bool[100];
 			int RetResultPos = 0;
 			string newCombined = "";
 			bool isInQuotes = false;
-			for (int i = 0; i < combined.Length; i++)
+			try
 			{
-				if (combined[i] == '"')
+				for (int i = 0; i < combined.Length; i++)
 				{
-					if (isInQuotes)
+					if (combined[i] == '"')
 					{
-						if (combined[i - 1] != '\\')
+						if (isInQuotes)
 						{
-							isInQuotes = false;
-							RetResult[RetResultPos++] = newCombined;
-							newCombined = "";
-							continue;
+							if (combined[i - 1] != '\\')
+							{
+								RetResultString[RetResultPos] = true;
+								isInQuotes = false;
+								RetResult[RetResultPos++] = newCombined;
+								newCombined = "";
+								continue;
+							}
+							else
+							{
+								newCombined = newCombined[..(newCombined.Length - 1)] + '"'; // Exclude the last/escape character AND include quote
+								continue;
+							}
 						}
 						else
 						{
-							newCombined = newCombined[..(newCombined.Length - 1)] + '"'; // Exclude the last/escape character AND include quote
-							continue;
+							if (i == 0 || combined[i - 1] == ' ')
+							{
+								isInQuotes = true;
+								newCombined = "";
+								continue;
+							}
 						}
+					}
+					else if (combined[i] == '\\' && combined[i - 1] == '\\' && combined[i - 2] != '\\')
+					{
+						continue;
+					}
+					if (isInQuotes)
+					{
+						newCombined += combined[i];
 					}
 					else
 					{
-						if (i == 0 || combined[i - 1] == ' ')
+						if (combined[i] == ' ')
 						{
-							isInQuotes = true;
-							newCombined = "";
+							if (combined[i - 1] != '"')
+							{
+								RetResultString[RetResultPos] = false;
+								RetResult[RetResultPos++] = newCombined;
+								newCombined = "";
+							}
 							continue;
 						}
+						newCombined += combined[i];
 					}
-				}
-				else if (combined[i] == '\\' && combined[i - 1] == '\\' && combined[i - 2] != '\\')
-				{
-					continue;
-				}
-				if (isInQuotes)
-				{
-					newCombined += combined[i];
-				}
-				else
-				{
-					if (combined[i] == ' ')
+					if (i == combined.Length - 1)
 					{
-						if (combined[i - 1] != '"')
-						{
-							RetResult[RetResultPos++] = newCombined;
-							newCombined = "";
-						}
-						continue;
+						RetResultString[RetResultPos] = false;
+						RetResult[RetResultPos++] = newCombined;
+						newCombined = "";
 					}
-					newCombined += combined[i];
-				}
-				if (i == combined.Length - 1)
-				{
-					RetResult[RetResultPos++] = newCombined;
-					newCombined = "";
 				}
 			}
-
+			catch (IndexOutOfRangeException)
+			{
+				SendMessage(Level.ERR, "Reached max amount of arguments per instruction.", 12);
+			}
 			string[] finalOutput = new string[RetResultPos];
 			{ // Make scope
 				for (int i = 0; i < RetResultPos; i++)
 				{
+					if (RetResultString[i] || raw)
+					{
+						if (RetResultString[i] && raw)
+							finalOutput[i] = '"' + RetResult[i] + '"';
+						else
+						{
+							finalOutput[i] = RetResult[i];
+						}
+						continue;
+					}
 					LocalMemoryGet(ref RetResult[i]);
 					finalOutput[i] = RetResult[i];
 				}
@@ -1469,7 +1590,7 @@ namespace Maartanic
 				}
 				if (!isAvailable)
 				{
-					SendMessage(Level.ERR, "Screen component took too long to load.");
+					SendMessage(Level.ERR, "Screen component took too long to load.", 13);
 				}
 				else
 				{
@@ -1480,6 +1601,7 @@ namespace Maartanic
 					Program.windowProcess.Interrupt();
 					bool okToExit = false;
 					times = 1;
+					SendMessage(Level.INF, "Waiting for screen component response..");
 					while (!okToExit)
 					{
 						lock (Program.internalShared.SyncRoot)
@@ -1490,10 +1612,9 @@ namespace Maartanic
 						times++;
 						if (times > 254)
 						{
-							SendMessage(Level.ERR, "Screen component did not respond.");
+							SendMessage(Level.ERR, "Screen component did not respond.", 14);
 							break;
 						}
-						SendMessage(Level.INF, "Waiting for screen component response..");
 					}
 				}
 				Program.SettingGraphicsMode = Mode.ENABLED;
@@ -1520,6 +1641,11 @@ namespace Maartanic
 							{
 								Program.extendedMode.Dispose(); // Destruct extended mode, thus freeing up memory
 								Program.SettingExtendedMode = Mode.DISABLED;
+								if (hasInternalAccess)
+								{
+									hasInternalAccess = false; // Disable real mode
+									SendMessage(Level.INF, "Real mode disabled.");
+								}	
 								SendMessage(Level.INF, "Using compat/vsb mode");
 							}
 							Program.ShowWindow(Program.GetConsoleWindow(), 5);
@@ -1535,7 +1661,7 @@ namespace Maartanic
 							break;
 
 						default:
-							SendMessage(Level.ERR, "Unrecognized engine option mode.");
+							SendMessage(Level.ERR, "Unrecognized engine option mode.", 10);
 							break;
 					}
 					break;
@@ -1558,13 +1684,13 @@ namespace Maartanic
 							break;
 
 						default:
-							SendMessage(Level.ERR, "Unrecognized graphics option mode.");
+							SendMessage(Level.ERR, "Unrecognized graphics option mode.", 10);
 							break;
 					}
 					break;
-				
+
 				default:
-					SendMessage(Level.ERR, "Unrecognized engine option.");
+					SendMessage(Level.ERR, "Unrecognized engine option.", 10);
 					break;
 			}
 		}

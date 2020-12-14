@@ -5,10 +5,10 @@ namespace Maartanic
 	internal class EngineGraphics
 	{
 		private readonly Pen internalPen;
-		private Brush internalBrush;
 		private readonly Font font;
-		private readonly Graphics localGraphics;
-		private readonly Bitmap localBitmap = new Bitmap(Program.WIN_WIDTH, Program.WIN_HEIGHT);
+		private Graphics localGraphics;
+		private Bitmap localBitmap = new Bitmap(Program.WIN_WIDTH, Program.WIN_HEIGHT);
+		
 		internal EngineGraphics()
 		{
 			//localBitmap = new Bitmap(width: Program.WIN_WIDTH, height: Program.WIN_HEIGHT);
@@ -25,6 +25,11 @@ namespace Maartanic
 			}
 		}
 
+		internal void UpdateInternals(int w, int h)
+		{
+			localBitmap = new Bitmap(w, h);
+			localGraphics = Graphics.FromImage(localBitmap);
+		}
 		internal void SetColor(Color color)
 		{
 			internalPen.Color = color;
@@ -57,18 +62,71 @@ namespace Maartanic
 			localGraphics.FillRectangle(internalBrush, x, y, w, h);
 		}
 
+		internal void Ellipse(float x, float y, float w, float h)
+		{
+			localGraphics.DrawEllipse(internalPen, x, y, w, h);
+		}
+
+		internal void FilledEllipse(float x, float y, float w, float h)
+		{
+			using Brush internalBrush = new SolidBrush(internalPen.Color);
+			localGraphics.FillEllipse(internalBrush, x, y, w, h);
+		}
+
 		internal void Pixel(float x, float y)
 		{
-			internalBrush = new SolidBrush(internalPen.Color);
+			using Brush internalBrush = new SolidBrush(internalPen.Color);
 			localGraphics.FillRectangle(internalBrush, x, y, 1, 1);
 			internalBrush.Dispose();
 		}
 
+		internal void Curve(PointF[] points)
+		{
+			localGraphics.DrawCurve(internalPen, points);
+		}
+
+		internal void ClosedCurve(PointF[] points)
+		{
+			localGraphics.DrawClosedCurve(internalPen, points);
+		}
+
+		internal void FilledClosedCurve(PointF[] points)
+		{
+			using Brush internalBrush = new SolidBrush(internalPen.Color);
+			localGraphics.FillClosedCurve(internalBrush, points);
+		}
+
+		internal void Bezier(PointF[] points)
+		{
+			localGraphics.DrawBezier(internalPen, points[0], points[1], points[2], points[3]);
+		}
+
+		internal void Beziers(PointF[] points)
+		{
+			localGraphics.DrawBeziers(internalPen, points);
+		}
+
+		internal void Polygon(PointF[] points)
+		{
+			localGraphics.DrawPolygon(internalPen, points);
+		}
+
+		internal void FilledPolygon(PointF[] points)
+		{
+			using Brush internalBrush = new SolidBrush(internalPen.Color);
+			localGraphics.FillPolygon(internalBrush, points);
+		}
+
 		internal void Write(float x, float y, string text)
 		{
-			internalBrush = new SolidBrush(internalPen.Color);
+			using Brush internalBrush = new SolidBrush(internalPen.Color);
 			localGraphics.DrawString(text, font, internalBrush, new PointF(x, y));
-			internalBrush.Dispose();
+		}
+
+		internal void pImage(string file, float x, float y)
+		{
+			using Image image = Image.FromFile(file);
+			localGraphics.DrawImage(image, x, y);
 		}
 	}
 }

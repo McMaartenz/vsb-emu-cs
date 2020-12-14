@@ -108,11 +108,79 @@ namespace Maartanic
 					Program.graphics.FilledRectangle(Parse<float>(args[0]), Parse<float>(args[1]), Parse<float>(args[2]), Parse<float>(args[3]));
 					break;
 
+				case "RES": // RES [w] [h] r-r
+					{
+						int w = Parse<int>(args[0]), h = Parse<int>(args[1]);
+						OutputForm.app.UpdateSize(w, h);
+						Program.graphics.UpdateInternals(w, h);
+					}
+					break;
+
+				case "PELP": // PELP [x] [y] [w] [h] r-r-r-r
+					Program.graphics.Ellipse(Parse<float>(args[0]), Parse<float>(args[1]), Parse<float>(args[2]), Parse<float>(args[3]));
+					break;
+
+				case "PFELP": // PFELP [x] [y] [w] [h] r-r-r-r
+					Program.graphics.FilledEllipse(Parse<float>(args[0]), Parse<float>(args[1]), Parse<float>(args[2]), Parse<float>(args[3]));
+					break;
+
+				case "PCRV": // PCRV [x] [y] ...
+					Program.graphics.Curve(GatherPoints(ref args));
+					break;
+
+				case "PCCRV": // PCCRV [x] [y] ...
+					Program.graphics.ClosedCurve(GatherPoints(ref args));
+					break;
+
+				case "PFCRV": // PFCRV [x] [y] ...
+					Program.graphics.FilledClosedCurve(GatherPoints(ref args));
+					break;
+
+				case "PBZR": // PBZR [x] [y] [x 2] [y 2] [x 3] [y 3] [x 4] [y 4]
+					Program.graphics.Bezier(GatherPoints(ref args, 4));
+					break;
+
+				case "PBZRS": // PBZRS [x] [y] [x 2] [y 2] [x 3] [y 3] [x 4] [y 4] ...
+					Program.graphics.Beziers(GatherPoints(ref args));
+					break;
+
+				case "PPY": // PPY [x] [y] [x 2] [y 2] [x 3] [y 3] ...
+					Program.graphics.Polygon(GatherPoints(ref args));
+					break;
+
+				case "PFPY": // PFPY [x] [y] [x 2] [y 2] [x 3] [y 3] ...
+					Program.graphics.FilledPolygon(GatherPoints(ref args));
+					break;
+
+				case "PIMG": // PIMG [img] [x] [y]
+					if (System.IO.File.Exists(args[0]))
+					{
+						Program.graphics.pImage(args[0], Parse<float>(args[1]), Parse<float>(args[2]));
+					}
+					else
+					{
+						e.SendMessage(Engine.Level.ERR, "File does not exist.", 8);
+					}
+					break;
+
 				default:
-					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (GPU.)");
+					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (GPU.)", 10);
 					break;
 			}
 			return null;
+		}
+
+		private static PointF[] GatherPoints(ref string[] q, int limit = 0)
+		{
+			PointF[] points = new PointF[q.Length / 2];
+			for (int i = 0; i < (limit == 0 ? q.Length : limit * 2); i++)
+			{
+				if (i % 2 == 0)
+				{
+					points[i / 2] = new PointF(Parse<float>(q[i]), Parse<float>(q[i + 1]));
+				}
+			}
+			return points;
 		}
 	}
 }

@@ -9,11 +9,10 @@ namespace Maartanic
 	public class Program
 	{
 		//BUG null reference, most instructions require arguments but if none are given it returns a null reference exception. Or you as programmer should just know what you are doing.  Your fault if it crashes.
-		//BUG VSB Compatibility layer for graphics using extended mode.
-		//TODO Add single value for WHILE, FOR, DOWHILE: Just entering TRUE or FALSE. + Support for method true/false instead of compare instruction.
-		//TODO Errors shall exit out of application, or "raise an event".
+		//TODO An error should raise an event. This is why we need a try catch block.
+		//BUG nested USING statements do not work.
 
-		internal const float VERSION = 1.1f;
+		internal const float VERSION = 1.2f;
 		internal static int WIN_WIDTH = 480; // EngineGraphics class require these, therefore they must be defined before graphics.
 		internal static int WIN_HEIGHT = 360;
 
@@ -28,7 +27,7 @@ namespace Maartanic
 			"NULL",		// Reason isRunning is set to false
 			"FALSE",	// If window is ready to show
 			"FALSE",	// If window process is ready to be interrupted
-			"FALSE"			// If EN is initialized properly
+			"FALSE"		// If EN is initialized properly
 		};
 
 		internal static ExtendedInstructions extendedMode;
@@ -62,6 +61,22 @@ namespace Maartanic
 		[DllImport("user32.dll")]
 		internal static extern int GetAsyncKeyState(int vKeys);
 
+		[DllImport("user32.dll")]
+		internal static extern bool OpenClipboard(IntPtr hWndNewOwner);
+
+		[DllImport("user32.dll")]
+		internal static extern bool CloseClipboard();
+
+		[DllImport("user32.dll")]
+		internal static extern bool SetClipboardData(uint uFormat, IntPtr data);
+
+		internal static void SetClipboard(string text)
+		{
+			OpenClipboard(IntPtr.Zero);
+			SetClipboardData(13, Marshal.StringToHGlobalUni(text));
+			CloseClipboard();
+		}
+
 		internal static bool IsFocused()
 		{
 			return GetForegroundWindow() == GetConsoleWindow() || GetForegroundWindow() == OutputForm.GetHandle(OutputForm.app);
@@ -86,6 +101,24 @@ namespace Maartanic
 			Environment.Exit(0);
 		}
 
+		internal static bool RequestPermission(Engine e)
+		{
+			if (e.hasInternalAccess)
+			{
+				return true;
+			}
+			if (OutputForm.app.RequestBox(e.entryPoint + " inside " + e.scriptFile))
+			{
+				e.hasInternalAccess = true;
+				return true;
+			}
+			else
+			{
+				EN.SendMessage(Engine.Level.ERR, "Access denied from user.");
+				return false;
+			}
+		}
+
 		internal static T Parse<T> (string input, bool silence = false)
 		{
 			try
@@ -94,11 +127,15 @@ namespace Maartanic
 			}
 			catch (TargetInvocationException)
 			{
+				if (typeof(T) == typeof(bool))
+				{
+					return (T)Convert.ChangeType(input == "1", typeof(T));
+				}
 				if (!silence)
 				{
 					if (EN != null)
 					{
-						EN.SendMessage(Engine.Level.ERR, $"Malformed {typeof(T).Name} '{input}' found.");
+						EN.SendMessage(Engine.Level.ERR, $"Malformed {typeof(T).Name} '{input}' found.", 11);
 					}
 					else
 					{
@@ -114,7 +151,7 @@ namespace Maartanic
 			}
 		}
 
-		internal static Color HexHTML(string input) //TODO test color
+		internal static Color HexHTML(string input)
 		{
 			input = input.Trim();
 			if (input.StartsWith("0x"))
@@ -131,7 +168,7 @@ namespace Maartanic
 			}
 			catch (ArgumentException)
 			{
-				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '0x{input[1..]}' found.");
+				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '0x{input[1..]}' found.", 11);
 				return default;
 			}
 		}
