@@ -19,6 +19,7 @@ namespace Maartanic
 		private readonly bool executable;
 		internal readonly string scriptFile;
 		internal string entryPoint = "main";
+		internal string[] arguments;
 
 		internal string line;
 		internal int lineIndex;
@@ -741,6 +742,12 @@ namespace Maartanic
 							childProcess = new Engine(scriptFile, args[0]);
 							if (childProcess.Executable())
 							{
+								string[] programArgs = new string[args[1..].Length];
+								for (int i = 1; i < args.Length; i++)
+								{
+									programArgs[i - 1] = args[i];
+								}
+								childProcess.arguments = programArgs;
 								returnedValue = childProcess.StartExecution();
 							}
 							else
@@ -1373,42 +1380,69 @@ namespace Maartanic
 			}
 			else if (Program.SettingExtendedMode == Mode.ENABLED)
 			{
-				if (varName[0] == '#') // Get memory address e.g. where A is the memory address: #A
+				switch(varName[0])
 				{
-					int address = Parse<int>(varName[1..]);
-					if (Program.memory.Exists(address))
-					{
-						Program.memory.Get(address, out varName);
-					}
-					else
-					{
-						SendMessage(Level.ERR, $"Tried accessing unallocated memory space {address}.");
-						varName = "NULL";
-					}
-				}
-				else if (varName[0] == '%') // Get char at index A of string B: %A,B
-				{
-					if (varName.Contains('.'))
-					{
-						string variable = varName[(varName.IndexOf('.') + 1)..];
-						string index = varName[..varName.IndexOf('.')][1..];
-						LocalMemoryGet(ref variable);
-						LocalMemoryGet(ref index);
-						varName = variable[Parse<int>(index)].ToString();
-					}
-					else
-					{
-						SendMessage(Level.ERR, $"Corrupted variable name syntax {varName} for index.");
-						varName = "NULL";
-					}
-				}
-				else if (varName[0] == '!') // Inverse statement e.g. where A is true, it will become false: !A
-				{
-					string variable = varName[1..];
-					LocalMemoryGet(ref variable);
-					variable = variable.ToLower();
-					bool statement = variable == "true" || variable == "1";
-					varName = (!statement).ToString().ToLower();
+
+					case '#': // Get memory address e.g. where A is the memory address: #A
+						{
+							int address = Parse<int>(varName[1..]);
+							if (Program.memory.Exists(address))
+							{
+								Program.memory.Get(address, out varName);
+							}
+							else
+							{
+								SendMessage(Level.ERR, $"Tried accessing unallocated memory space {address}.");
+								varName = "NULL";
+							}
+						}
+						break;
+
+					case '%': // Get char at index A of string B: %A,B
+						if (varName.Contains('.'))
+						{
+							string variable = varName[(varName.IndexOf('.') + 1)..];
+							string index = varName[..varName.IndexOf('.')][1..];
+							LocalMemoryGet(ref variable);
+							LocalMemoryGet(ref index);
+							varName = variable[Parse<int>(index)].ToString();
+						}
+						else
+						{
+							SendMessage(Level.ERR, $"Corrupted variable name syntax {varName} for index.");
+							varName = "NULL";
+						}
+						break;
+
+					case '!': // Inverse statement e.g. where A is true, it will become false: !A
+						{
+							string variable = varName[1..];
+							LocalMemoryGet(ref variable);
+							variable = variable.ToLower();
+							bool statement = variable == "true" || variable == "1";
+							varName = (!statement).ToString().ToLower();
+						}
+						break;
+
+					case '@':
+						{
+							int address = Parse<int>(varName[1..]);
+							if (arguments != null)
+							{
+								if (address < arguments.Length)
+								{
+									varName = arguments[address];
+								}
+								else
+								{
+									varName = "NULL";
+									SendMessage(Level.ERR, $"Argument @{address} does not exist.");
+								}
+							}
+						}
+						break;
+					default:
+						break;
 				}
 			}
 		}
