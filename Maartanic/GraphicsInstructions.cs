@@ -153,7 +153,14 @@ namespace Maartanic
 					break;
 
 				case "PIMG": // PIMG [img] [x] [y]
-					Program.graphics.pImage(args[0], Parse<float>(args[1]), Parse<float>(args[2]));
+					if (System.IO.File.Exists(args[0]))
+					{
+						Program.graphics.pImage(args[0], Parse<float>(args[1]), Parse<float>(args[2]));
+					}
+					else
+					{
+						e.SendMessage(Engine.Level.ERR, "File does not exist.", 8);
+					}
 					break;
 
 				default:
