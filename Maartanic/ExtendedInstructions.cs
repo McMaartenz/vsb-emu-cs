@@ -774,6 +774,10 @@ namespace Maartanic
 					eventScope--;
 					break;
 
+				case "ERR": // ERR [code] [message]
+					e.SendMessage(Engine.Level.ERR, args[1], Parse<uint>(args[0]));
+					break;
+
 				default:
 					recognizedInstruction = false;
 					return null;

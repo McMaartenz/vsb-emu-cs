@@ -105,7 +105,7 @@ namespace Maartanic
 		internal static bool ErrorMessage(string message)
 		{
 			DialogResult result = MessageBox.Show(
-				message + " Do you wish to continue executing? Hit cancel to ignore further errors.",
+				message + "\nDo you wish to continue executing? Hit cancel to ignore further errors.",
 				"Application Error",
 				MessageBoxButtons.YesNoCancel,
 				MessageBoxIcon.Error
