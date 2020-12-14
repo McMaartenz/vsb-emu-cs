@@ -167,11 +167,11 @@ namespace Maartanic
 		}
 
 		// SendMessage(): Logs a message to the console with a level, including line of execution.
-		internal void SendMessage(Level a, string message)
+		internal void SendMessage(Level a, string message, uint code = 0)
 		{
 			if (childProcess != null && childProcess.Executable())
 			{
-				childProcess.SendMessage(a, message);
+				childProcess.SendMessage(a, message, code);
 			}
 			else
 			{
@@ -186,12 +186,15 @@ namespace Maartanic
 							Console.Write($"\nMRT WRN line {lineIndex}: {message}");
 							break;
 						case 2:
-							Console.Write($"\nMRT ERR line {lineIndex}: {message}");
-							if (!Program.stopAsking)
+							if (Program.SettingExtendedMode != Mode.ENABLED || !Program.extendedMode.CatchEvent(this))
 							{
-								if (!OutputForm.ErrorMessage($"Line {lineIndex}: " + message))
+								Console.Write($"\nUncaught exception (E{code}) at l{lineIndex}: {message}");
+								if (!Program.stopAsking) //TODO only let user know, when no TRYCATCH statement caught the event.
 								{
-									Program.Exit("-1");
+									if (!OutputForm.ErrorMessage($"Line {lineIndex}: " + message))
+									{
+										Program.Exit("-1");
+									}
 								}
 							}
 							break;
@@ -205,7 +208,7 @@ namespace Maartanic
 		{
 			if (line == null)
 			{
-				SendMessage(Level.ERR, "Unexpected NULL");
+				SendMessage(Level.ERR, "Unexpected NULL", 1);
 				line = "";
 			}
 			lineInfo = line.Trim().Split(' ');
@@ -255,7 +258,7 @@ namespace Maartanic
 		{
 			if (predefinedVariables.ContainsKey(name[1..]))
 			{
-				SendMessage(Level.ERR, $"Variable {name[0]} is a predefined variable and cannot be declared.");
+				SendMessage(Level.ERR, $"Variable {name[0]} is a predefined variable and cannot be declared.", 2);
 				return;
 			}
 			if (localMemory.ContainsKey(name))
@@ -330,10 +333,9 @@ namespace Maartanic
 				{
 					if (Program.internalShared[0] == "FALSE")
 					{
-						SendMessage(Level.ERR, $"Internal process has to close due to {Program.internalShared[1]}.");
+						SendMessage(Level.ERR, $"Internal window process has to close due to {Program.internalShared[1]}.", 3);
 						OutputForm.app.Dispose();
-						sr.Dispose();
-						Program.Exit("1");
+						Program.SettingGraphicsMode = Mode.DISABLED;
 					}
 				}
 
@@ -383,7 +385,7 @@ namespace Maartanic
 						}
 						else
 						{
-							SendMessage(Level.ERR, "Unexpected end of definition, expect unwanted side effects.");
+							SendMessage(Level.ERR, "Unexpected end of definition, expect unwanted side effects.", 4);
 						}
 						break;
 
@@ -473,7 +475,7 @@ namespace Maartanic
 								}
 								else
 								{
-									SendMessage(Level.ERR, "Could not find a spot to jump to.");
+									SendMessage(Level.ERR, "Could not find a spot to jump to.", 5);
 								}
 							}
 						}
@@ -493,7 +495,7 @@ namespace Maartanic
 						}
 						else
 						{
-							SendMessage(Level.ERR, $"The variable {args[0]} does not exist.");
+							SendMessage(Level.ERR, $"The variable {args[0]} does not exist.", 6);
 						}
 						break;
 
@@ -709,7 +711,7 @@ namespace Maartanic
 							}
 							if (index < 0 || index >= input.Length)
 							{
-								SendMessage(Level.ERR, $"Index {index} is out of bounds.");
+								SendMessage(Level.ERR, $"Index {index} is out of bounds.", 7);
 							}
 							else
 							{
@@ -752,7 +754,7 @@ namespace Maartanic
 							}
 							else
 							{
-								SendMessage(Level.ERR, "Program was not executable.");
+								SendMessage(Level.ERR, "Program was not executable.", 8);
 							}
 							childProcess = null;
 						}
@@ -856,7 +858,7 @@ namespace Maartanic
 							else
 							{
 								output = "NULL";
-								SendMessage(Level.ERR, "Stack was empty and could not be popped from.");
+								SendMessage(Level.ERR, "Stack was empty and could not be popped from.", 9);
 							}
 							SetVariable(args[0], ref output);
 						}
@@ -876,7 +878,7 @@ namespace Maartanic
 							else
 							{
 								output = "NULL";
-								SendMessage(Level.ERR, "Queue was empty and could not be dequeued from.");
+								SendMessage(Level.ERR, "Queue was empty and could not be dequeued from.", 9);
 							}
 							SetVariable(args[0], ref output);
 						}
@@ -894,7 +896,7 @@ namespace Maartanic
 						{
 							if (!Program.memory.Exists(0))
 							{
-								SendMessage(Level.WRN, "Tried freeing memory that doesn't exist.");
+								SendMessage(Level.WRN, "Tried freeing memory that doesn't exist.", 6);
 								continue;
 							}
 							else
@@ -942,7 +944,7 @@ namespace Maartanic
 						}
 						else if (Program.SettingExtendedMode == Mode.ENABLED && !Program.extendedMode.recognizedInstruction)
 						{
-							SendMessage(Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (VSB)");
+							SendMessage(Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (VSB)", 10);
 						}
 						break;
 				}
@@ -989,7 +991,7 @@ namespace Maartanic
 			}
 			else
 			{
-				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.");
+				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.", 5);
 				return 0;
 			}
 		}
@@ -1041,7 +1043,7 @@ namespace Maartanic
 			}
 			else
 			{
-				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.");
+				SendMessage(Level.ERR, $"Could not jump to end of {startNaming}.", 5);
 			}
 		}
 
@@ -1058,7 +1060,7 @@ namespace Maartanic
 			}
 			else
 			{
-				SendMessage(Level.ERR, $"Unable to jump to line {jumpLine}");
+				SendMessage(Level.ERR, $"Unable to jump to line {jumpLine}", 5);
 			}
 		}
 
@@ -1068,7 +1070,7 @@ namespace Maartanic
 			address = Program.SettingExtendedMode == Mode.DISABLED ? address - 1 : address;
 			if (!Program.memory.Exists(address))
 			{
-				SendMessage(Level.ERR, $"Memory address {address} does not exist.");
+				SendMessage(Level.ERR, $"Memory address {address} does not exist.", 6);
 			}
 			else
 			{
@@ -1167,7 +1169,7 @@ namespace Maartanic
 
 				default:
 					result = 0.0d;
-					SendMessage(Level.ERR, $"Unrecognized function {function}.");
+					SendMessage(Level.ERR, $"Unrecognized function {function}.", 10);
 					break;
 			}
 			string resultS = result.ToString();
@@ -1202,7 +1204,7 @@ namespace Maartanic
 					break;
 
 				default:
-					SendMessage(Level.ERR, $"Unrecognized operation {operation}.");
+					SendMessage(Level.ERR, $"Unrecognized operation {operation}.", 10);
 					break;
 			}
 			SetVariable(varName, ref result);
@@ -1288,7 +1290,7 @@ namespace Maartanic
 
 				default:
 					r = false;
-					SendMessage(Level.ERR, $"Unrecognized CMPR option {args[0].ToUpper()}.");
+					SendMessage(Level.ERR, $"Unrecognized CMPR option {args[0].ToUpper()}.", 10);
 					break;
 
 			}
@@ -1325,7 +1327,7 @@ namespace Maartanic
 				case '%':
 					return num1 % num2;
 				default:
-					SendMessage(Level.ERR, $"Invalid operator {op} used");
+					SendMessage(Level.ERR, $"Unrecognized operator {op} used", 10);
 					return 0.0d;
 			}
 		}
@@ -1339,7 +1341,7 @@ namespace Maartanic
 			}
 			else
 			{
-				SendMessage(Level.ERR, $"The variable {varName} does not exist.");
+				SendMessage(Level.ERR, $"The variable {varName} does not exist.", 6);
 			}
 		}
 
@@ -1356,7 +1358,7 @@ namespace Maartanic
 			if (varName.Length == 0)
 			{
 				varName = "NULL";
-				SendMessage(Level.ERR, "Malformed variable");
+				SendMessage(Level.ERR, "Malformed variable", 11);
 				return;
 			}
 			if (varName[0] == '$')
@@ -1374,7 +1376,7 @@ namespace Maartanic
 				}
 				else
 				{
-					SendMessage(Level.ERR, $"The variable {varName[1..]} does not exist.");
+					SendMessage(Level.ERR, $"The variable {varName[1..]} does not exist.", 6);
 					varName = "NULL";
 				}
 			}
@@ -1392,7 +1394,7 @@ namespace Maartanic
 							}
 							else
 							{
-								SendMessage(Level.ERR, $"Tried accessing unallocated memory space {address}.");
+								SendMessage(Level.ERR, $"Tried accessing unallocated memory space {address}.", 6);
 								varName = "NULL";
 							}
 						}
@@ -1409,7 +1411,7 @@ namespace Maartanic
 						}
 						else
 						{
-							SendMessage(Level.ERR, $"Corrupted variable name syntax {varName} for index.");
+							SendMessage(Level.ERR, $"Corrupted variable name syntax {varName} for index.", 11);
 							varName = "NULL";
 						}
 						break;
@@ -1436,7 +1438,7 @@ namespace Maartanic
 								else
 								{
 									varName = "NULL";
-									SendMessage(Level.ERR, $"Argument @{address} does not exist.");
+									SendMessage(Level.ERR, $"Argument @{address} does not exist.", 6);
 								}
 							}
 						}
@@ -1532,7 +1534,7 @@ namespace Maartanic
 			}
 			catch (IndexOutOfRangeException)
 			{
-				SendMessage(Level.ERR, "Reached max amount of arguments per instruction.");
+				SendMessage(Level.ERR, "Reached max amount of arguments per instruction.", 12);
 			}
 			string[] finalOutput = new string[RetResultPos];
 			{ // Make scope
@@ -1584,7 +1586,7 @@ namespace Maartanic
 				}
 				if (!isAvailable)
 				{
-					SendMessage(Level.ERR, "Screen component took too long to load.");
+					SendMessage(Level.ERR, "Screen component took too long to load.", 13);
 				}
 				else
 				{
@@ -1606,7 +1608,7 @@ namespace Maartanic
 						times++;
 						if (times > 254)
 						{
-							SendMessage(Level.ERR, "Screen component did not respond.");
+							SendMessage(Level.ERR, "Screen component did not respond.", 14);
 							break;
 						}
 					}
@@ -1655,7 +1657,7 @@ namespace Maartanic
 							break;
 
 						default:
-							SendMessage(Level.ERR, "Unrecognized engine option mode.");
+							SendMessage(Level.ERR, "Unrecognized engine option mode.", 10);
 							break;
 					}
 					break;
@@ -1678,13 +1680,13 @@ namespace Maartanic
 							break;
 
 						default:
-							SendMessage(Level.ERR, "Unrecognized graphics option mode.");
+							SendMessage(Level.ERR, "Unrecognized graphics option mode.", 10);
 							break;
 					}
 					break;
 
 				default:
-					SendMessage(Level.ERR, "Unrecognized engine option.");
+					SendMessage(Level.ERR, "Unrecognized engine option.", 10);
 					break;
 			}
 		}

@@ -78,6 +78,12 @@ namespace Maartanic
 			}
 			return InternalCompare(ref compareIn, ref lineInfo, ref e);
 		}
+		
+		// Return true if event succesfully caught, else return false and let the Engine handle the exception.
+		internal bool CatchEvent(Engine e)
+		{
+			return false;
+		}
 
 		internal string Instructions(Engine e, ref string[] lineInfo, ref string[] args)
 		{
@@ -132,7 +138,7 @@ namespace Maartanic
 								{
 									if (!selfRegulatedBreak)
 									{
-										e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
+										e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.", 15);
 									}
 									else
 									{
@@ -205,7 +211,7 @@ namespace Maartanic
 							{
 								if (!selfRegulatedBreak)
 								{
-									e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.");
+									e.SendMessage(Engine.Level.ERR, "FOR statement failed to execute.", 15);
 								}
 								else
 								{
@@ -407,7 +413,7 @@ namespace Maartanic
 							{
 								if (!selfRegulatedBreak)
 								{
-									e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute.");
+									e.SendMessage(Engine.Level.ERR, "WHILE statement failed to execute.", 15);
 								}
 								else
 								{
@@ -489,7 +495,7 @@ namespace Maartanic
 						{
 							if (!selfRegulatedBreak)
 							{
-								e.SendMessage(Engine.Level.ERR, "DOWHILE statement failed to execute.");
+								e.SendMessage(Engine.Level.ERR, "DOWHILE statement failed to execute.", 15);
 							}
 							else
 							{
@@ -663,7 +669,7 @@ namespace Maartanic
 					}
 					else
 					{
-						e.SendMessage(Engine.Level.ERR, "Cannot set clipboard outside of real mode.");
+						e.SendMessage(Engine.Level.ERR, "Cannot set clipboard outside of real mode.", 16);
 					}
 					break;
 
@@ -745,6 +751,9 @@ namespace Maartanic
 						e.SetVariable(args[0], ref pntX);
 						e.SetVariable(args[1], ref pntY);
 					}
+					break;
+
+				case "TRY": // TRY { code } CATCH { code } FINALLY { code } ENDT
 					break;
 
 				default:

@@ -153,7 +153,7 @@ namespace Maartanic
 					break;
 
 				default:
-					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (GPU.)");
+					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (GPU.)", 10);
 					break;
 			}
 			return null;

@@ -135,7 +135,7 @@ namespace Maartanic
 				{
 					if (EN != null)
 					{
-						EN.SendMessage(Engine.Level.ERR, $"Malformed {typeof(T).Name} '{input}' found.");
+						EN.SendMessage(Engine.Level.ERR, $"Malformed {typeof(T).Name} '{input}' found.", 11);
 					}
 					else
 					{
@@ -168,7 +168,7 @@ namespace Maartanic
 			}
 			catch (ArgumentException)
 			{
-				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '0x{input[1..]}' found.");
+				EN.SendMessage(Engine.Level.ERR, $"Malformed hexadecimal '0x{input[1..]}' found.", 11);
 				return default;
 			}
 		}

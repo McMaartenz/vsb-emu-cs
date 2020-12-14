@@ -241,7 +241,7 @@ namespace Maartanic
 			}
 			else
 			{
-				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse X position outside of graphics mode.");
+				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse X position outside of graphics mode.", 16);
 				return 0;
 			}
 		}
@@ -257,7 +257,7 @@ namespace Maartanic
 			}
 			else
 			{
-				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse Y position outside of graphics mode.");
+				Program.EN.SendMessage(Engine.Level.ERR, "Attempted to access mouse Y position outside of graphics mode.", 16);
 				return 0;
 			}
 		}
