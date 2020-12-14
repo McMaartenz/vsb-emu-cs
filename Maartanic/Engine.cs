@@ -344,7 +344,8 @@ namespace Maartanic
 				}
 
 				string[] args = ExtractArgs(ref lineInfo);
-				switch (lineInfo[0].ToUpper())
+				string instructionName = lineInfo[0].ToUpper();
+				switch (instructionName)
 				{
 					case "": // Empty
 						break;
@@ -831,7 +832,7 @@ namespace Maartanic
 					case "FLR":
 					case "CEIL":
 					case "SQRT":
-						MathFunction(lineInfo[0].ToUpper(), args[0], args.Length > 1 ? args[1] : null);
+						MathFunction(instructionName, args[0], args.Length > 1 ? args[1] : null);
 						break;
 
 					case "PUSH":
