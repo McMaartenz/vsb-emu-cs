@@ -396,6 +396,7 @@ namespace Maartanic
 						}
 						break;
 
+					case "EDEF": // Shorter
 					case "ENDDEF": // Possible end-of-function
 						if (lineInfo[1] == entryPoint)
 						{
