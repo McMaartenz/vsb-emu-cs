@@ -8,6 +8,7 @@ namespace Maartanic
 	{
 		internal Stack<string> usingStatementVariables = new Stack<string>();
 		internal Stack<int> usingStatementAmountGenerated = new Stack<int>();
+		internal int eventScope = 0; // 0: No trycatch, 10: 10 trycatches in program.
 		internal bool recognizedInstruction = false;
 
 		private readonly Dictionary<string, Func<Engine, string>> toBeAdded = new Dictionary<string, Func<Engine, string>>()
@@ -82,7 +83,12 @@ namespace Maartanic
 		// Return true if event succesfully caught, else return false and let the Engine handle the exception.
 		internal bool CatchEvent(Engine e)
 		{
-			return false;
+			if (eventScope <= 0)
+			{
+				return false;
+			}
+			e.StatementJumpOut("CATCH", "TRY");
+			return true;
 		}
 
 		internal string Instructions(Engine e, ref string[] lineInfo, ref string[] args)
@@ -754,6 +760,15 @@ namespace Maartanic
 					break;
 
 				case "TRY": // TRY { code } CATCH { code } FINALLY { code } ENDT
+					eventScope++;
+					break;
+
+				case "CATCH":
+					e.StatementJumpOut("ENDT", "TRY");
+					break;
+
+				case "ENDT":
+					eventScope--;
 					break;
 
 				default:
