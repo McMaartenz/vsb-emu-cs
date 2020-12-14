@@ -121,7 +121,12 @@ namespace Maartanic
 		{
 			using Brush internalBrush = new SolidBrush(internalPen.Color);
 			localGraphics.DrawString(text, font, internalBrush, new PointF(x, y));
-			internalBrush.Dispose();
+		}
+
+		internal void pImage(string file, float x, float y)
+		{
+			using Image image = Image.FromFile(file);
+			localGraphics.DrawImage(image, x, y);
 		}
 	}
 }

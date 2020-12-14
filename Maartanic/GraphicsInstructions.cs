@@ -152,6 +152,10 @@ namespace Maartanic
 					Program.graphics.FilledPolygon(GatherPoints(ref args));
 					break;
 
+				case "PIMG": // PIMG [img] [x] [y]
+					Program.graphics.pImage(args[0], Parse<float>(args[1]), Parse<float>(args[2]));
+					break;
+
 				default:
 					e.SendMessage(Engine.Level.ERR, $"Unrecognized instruction \"{lineInfo[0]}\". (GPU.)", 10);
 					break;
