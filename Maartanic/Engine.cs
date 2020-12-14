@@ -115,17 +115,16 @@ namespace Maartanic
 		}
 
 		// Engine(): Class constructor, returns if given file does not exist.
-		internal Engine (string startPos)
+		internal Engine (string file)
 		{
 			redraw = true;
 			KeyOutput = false;
-			executable = File.Exists(startPos);
+			executable = File.Exists(file);
 			if (!executable)
 			{
-				Console.WriteLine($"The file {startPos} does not exist.");
 				return;
 			}
-			scriptFile = startPos;
+			scriptFile = file;
 		}
 
 		// Engine() OVERLOADED: Specify your entry point
@@ -137,7 +136,6 @@ namespace Maartanic
 			executable = File.Exists(startPos);
 			if (!executable)
 			{
-				Console.WriteLine($"The file {startPos} does not exist.");
 				return;
 			}
 			FillPredefinedList();
@@ -180,16 +178,16 @@ namespace Maartanic
 					switch ((int)a)
 					{
 						case 0:
-							Console.Write($"\nMRT INF line {lineIndex}: {message}");
+							Console.Write($"\nINF l{lineIndex}: {message}");
 							break;
 						case 1:
-							Console.Write($"\nMRT WRN line {lineIndex}: {message}");
+							Console.Write($"\nWRN l{lineIndex}: {message}");
 							break;
 						case 2:
 							if (Program.SettingExtendedMode != Mode.ENABLED || !Program.extendedMode.CatchEvent(this, code))
 							{
-								Console.Write($"\nUncaught exception c{code} at l{lineIndex}: {message}");
-								if (!Program.stopAsking) //TODO only let user know, when no TRYCATCH statement caught the event.
+								Console.Write($"\nUncaught exception 0x{code:D2} at l{lineIndex}: {message}");
+								if (!Program.stopAsking)
 								{
 									if (!OutputForm.ErrorMessage($"Line {lineIndex}: " + message))
 									{
@@ -311,6 +309,26 @@ namespace Maartanic
 			generatedItems.Add(varName);
 			CreateVariable(varName, data);
 			return generatedItems.ToArray(); // List of generated items (which may be discarded if not for use) for USING.
+		}
+
+		internal void CallFunction(string file, string entryPoint, string[] excessArg, int toIgnore)
+		{
+			childProcess = new Engine(file, entryPoint);
+			if (childProcess.Executable())
+			{
+				string[] programArgs = new string[excessArg[toIgnore..].Length];
+				for (int i = toIgnore; i < excessArg.Length; i++)
+				{
+					programArgs[i - toIgnore] = excessArg[i];
+				}
+				childProcess.arguments = programArgs;
+				returnedValue = childProcess.StartExecution();
+			}
+			else
+			{
+				SendMessage(Level.ERR, "The file does not exist.", 8);
+			}
+			childProcess = null;
 		}
 
 		// StartExecution(): "Entry point" to the program. This goes line by line, and executes instructions.
@@ -741,22 +759,7 @@ namespace Maartanic
 					case "DO":
 					case "CALL":
 						{
-							childProcess = new Engine(scriptFile, args[0]);
-							if (childProcess.Executable())
-							{
-								string[] programArgs = new string[args[1..].Length];
-								for (int i = 1; i < args.Length; i++)
-								{
-									programArgs[i - 1] = args[i];
-								}
-								childProcess.arguments = programArgs;
-								returnedValue = childProcess.StartExecution();
-							}
-							else
-							{
-								SendMessage(Level.ERR, "Program was not executable.", 8);
-							}
-							childProcess = null;
+							CallFunction(scriptFile, args[0], args, 1);
 						}
 						break;
 

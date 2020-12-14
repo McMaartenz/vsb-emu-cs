@@ -778,6 +778,10 @@ namespace Maartanic
 					e.SendMessage(Engine.Level.ERR, args[1], Parse<uint>(args[0]));
 					break;
 
+				case "EXTCALL": // EXTCALL [file] [entry point]
+					e.CallFunction(args[0], args[1], args, 2);
+					break;
+
 				default:
 					recognizedInstruction = false;
 					return null;
