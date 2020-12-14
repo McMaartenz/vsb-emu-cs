@@ -186,9 +186,9 @@ namespace Maartanic
 							Console.Write($"\nMRT WRN line {lineIndex}: {message}");
 							break;
 						case 2:
-							if (Program.SettingExtendedMode != Mode.ENABLED || !Program.extendedMode.CatchEvent(this))
+							if (Program.SettingExtendedMode != Mode.ENABLED || !Program.extendedMode.CatchEvent(this, code))
 							{
-								Console.Write($"\nUncaught exception (E{code}) at l{lineIndex}: {message}");
+								Console.Write($"\nUncaught exception {code} at l{lineIndex}: {message}");
 								if (!Program.stopAsking) //TODO only let user know, when no TRYCATCH statement caught the event.
 								{
 									if (!OutputForm.ErrorMessage($"Line {lineIndex}: " + message))

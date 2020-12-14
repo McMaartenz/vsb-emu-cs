@@ -10,6 +10,7 @@ namespace Maartanic
 		internal Stack<int> usingStatementAmountGenerated = new Stack<int>();
 		internal int eventScope = 0; // 0: No trycatch, 10: 10 trycatches in program.
 		internal bool recognizedInstruction = false;
+		private uint exceptionCode = 0;
 
 		private readonly Dictionary<string, Func<Engine, string>> toBeAdded = new Dictionary<string, Func<Engine, string>>()
 		{
@@ -22,7 +23,8 @@ namespace Maartanic
 			{ "pw",         (e) => Program.SettingGraphicsMode == Engine.Mode.ENABLED ? Program.WIN_WIDTH.ToString() : Program.CON_WIDTH.ToString() }, // Display window width
 			{ "ph",         (e) => Program.SettingGraphicsMode == Engine.Mode.ENABLED ? Program.WIN_HEIGHT.ToString() : Program.CON_HEIGHT.ToString() }, // Display window height
 			{ "scrw",       (e) => OutputForm.app.GetScreenResolution().Width.ToString() }, // Get screen resolution width
-			{ "scrh",       (e) => OutputForm.app.GetScreenResolution().Height.ToString() } // Get screen resolution height
+			{ "scrh",       (e) => OutputForm.app.GetScreenResolution().Height.ToString() }, // Get screen resolution height
+			{ "exc",		(e) => Program.extendedMode.exceptionCode.ToString() }
 		};
 
 		internal ExtendedInstructions()
@@ -81,12 +83,13 @@ namespace Maartanic
 		}
 		
 		// Return true if event succesfully caught, else return false and let the Engine handle the exception.
-		internal bool CatchEvent(Engine e)
+		internal bool CatchEvent(Engine e, uint code)
 		{
 			if (eventScope <= 0)
 			{
 				return false;
 			}
+			exceptionCode = code;
 			e.StatementJumpOut("CATCH", "TRY");
 			return true;
 		}
